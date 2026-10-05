@@ -1,0 +1,158 @@
+---
+// src/components/SiteHeader.astro - the masthead: organisation name, one line of
+// positioning, and the primary navigation.
+//
+// ---------------------------------------------------------------------------
+// PLACEHOLDER NAME AND COPY - DO NOT SHIP AS IS
+// ---------------------------------------------------------------------------
+//
+// SITE_NAME and SITE_TAGLINE in src/lib/site.ts are PROVISIONAL. The client has
+// not chosen the organisation's name, tagline, voice or domain (ROADMAP.md,
+// "Open items needing the user"). They are deliberately plain rather than
+// plausibly impressive: a placeholder that reads like a finished brand is one
+// somebody forgets to replace, and this masthead is the first thing on the page.
+//
+// The `data-provisional` attribute below is a machine-readable marker so the
+// swap is findable by grep and not only by reading. Remove it in Phase 5.
+//
+// ---------------------------------------------------------------------------
+// WHY THE NAV IS LINKS AND NOT A SCRIPT
+// ---------------------------------------------------------------------------
+//
+// The brief requires the site to be usable with JavaScript disabled, and this
+// project has already learned that a control which silently degrades is worse
+// than one that says what it does (see ThemeSwitcher.astro). Plain anchor
+// elements are the whole navigation: they work with no scripting, they are
+// crawlable, they
+// can be opened in a new tab, copied, and middle-clicked. A menu built on
+// button + script would need a working non-script fallback anyway, so the
+// fallback would become the primary implementation and the script would only be
+// removing a page load.
+//
+
+import { SITE_NAME, SITE_TAGLINE, withBase } from '../lib/site'
+
+interface Props {
+  /** The current path, used to mark the current nav item. */
+  currentPath?: string
+}
+
+const { currentPath = '/' } = Astro.props
+
+// Hardcoded here because these are SITE SECTIONS, not data. They are internal
+// routes that exist whether or not the dataset has anything to put in them.
+const navItems = [
+  { href: '/', label: 'Latest' },
+  { href: '/events/', label: 'Events' },
+  { href: '/about/', label: 'About' }
+]
+
+const isCurrent = (href: string) => currentPath === href
+---
+
+<header class="masthead">
+  <div class="masthead__inner">
+    <p class="label masthead__label" data-provisional="name-and-tagline">
+      A reading room
+    </p>
+
+    <p class="masthead__name">
+      <a class="masthead__home" href={withBase('/')} data-provisional="org-name">
+        {SITE_NAME}
+      </a>
+    </p>
+
+    <p class="masthead__tagline">{SITE_TAGLINE}</p>
+
+    <nav class="masthead__nav" aria-label="Primary">
+      <ul class="masthead__list">
+        {
+          navItems.map((item) => (
+            <li class="masthead__item">
+              <a
+                class="masthead__link"
+                href={withBase(item.href)}
+                aria-current={isCurrent(item.href) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .masthead {
+    padding-block: var(--space-6) var(--space-5);
+    border-block-end: var(--rule-width-strong) solid var(--rule-strong);
+  }
+
+  .masthead__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .masthead__label {
+    margin-block-end: var(--space-2);
+  }
+
+  .masthead__name {
+    margin-block: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-2xl);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  /* The site name is a link home on every page except the home page itself,
+     where linking the H1 to the page you are on is a dead control. */
+  .masthead__home {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .masthead__home:hover,
+  .masthead__home:focus-visible {
+    color: var(--link-hover);
+    text-decoration: underline;
+  }
+
+  .masthead__tagline {
+    max-width: var(--measure);
+    margin-block-end: 0;
+    font-size: var(--size-md);
+    color: var(--text-muted);
+  }
+
+  .masthead__nav {
+    margin-block-start: var(--space-4);
+  }
+
+  .masthead__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    margin-block-end: 0;
+    padding-inline-start: 0;
+    list-style: none;
+  }
+
+  .masthead__link {
+    font-size: var(--size-sm);
+    letter-spacing: var(--tracking-normal);
+  }
+
+  /* The current page is marked by an underline AND by aria-current. Colour and
+     bold weight alone would be the only signal otherwise, and bold weight is a
+     weak signal for a reader who cannot distinguish the accent from the text
+     colour. */
+  .masthead__link[aria-current='page'] {
+    font-weight: var(--weight-bold);
+    text-decoration-thickness: var(--rule-width-strong);
+  }
+</style>

@@ -55,6 +55,45 @@ Node 24 satisfies the `engines.node: ">=22"` floor in `package.json`.
 - PowerShell 5.1 is the shell. It does not throw on a failed native command:
   check `$LASTEXITCODE` after every `npm`/`git`/`node` call.
 
+## Module resolution: `.ts` specifiers, when a src/lib module must load in bare Node
+
+Verified 2026-10-05 (by hitting it, not by reading it).
+
+- `tsconfig.json` extends `astro/tsconfigs/strict`, which sets
+  `moduleResolution: "Bundler"` and `allowImportingTsExtensions: true`. So
+  **Vite/Astro** resolve an extensionless relative import (`./months` ->
+  `months.ts`) without complaint.
+- **Bare Node does not.** Node's ESM resolver has no idea `months` means
+  `months.ts`, and fails with `ERR_MODULE_NOT_FOUND`. Node 24 DOES strip
+  TypeScript types when loading a `.ts` file, so `./months.ts` works in both.
+- **Consequence:** any module under `src/lib/` that `npm test` or a `scripts/`
+  CLI must import has to use explicit `.ts` specifiers. That diverges from the
+  extensionless style used in `.astro` files, and it is load-bearing: the day
+  someone "tidies" those specifiers, `node --test` breaks while `npm run build`
+  keeps working, which is the worst possible split - the fast check passes and the
+  slow one fails.
+- **Corollary about this repo's own comments:** `src/lib/articles.ts` claims
+  "node --test can import it directly (Node 24 strips the types)". No test
+  imports that module, so the claim was never exercised, and it is false as
+  written for the extensionless-import reason above. Do not inherit a claim about
+  a code path - run it.
+- `import x from './data.json' with { type: 'json' }` works in bare Node 24 and in
+  the Astro build. That import-attribute form is the one in use here.
+
+## Windows file encodings that will bite a hand-edited data file
+
+- **`Out-File -Encoding utf8` and Notepad write a UTF-8 BOM on this machine.**
+  `JSON.parse` rejects a leading BOM outright, and the resulting error points at
+  the opening brace with "unexpected token" - which sends an author looking for
+  a JSON syntax error that is not there. Observed live on 2026-10-05 via a probe
+  that happened to write its scratch file that way.
+  `scripts/check-events.mjs` strips it and diagnoses it;
+  `test/events.test.mjs` asserts the committed `data/events.json` has none.
+- When probing with PowerShell, prefer `node -e` with `fs` over PowerShell's
+  file cmdlets for anything that must land byte-exact. Where a BOM does get
+  introduced by accident, `[System.IO.File]::ReadAllText`/`WriteAllText` and
+  `Get-FileHash` are the way to prove the repair rather than assume it.
+
 ## State at session start (2026-10-05)
 
 - The project directory contained exactly one file, `ROADMAP.md`.

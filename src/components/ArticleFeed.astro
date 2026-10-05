@@ -1,0 +1,71 @@
+---
+// src/components/ArticleFeed.astro - a list of ArticleCards.
+//
+// This exists so that the home page, the latest page and every topic page render
+// the feed through ONE component. Three pages calling ArticleCard directly in
+// slightly different ways is three chances for one of them to sort differently,
+// wrap differently, or forget the empty-dataset case - and the empty case is not
+// hypothetical, because it is exactly what a failed fetch would produce.
+//
+// The empty state is handled HERE, once, in words that are true rather than
+// apologetic. It is the case where the pipeline found nothing and the site
+// still has to be honest about it.
+//
+
+import ArticleCard from './ArticleCard.astro'
+import type { Article } from '../lib/articles'
+
+interface Props {
+  articles: Article[]
+  /** Accessible name for the list region, e.g. "Latest articles". */
+  label?: string
+  /** Shown instead of the list when there is nothing to show. */
+  emptyMessage?: string
+}
+
+const {
+  articles,
+  label = 'Articles',
+  emptyMessage = 'There is nothing to show here right now.'
+} = Astro.props
+---
+
+{
+  articles.length === 0 ? (
+    <div class="feed-empty">
+      <h2 class="feed-empty__title">Nothing here yet</h2>
+      <p class="feed-empty__body">{emptyMessage}</p>
+    </div>
+  ) : (
+    <section class="feed" aria-label={label}>
+      {articles.map((article) => (
+        <ArticleCard article={article} headingLevel="h3" />
+      ))}
+    </section>
+  )
+}
+
+<style>
+  .feed {
+    display: flex;
+    flex-direction: column;
+    /* No gap and no border on the first card: the cards carry their own
+       top rule and top padding, so the list reads as a run of ruled entries
+       rather than as boxes in a stack. */
+    margin-block-end: var(--space-6);
+  }
+
+  .feed-empty {
+    padding-block: var(--space-7);
+    border-block-start: var(--rule-width) solid var(--rule);
+  }
+
+  .feed-empty__title {
+    font-size: var(--size-lg);
+  }
+
+  .feed-empty__body {
+    margin-block-end: 0;
+    color: var(--text-muted);
+  }
+</style>

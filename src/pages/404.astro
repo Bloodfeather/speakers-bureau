@@ -1,0 +1,177 @@
+---
+// src/pages/404.astro - the not-found page.
+//
+// WHY THIS PAGE OFFERS THE FEED AND NOT JUST AN APOLOGY: a 404 is often the end
+// of a reader's journey on a site this small. Someone who followed a broken or
+// mistyped link has already shown they want to read something, so the useful
+// thing to offer is the actual writing plus a way back, rather than "not found"
+// and a dead end.
+//
+// It also lists the REAL topic pages, built from topics(). On today's dataset
+// that is two, so the list is exactly as long as the truth requires. When a tag
+// is added in data/sources.yml and the site is rebuilt, a new entry appears
+// here with no edit to this file - which is the point of deriving the list
+// instead of typing it.
+//
+// Astro serves this for any unmatched path under the deployed base, and
+// (importantly) this project does NOT configure a 404.html rewrite, because a
+// project-site GitHub Pages deployment cannot serve one from a subpath. The
+// GitHub Pages native 404 will be served instead, which is a known limitation
+// recorded here rather than left for someone to discover.
+//
+
+import PageShell from '../components/PageShell.astro'
+import ArticleCard from '../components/ArticleCard.astro'
+import { articles, formatUtcDate, summarise, topics } from '../lib/articles'
+import { SITE_NAME, withBase } from '../lib/site'
+
+const feed = articles
+const topicList = topics(feed)
+const stats = summarise(feed)
+
+// A handful of the newest articles, so the 404 is still a way into the content.
+const suggestions = feed.slice(0, 3)
+
+const description =
+  `That page does not exist. Here is where everything else is: the latest writing from the ` +
+  `publications ${SITE_NAME} follows, newest first.`
+---
+
+<PageShell title="Page not found" description={description}>
+  <div class="page-head">
+    <p class="label page-head__label">Error 404</p>
+    <h1 class="page-head__title">That page is not here</h1>
+
+    <p class="page-head__body">
+      The address you followed does not match a page on this site. It may have been
+      mistyped, or it may have been a link to an article on a publication's own site
+      rather than to a page here.
+    </p>
+
+    <ul class="page-head__actions">
+      <li><a class="page-head__action" href={withBase('/')}>Go to the front page</a></li>
+      <li><a class="page-head__action" href={withBase('/latest/')}>See all recent writing</a></li>
+      <li><a class="page-head__action" href={withBase('/about/')}>About this site</a></li>
+    </ul>
+  </div>
+
+  {
+    topicList.length > 0 && (
+      <nav class="topics" aria-label="Browse by topic">
+        <h2 class="label topics__heading">Browse by topic</h2>
+        <ul class="topics__list">
+          {topicList.map((topic) => (
+            <li class="topics__item">
+              <a class="chip" href={withBase(`/topic/${topic.slug}/`)}>
+                {topic.label}
+                <span class="topics__count">{topic.count}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )
+  }
+
+  {
+    suggestions.length > 0 && (
+      <section class="suggestions" aria-labelledby="suggestions-heading">
+        <h2 class="suggestions__heading" id="suggestions-heading">
+          Or start with the most recent writing
+        </h2>
+        <div class="suggestions__list">
+          {suggestions.map((article) => (
+            <ArticleCard article={article} headingLevel="h3" />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    stats.total > 0 && (
+      <p class="footnote">
+        {stats.total} article{stats.total === 1 ? '' : 's'} are held right now
+        {formatUtcDate(stats.oldest) && formatUtcDate(stats.newest)
+          ? `, published between ${formatUtcDate(stats.oldest)} and ${formatUtcDate(stats.newest)}.`
+          : '.'}
+      </p>
+    )
+  }
+</PageShell>
+
+<style>
+  .page-head {
+    padding-block-end: var(--space-5);
+    margin-block-end: var(--space-6);
+    border-block-end: var(--rule-width) solid var(--rule);
+  }
+
+  .page-head__label {
+    margin-block-end: var(--space-2);
+  }
+
+  .page-head__title {
+    font-size: var(--size-3xl);
+  }
+
+  .page-head__body {
+    max-width: var(--measure);
+    font-size: var(--size-md);
+  }
+
+  .page-head__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-5);
+    margin-block-end: 0;
+    padding-inline-start: 0;
+    list-style: none;
+  }
+
+  .topics {
+    margin-block-end: var(--space-6);
+  }
+
+  .topics__heading {
+    margin-block-end: var(--space-3);
+  }
+
+  .topics__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-end: 0;
+    padding-inline-start: 0;
+    list-style: none;
+  }
+
+  .topics__item {
+    display: flex;
+  }
+
+  .topics__count {
+    margin-inline-start: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--size-xs);
+    opacity: 0.75;
+  }
+
+  .suggestions__heading {
+    font-size: var(--size-xl);
+    margin-block-end: var(--space-2);
+  }
+
+  /* The suggestions sit on a surface rather than on the page background, so the
+     404 does not read as the ordinary feed with a heading missing. */
+  .suggestions__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .footnote {
+    margin-block-start: var(--space-5);
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+</style>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320">
+  <title>Placeholder artwork: county budget debate, two opposed ledgers either side of a divider</title>
+  <rect width="480" height="320" fill="#F0F3F6"/>
+  <rect x="0" y="0" width="232" height="320" fill="#DCE4EB"/>
+  <rect x="248" y="0" width="232" height="320" fill="#E7ECF1"/>
+  <rect x="232" y="0" width="16" height="320" fill="#2C3E4C"/>
+  <g fill="#46617A">
+    <rect x="40" y="130" width="164" height="20"/>
+    <rect x="40" y="168" width="132" height="20"/>
+    <rect x="40" y="206" width="96" height="20"/>
+  </g>
+  <g fill="#6E879B">
+    <rect x="276" y="130" width="96" height="20"/>
+    <rect x="276" y="168" width="132" height="20"/>
+    <rect x="276" y="206" width="164" height="20"/>
+  </g>
+  <g fill="#2C3E4C">
+    <rect x="40" y="46" width="120" height="10"/>
+    <rect x="320" y="46" width="120" height="10"/>
+    <rect x="40" y="272" width="400" height="6"/>
+  </g>
+</svg>

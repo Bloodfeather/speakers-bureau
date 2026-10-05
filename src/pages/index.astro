@@ -1,25 +1,268 @@
 ---
-// Phase 2.5 placeholder page. It exists to prove the theme foundation end to
-// end - three themes, one default, no colour literal in this file - and to give
-// the switcher somewhere to live before Phase 3 designs the real front page.
-// Phase 3 replaces the body; the Layout, the styles and the switcher do not
-// change.
-import Layout from '../layouts/Layout.astro'
-import ThemeSwitcher from '../components/ThemeSwitcher.astro'
+// src/pages/index.astro - the front door.
+//
+// THE SITE'S JOB, per the client decision of 2026-10-05: "a front door / reading
+// room". Introduce the organisation, then present the latest writing as a curated
+// feed with strong obvious links OUT to the publications themselves. The client
+// chose this over a searchable library and over a booking funnel.
+//
+// ---------------------------------------------------------------------------
+// THE HONESTY CONSTRAINT, AND WHERE IT BITES ON THIS PAGE
+// ---------------------------------------------------------------------------
+//
+// Publication RSS returns roughly 20 posts per publication, so this site holds a
+// WINDOW, not a history. On the current dataset the newest article is 1 October
+// 2026 and the oldest is 23 June 2024 - and that two-year span is NOT two years
+// of writing: it is 20 recent posts from an active publication plus 3 posts from
+// a publication that last wrote in 2025 (data/sources.yml records this). So:
+//
+//   - NO section here says "archive", "library", "browse all", "every article"
+//     or "our collection". Every one of those would be false.
+//   - The section heading is "Latest writing" and the disclosure sentence above
+//     the feed says what the window actually is, in words, with the real numbers
+//     taken from the data rather than typed by hand.
+//   - The featured-articles count is computed from the dataset, so it cannot
+//     drift away from what is actually on the page.
+//
+// ---------------------------------------------------------------------------
+// WHY NO SEARCH BOX
+// ---------------------------------------------------------------------------
+//
+// A search field over 23 items is theatre: it cannot find anything a reader
+// cannot already see by scrolling, and it is the one control on the site that
+// would be useless with JavaScript disabled. The client's decision was a curated
+// reading feed, not a searchable library, so there is no search. If full-text
+// search is ever wanted it needs a real index (Phase 4/5), not a filter over
+// titles that are already on screen.
+//
+
+import PageShell from '../components/PageShell.astro'
+import ArticleFeed from '../components/ArticleFeed.astro'
+import TopicNav from '../components/TopicNav.astro'
+import { articles, formatUtcDate, summarise, topics } from '../lib/articles'
+import { SITE_INTRO, SITE_WINDOW_NOTE, withBase } from '../lib/site'
+
+// The whole window, newest first. On the current dataset: 23 articles.
+const feed = articles
+const topicList = topics(feed)
+const stats = summarise(feed)
+
+// Real numbers, computed. If the dataset changes these strings change with it.
+const newestLabel = formatUtcDate(stats.newest)
+const oldestLabel = formatUtcDate(stats.oldest)
+
+// The home page shows a short, deliberately-chosen "start here" run and links
+// out to the full window. A front door that dumps all 43 cards is a list, not a
+// front door. The count is stated so the reader knows exactly what is behind the
+// link rather than clicking to find out.
+//
+// ---------------------------------------------------------------------------
+// WHY THIS IS NOT A PLAIN SLICE - the bug that produced this comment
+// ---------------------------------------------------------------------------
+//
+// The original version was `feed.slice(0, 6)` over the newest-first list. That
+// looked reasonable with 2 feeds and broke the moment a third arrived:
+//
+//   Malone News publishes DAILY. United Patriots publishes roughly weekly and
+//   Evan's Substack last wrote in February 2025. So the 6 newest items were 6
+//   Malone posts, and the front door - the one page whose job is to introduce an
+//   organisation and the writers behind it - displayed exactly ONE publication.
+//   Two of the three were invisible on the home page.
+//
+// The bug is not the constant, it is the assumption: that a "latest N" run
+// samples the publications. It only does when they publish at similar rates.
+//
+// The fix takes a proportional share per publication, newest-first within each,
+// then reassembles by date so the page still reads as one chronological feed.
+// A publication can never be crowded out by a busier one, and adding a fourth
+// publication needs no change here.
+const FEATURED_COUNT = 6
+
+const byPublication = new Map()
+for (const article of feed) {
+  const bucket = byPublication.get(article.sourceId)
+  if (bucket) bucket.push(article)
+  else byPublication.set(article.sourceId, [article])
+}
+
+// Round-robin across publications, newest-first within each. This guarantees
+// representation: each pass contributes at most one item per publication, so no
+// publication can take more than its share of the slots no matter how fast it
+// publishes.
+const featured = []
+let exhausted = false
+while (featured.length < FEATURED_COUNT && !exhausted) {
+  exhausted = true
+  for (const bucket of byPublication.values()) {
+    if (featured.length >= FEATURED_COUNT) break
+    const next = bucket.shift()
+    if (next) {
+      featured.push(next)
+      exhausted = false
+    }
+  }
+}
+// The round-robin walks publications in Map order, so restore true
+// chronological order for display.
+featured.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+
+const restCount = feed.length - featured.length
+
+// Which publications are actually present, derived rather than hardcoded.
+const publicationList = [...new Set(feed.map((a) => a.sourceName))].sort((a, b) =>
+  a.localeCompare(b)
+)
+
+const description =
+  `${SITE_INTRO} A reading room for the most recent writing from ${publicationList.length} independent ` +
+  `publication${publicationList.length === 1 ? '' : 's'}, with links straight out to each one.`
 ---
 
-<Layout title="Speakers Bureau">
-  <main class="container page-header">
-    <p class="label">A reading room</p>
-    <h1 class="page-title">Speakers Bureau</h1>
-    <p class="stack">
-      The site is being built. The theme foundation is in place: three themes,
-      selected by a <code>data-theme</code> attribute on the
-      <code>&lt;html&gt;</code> element, with this page defaulting to
-      <strong>civic</strong> and following the operating system's light or dark
-      setting until a theme is chosen.
+<PageShell title="Latest writing" description={description}>
+  <div class="intro">
+    <h1 class="intro__title">What is being written now</h1>
+    <p class="intro__lede">{SITE_INTRO}</p>
+
+    <p class="intro__window">
+      {SITE_WINDOW_NOTE}
+      {
+        newestLabel && oldestLabel && (
+          <span class="intro__span">
+            {' '}
+            Right now that is <strong>{stats.total}</strong> article{stats.total === 1 ? '' : 's'}{' '}
+            published between <strong>{oldestLabel}</strong> and <strong>{newestLabel}</strong>.
+          </span>
+        )
+      }
     </p>
 
-    <ThemeSwitcher />
-  </main>
-</Layout>
+    <TopicNav topics={topicList} />
+  </div>
+
+  <section class="featured" aria-labelledby="featured-heading">
+    <div class="section-head">
+      <h2 class="section-head__title" id="featured-heading">Latest writing</h2>
+      {
+        restCount > 0 && (
+          <p class="section-head__aside">
+            Showing the {featured.length} most recent.{' '}
+            <a class="section-head__link" href={withBase('/latest/')}>
+              See all {restCount + featured.length} in one page
+            </a>
+          </p>
+        )
+      }
+    </div>
+
+    <ArticleFeed
+      articles={featured}
+      label="Latest writing"
+      emptyMessage="The feeds returned nothing on the last run. When publication feeds respond again their posts will appear here."
+    />
+  </section>
+
+  <section class="publications" aria-labelledby="publications-heading">
+    <h2 class="label publications__heading" id="publications-heading">
+      Where this writing comes from
+    </h2>
+    <ul class="publications__list">
+      {
+        publicationList.map((name) => (
+          <li class="publications__item">{name}</li>
+        ))
+      }
+    </ul>
+    <p class="publications__note">
+      These are independent publications. We read them, we do not own them, and each
+      item below links out to where the writing actually lives. Read more
+      <a href={withBase('/about/')}>about how this site works</a>.
+    </p>
+  </section>
+</PageShell>
+
+<style>
+  .intro {
+    padding-block-end: var(--space-6);
+    margin-block-end: var(--space-6);
+    border-block-end: var(--rule-width) solid var(--rule);
+  }
+
+  .intro__title {
+    /* The one place on the site where the display size is used at full
+       strength. Everything below it steps down. */
+    font-size: var(--size-3xl);
+  }
+
+  .intro__lede {
+    max-width: var(--measure);
+    font-size: var(--size-md);
+    line-height: var(--leading-relaxed);
+  }
+
+  /* The window disclosure, on the front page, before the feed - not only in
+     the footer. A reader deciding whether to trust this site needs it before
+     they have scrolled to the bottom of it. */
+  .intro__window {
+    max-width: var(--measure);
+    padding-inline-start: var(--space-4);
+    border-inline-start: var(--rule-width-strong) solid var(--rule-strong);
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  .intro__span {
+    display: block;
+    margin-block-start: var(--space-2);
+  }
+
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-5);
+    margin-block-end: var(--space-2);
+  }
+
+  .section-head__title {
+    font-size: var(--size-2xl);
+  }
+
+  .section-head__aside {
+    margin-block-end: 0;
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  .publications {
+    margin-block-start: var(--space-7);
+    padding-block-start: var(--space-5);
+    border-block-start: var(--rule-width-strong) solid var(--rule-strong);
+  }
+
+  .publications__heading {
+    margin-block-end: var(--space-3);
+  }
+
+  .publications__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-6);
+    margin-block-end: var(--space-4);
+    padding-inline-start: 0;
+    list-style: none;
+  }
+
+  .publications__item {
+    font-family: var(--font-display);
+    font-size: var(--size-md);
+    font-weight: var(--weight-bold);
+  }
+
+  .publications__note {
+    max-width: var(--measure);
+    margin-block-end: 0;
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+</style>

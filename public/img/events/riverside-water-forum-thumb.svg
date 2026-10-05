@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320">
+  <title>Placeholder artwork: riverside water forum, overlapping waves beneath a low sun</title>
+  <rect width="480" height="320" fill="#E7F1F0"/>
+  <circle cx="372" cy="86" r="40" fill="#145E63"/>
+  <rect x="0" y="0" width="16" height="200" fill="#145E63"/>
+  <path d="M0 200 C60 174 120 226 180 200 C240 174 300 226 360 200 C420 174 462 200 480 196 L480 320 L0 320 Z" fill="#63AEAF"/>
+  <path d="M0 244 C60 218 120 270 180 244 C240 218 300 270 360 244 C420 218 462 244 480 240 L480 320 L0 320 Z" fill="#145E63"/>
+  <path d="M0 286 C60 264 120 308 180 286 C240 264 300 308 360 286 C420 264 462 286 480 282 L480 320 L0 320 Z" fill="#0C4A4E"/>
+  <g fill="#0C4A4E">
+    <rect x="48" y="52" width="146" height="11"/>
+    <rect x="48" y="74" width="82" height="6"/>
+  </g>
+</svg>

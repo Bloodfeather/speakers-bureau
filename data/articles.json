@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-05T20:52:55.663Z",
-  "articleCount": 23,
-  "sourceCount": 2,
+  "generatedAt": "2026-10-05T22:21:32.660Z",
+  "articleCount": 43,
+  "sourceCount": 3,
   "duplicateCount": 0,
   "sources": [
     {
@@ -27,9 +27,126 @@
       "itemCount": 3,
       "newItemCount": 3,
       "error": null
+    },
+    {
+      "id": "malone",
+      "name": "Malone News",
+      "tag": "commentary",
+      "status": "ok",
+      "httpStatus": 200,
+      "configuredUrl": "https://rwmalonemd.substack.com/feed",
+      "resolvedUrl": "https://www.malone.news/feed",
+      "itemCount": 20,
+      "newItemCount": 20,
+      "error": null
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-a-tale-of-two-cults",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "A Tale of Two Cults",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/a-tale-of-two-cults",
+      "image": "https://substackcdn.com/image/fetch/$s_!-S4B!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbf7c563d-ce54-4fa1-a00f-de3274733267_1672x941.png",
+      "publishedAt": "2026-10-05T15:24:09.000Z",
+      "excerpt": "The vaccine wars have produced two rival orthodoxies, and neither tolerates doubt or dissent.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-five-hospitals-and-a-denial",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Five Hospitals and a Denial",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/five-hospitals-and-a-denial",
+      "image": "https://substackcdn.com/image/fetch/$s_!LOf7!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc6049880-6407-45ea-87ff-64149b991168_1456x819.png",
+      "publishedAt": "2026-10-05T13:29:05.000Z",
+      "excerpt": "Update on Plague case in Siberia",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-sunday-strip-the-mice-are-not-alright",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Sunday Strip: The Mice Are Not Alright",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/sunday-strip-the-mice-are-not-alright",
+      "image": "https://substackcdn.com/image/fetch/$s_!H2Z-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1521709c-42a4-49b7-9ed2-baf76f6881fd_998x1158.png",
+      "publishedAt": "2026-10-04T16:24:47.000Z",
+      "excerpt": "Breaking Mews",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-broken-tube-a-plague-death-in",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Broken Tube: A Plague Death in Siberia",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-broken-tube-a-plague-death-in",
+      "image": "https://substackcdn.com/image/fetch/$s_!gN8H!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe6a8790c-0124-4b2d-966c-30cb64699dcd_1456x819.png",
+      "publishedAt": "2026-10-04T15:01:29.000Z",
+      "excerpt": "What does it prove?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-poop-peppers-and-a-mouse-in-the-brine",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Poop, Peppers and a Mouse in the Brine",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/poop-peppers-and-a-mouse-in-the-brine",
+      "image": "https://substackcdn.com/image/fetch/$s_!20sf!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2e42ddc9-e7d7-4d40-81a3-b6058a5e7b6b_1536x1024.png",
+      "publishedAt": "2026-10-03T14:15:44.000Z",
+      "excerpt": "Finger-lickin' good",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-friday-funnies-pass-the-grass",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Friday Funnies: Pass the Grass",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/friday-funnies-pass-the-grass",
+      "image": "https://substackcdn.com/image/fetch/$s_!gkG3!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6cf1e7ac-5439-49a7-991e-db623e155180_1560x1656.png",
+      "publishedAt": "2026-10-02T16:57:25.000Z",
+      "excerpt": "Cause Frankenfoods tastes so gud!",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-acip-goes-back-to-court",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "ACIP Goes Back to Court",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/acip-goes-back-to-court",
+      "image": "https://substackcdn.com/image/fetch/$s_!5m3y!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F82e24291-e2c0-4a43-bc57-0794e7a10ff9_1672x941.png",
+      "publishedAt": "2026-10-02T13:25:44.000Z",
+      "excerpt": "The fight over standing, executive power and judicial reach",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "unitedpatriotsalliance-substack-com-p-birds-of-a-liberal-feather-flock",
       "sourceId": "unitedpatriotsalliance",
@@ -61,6 +178,36 @@
       ]
     },
     {
+      "id": "www-malone-news-p-operation-stork-stall",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Operation Stork Stall",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/operation-stork-stall",
+      "image": "https://substackcdn.com/image/fetch/$s_!dAEO!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb18938be-b44e-4f31-9149-ccd8f75dc373_1536x1024.png",
+      "publishedAt": "2026-09-30T20:25:42.000Z",
+      "excerpt": "Operation Stork Speed stalls out in DC...",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-jd-kennedy-and-freebird",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "JD, Kennedy, and Freebird",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/jd-kennedy-and-freebird",
+      "image": "https://substackcdn.com/image/fetch/$s_!FC5Y!,w_256,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3b3eaef2-6254-48df-84c8-dd833035aad2_428x428.png",
+      "publishedAt": "2026-09-29T23:44:01.000Z",
+      "excerpt": "Plus other true stories",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
       "id": "unitedpatriotsalliance-substack-com-p-qatar-carolina-how-nelson-mullins",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -73,6 +220,171 @@
       "excerpt": "Please visit unitedpatriotsalliance.substack.com/t/darline and read our previous articles to better understand this infographic.",
       "categories": [
         "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-homesteading-exotic-poultry",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Homesteading: Exotic Poultry",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/homesteading-exotic-poultry",
+      "image": "https://substackcdn.com/image/fetch/$s_!kUJ4!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdf7f206f-cec7-43b9-93a2-65a6139269b1_1024x768.jpeg",
+      "publishedAt": "2026-09-29T13:41:07.000Z",
+      "excerpt": "Diversifying the Homestead for Profit",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-capture-of-maha",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Capture of MAHA",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-capture-of-maha",
+      "image": "https://substackcdn.com/image/fetch/$s_!MEUB!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2a461440-47fe-4372-9b61-6d7b54bb8dc0_1536x1024.png",
+      "publishedAt": "2026-09-28T15:07:26.000Z",
+      "excerpt": "The corporations moved in. The outsiders were pushed aside.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-sunday-strip-the-face-you-make",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Sunday Strip: The Face You Make",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/sunday-strip-the-face-you-make",
+      "image": "https://substackcdn.com/image/fetch/$s_!J-8T!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2806b697-93c9-4be9-88f6-1befe9961e79_848x688.png",
+      "publishedAt": "2026-09-27T15:05:03.000Z",
+      "excerpt": "At death’s door.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-zoomers-will-decide-the-2028-election",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Zoomers Will Decide the 2028 Election, and Neither Political Party Is the Answer",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/zoomers-will-decide-the-2028-election",
+      "image": "https://substackcdn.com/image/fetch/$s_!seSZ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F60effc25-41a9-44cc-8dd4-bc49bab4e6e9_3098x1728.png",
+      "publishedAt": "2026-09-26T16:46:28.000Z",
+      "excerpt": "Housing, Food, and the Decentralized Alternative",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-friday-funnies-ballroom-dance",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Friday Funnies: Ballroom Dance",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/friday-funnies-ballroom-dance",
+      "image": "https://substackcdn.com/image/fetch/$s_!IhJ3!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa00bcb61-d97f-45ea-8c98-f08f693dfecb_1680x1246.png",
+      "publishedAt": "2026-09-25T16:17:00.000Z",
+      "excerpt": "And other true stories.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-criminal-mrna-malfeasance-by-the",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Criminal mRNA Malfeasance by the CDC",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/criminal-mrna-malfeasance-by-the",
+      "image": "https://substackcdn.com/image/fetch/$s_!xT0t!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F525a4b8a-a970-4f55-afc4-2be109a66e0b_1664x892.png",
+      "publishedAt": "2026-09-25T13:27:25.000Z",
+      "excerpt": "And I am mad as hell about it",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-first-amendment-was-forged-in",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The First Amendment Was Forged in Virginia",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-first-amendment-was-forged-in",
+      "image": "https://substackcdn.com/image/fetch/$s_!a8Br!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd41f3d6f-ce6d-4fae-9340-a917509422bd_1672x941.png",
+      "publishedAt": "2026-09-24T18:01:12.000Z",
+      "excerpt": "The continuing fight over who gets to decide which freedoms government will allow",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-homesteading-fall-cometh",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Homesteading: Fall Cometh",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/homesteading-fall-cometh",
+      "image": "https://substackcdn.com/image/fetch/$s_!MmYm!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F740d2500-816d-46b4-87ab-4d964eb6bc60_2372x1580.png",
+      "publishedAt": "2026-09-23T21:31:30.000Z",
+      "excerpt": "And another rainy day",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-machine-that-decides-what-you",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Machine That Decides What You Know",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-machine-that-decides-what-you",
+      "image": "https://substackcdn.com/image/fetch/$s_!HcbL!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F12d57ce0-9353-41f3-ba90-16a905c0cead_1672x941.png",
+      "publishedAt": "2026-09-22T15:27:19.000Z",
+      "excerpt": "When “AI Safety” Becomes Information Control",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-kennedy-exception",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Kennedy Exception",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-kennedy-exception",
+      "image": "https://substackcdn.com/image/fetch/$s_!LtoX!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa5d78cd0-2e0f-4c02-84b8-dea2c9c6cc2d_1672x941.png",
+      "publishedAt": "2026-09-21T15:16:34.000Z",
+      "excerpt": "Kennedy runs HHS. Has loyalty replaced scrutiny?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-night-james-madison-froze-for",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Night James Madison Froze for Your Religious Freedom",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-night-james-madison-froze-for",
+      "image": "https://substackcdn.com/image/fetch/$s_!be_4!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa62c1140-c842-4fcc-83ab-0e1e86dae9a4_2622x1782.png",
+      "publishedAt": "2026-09-20T19:27:52.000Z",
+      "excerpt": "A hijacked ship, a runaway congregation, jailed Baptist preachers, and a snowy churchyard in Madison County, Virginia",
+      "categories": [
+        "commentary"
       ]
     },
     {

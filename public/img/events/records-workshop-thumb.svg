@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320">
+  <title>Placeholder artwork: records workshop, a stack of index cards</title>
+  <rect width="480" height="320" fill="#EFF2E4"/>
+  <rect y="252" width="480" height="6" fill="#556B2F"/>
+  <g stroke="#3F5021" stroke-width="4">
+    <rect x="104" y="96" width="272" height="72" fill="#F7F9F0"/>
+    <rect x="118" y="164" width="248" height="72" fill="#E7ECD6"/>
+    <rect x="94" y="232" width="288" height="72" fill="#F7F9F0"/>
+  </g>
+  <g fill="#7E9455">
+    <rect x="124" y="116" width="180" height="10"/>
+    <rect x="124" y="138" width="112" height="8"/>
+    <rect x="138" y="184" width="150" height="10"/>
+    <rect x="138" y="206" width="92" height="8"/>
+    <rect x="114" y="252" width="196" height="10"/>
+    <rect x="114" y="274" width="124" height="8"/>
+  </g>
+  <g fill="#3F5021">
+    <rect x="48" y="44" width="128" height="10"/>
+  </g>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320">
+  <title>Placeholder artwork: school board rally, a picket line of upright placards</title>
+  <rect width="480" height="320" fill="#F7EDE9"/>
+  <rect y="236" width="480" height="8" fill="#A3341F"/>
+  <g fill="#A3341F">
+    <rect x="30" y="150" width="22" height="86"/>
+    <rect x="70" y="118" width="22" height="118"/>
+    <rect x="110" y="162" width="22" height="74"/>
+    <rect x="150" y="104" width="22" height="132"/>
+    <rect x="190" y="142" width="22" height="94"/>
+    <rect x="230" y="128" width="22" height="108"/>
+    <rect x="270" y="170" width="22" height="66"/>
+    <rect x="310" y="110" width="22" height="126"/>
+    <rect x="350" y="156" width="22" height="80"/>
+    <rect x="390" y="134" width="22" height="102"/>
+    <rect x="428" y="166" width="22" height="70"/>
+  </g>
+  <g fill="#D97B62">
+    <rect x="70" y="130" width="22" height="6"/>
+    <rect x="150" y="116" width="22" height="6"/>
+    <rect x="310" y="122" width="22" height="6"/>
+  </g>
+  <g fill="#8A2817">
+    <rect x="30" y="48" width="132" height="10"/>
+    <rect x="30" y="68" width="78" height="6"/>
+  </g>
+</svg>

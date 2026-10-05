@@ -1,0 +1,301 @@
+# .github/workflows/refresh.yml - SpeakersBureau scheduled dataset refresh and
+# GitHub Pages deploy.
+#
+# ONE WORKFLOW, TWO JOBS, AND THAT IS THE DESIGN DECISION MOST WORTH DEFENDING
+# ---------------------------------------------------------------------------
+# A failed feed must be RED and must NOT publish. `refresh` and `deploy` are two
+# jobs in ONE workflow with `needs:`, so a feed failure skips the deploy and the
+# Actions UI shows exactly that: red refresh, grey skipped deploy. There is no
+# window in which a red run sits next to a green deployment reading as
+# contradictory.
+#
+# The tempting alternative is two independent workflows: publish on every
+# schedule regardless, keep the red one visible. Rejected, for one decisive
+# reason: GitHub Pages RETAINS the last successful deployment. A fetch failure
+# does not take the site down, it merely fails to refresh it, so blocking the
+# deploy costs exactly zero availability while buying a coherent signal. If the
+# Pages artifact is never published at all (first run, and the first fetch
+# fails), run the workflow manually and read the failure - that is the only
+# case where a failure blocks the first publish, and a red action is the correct
+# answer to it anyway.
+#
+# A second reason: after a failed refresh the dataset on disk is UNCHANGED, so a
+# deploy would republish byte-identical content under a fresh "deployed" timestamp
+# that implies freshness which does not exist. That is the same lie design rule
+# 3 exists to prevent, wearing a success badge.
+#
+# WHAT THE FETCH STEP IS, AND WHY NOTHING SUPPRESSES ITS EXIT CODE
+# ------------------------------------------------------------------
+# `npm run fetch` fetches every enabled feed in data/sources.yml, applies the
+# three-part validation rule (XML content type, parses as XML, yields >= 1 item)
+# and writes data/articles.json ATOMICALLY. It exits 1 if ANY feed fails and
+# writes NOTHING. That is deliberate: the one failure mode that looks like
+# success is a green build on yesterday's data.
+#
+# Therefore this step has no `|| true`, no `continue-on-error`, and no
+# `--allow-partial`. Do not "fix" a red action by adding any of those. If it goes
+# red, the answer is in the log: every run prints per-source status, resolved
+# URL, item count, and the exact reason for any failure.
+#
+# CREDENTIALS: WHY A PAT AND NOT THE BUILT-IN GITHUB_TOKEN
+# --------------------------------------------------------
+# The push needs a credential and it cannot be implicit. `secrets.PAT_TOKEN` is a
+# fine-grained personal access token owned by the repository owner, scoped to
+# THIS repository only, with ONE permission: Contents -> Read and write. That is
+# the minimum for `git push` of a commit. Workflows -> Write is NOT needed and
+# NOT granted, because this workflow never edits its own definition. Account
+# permissions (Administration, Secrets) are not needed.
+# See docs/DEPLOY.md for the click-by-click creation steps.
+#
+# GITHUB_TOKEN would also be able to push, and that is the honest alternative.
+# The PAT is used instead because it is independent of the repository's default
+# workflow token permissions setting, it is scoped to one repo, and it does not
+# expire with a single job run. `persist-credentials: true` (the checkout
+# default, stated explicitly anyway) is what makes the credential usable by the
+# later `git push`: checkout writes it into this clone's local git config, so no
+# secret is ever passed on a command line or printed in the log.
+# If branch rulesets are ever enabled, they must allow Actions to bypass, or the
+# push is rejected - see docs/DEPLOY.md.
+
+name: refresh
+
+on:
+  schedule:
+    # Every 4 hours. Minute 17, not 0: every scheduled workflow on GitHub that
+    # fires on the hour queues against the same infrastructure, so an off-hour
+    # minute starts faster and jitter-spreads the load.
+    - cron: '17 */4 * * *'
+  # Manual trigger. Same path, same guards, no arguments - the workflow has no
+  # modes that could differ from the scheduled one and quietly do something else.
+  workflow_dispatch:
+
+# Two runs must never race to push the same dataset. Same group, so the second
+# run queues behind the first. cancel-in-progress is FALSE on purpose: cancelling
+# a run that is midway through its push is worse than waiting. The scheduled run
+# is the one that should yield, and GitHub queues rather than cancels here.
+concurrency:
+  group: refresh-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+# Least privilege by default. The refresh job widens this to contents: write for
+# exactly one reason: committing the dataset.
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    name: fetch and commit dataset
+    # Not for pull requests at all (a fork PR has no write token, and running a
+    # network fetch and a push on PR data is not wanted), and never from a fork.
+    if: github.event_name != 'pull_request' && github.event.repository.fork == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          # Explicit ref. On a schedule this is the default branch; on a manual
+          # run it is whichever branch was selected, and the dataset is pushed
+          # back to that same branch, never silently to main.
+          ref: ${{ github.ref_name }}
+          # fetch-depth 0 is more than strictly needed: depth 1 would still have
+          # HEAD, which is all the diff below requires. Full history is taken
+          # because this job CREATES a real commit in that history, and because
+          # `git log` over the dataset commits is the answer to "why is this
+          # article on the site" that ROADMAP promises. It costs seconds.
+          fetch-depth: 0
+          # See the credential note above. Without this the later push has no
+          # credential to use.
+          persist-credentials: true
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: set up node
+        uses: actions/setup-node@v4
+        with:
+          # 24 is the version this project is developed and built on locally
+          # (v24.21.0); package.json only requires >=22. Quoted so YAML keeps it
+          # a string and the runner resolves the newest 24.x rather than a
+          # floating number.
+          node-version: '24'
+          # npm cache keyed on the lockfile. Cuts a minute or more off every run,
+          # which matters for a job that runs six times a day.
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: install dependencies
+        run: npm ci
+        # npm ci, not npm install: it installs exactly the lockfile and fails if
+        # package.json and package-lock.json disagree. A scheduled build that
+        # silently resolves a new version is a build you cannot reproduce.
+
+      - name: fetch feeds (fail loud)
+        run: npm run fetch
+        # No continue-on-error. No `|| true`. No --allow-partial. A non-zero exit
+        # here is the design working: the run goes red, nothing is committed,
+        # and the deploy job below is skipped.
+
+      - name: measure what actually changed in the dataset
+        id: dataset
+        env:
+          PREV: ${{ runner.temp }}/prev-articles.json
+        run: |
+          # The committed copy, for comparison.
+          git show HEAD:data/articles.json > "$PREV"
+          # generatedAt is a fresh ISO timestamp on every single run, so the file
+          # is BYTE-DIFFERENT every 4 hours no matter what the feeds did. A plain
+          # `git diff --quiet` therefore NEVER says "unchanged" and would commit
+          # a one-line timestamp bump forever, which is the empty-commit churn
+          # this job exists to avoid. So the comparison below drops generatedAt
+          # and asks a real question: did the CONTENT change?
+          node -e '
+            const fs = require("node:fs");
+            // Recursive key sort, so a reordering of object keys is not
+            // mistaken for a content change.
+            const stable = (v) => {
+              if (Array.isArray(v)) return v.map(stable);
+              if (v && typeof v === "object") {
+                const out = {};
+                for (const k of Object.keys(v).sort()) out[k] = stable(v[k]);
+                return out;
+              }
+              return v;
+            };
+            const strip = (path) => {
+              const doc = JSON.parse(fs.readFileSync(path, "utf8"));
+              const ids = Array.isArray(doc.articles) ? doc.articles.map((a) => a.id) : [];
+              delete doc.generatedAt;
+              return { doc: doc, ids: ids };
+            };
+            const prev = strip(process.env.PREV);
+            const now = strip("data/articles.json");
+            const prevIds = new Set(prev.ids);
+            const nowIds = new Set(now.ids);
+            const added = now.ids.filter((id) => !prevIds.has(id));
+            const removed = prev.ids.filter((id) => !nowIds.has(id));
+            const sameContent =
+              JSON.stringify(stable(prev.doc)) === JSON.stringify(stable(now.doc));
+            const changed = !sameContent;
+            const out = process.env.GITHUB_OUTPUT;
+            const put = (k, v) => fs.appendFileSync(out, k + "=" + String(v) + "\n");
+            put("changed", changed);
+            // Counts are real, computed by diffing article ids between the
+            // committed dataset and the fresh one. Nothing here is invented, and
+            // a "0 added" run that changed a resolved URL still says changed.
+            put("added", added.length);
+            put("removed", removed.length);
+            put("total", typeof now.doc.articleCount === "number" ? now.doc.articleCount : now.ids.length);
+          '
+        # Outputs: changed (true|false), added, removed, total.
+
+      - name: discard the run when nothing changed
+        # Restores the committed file so the tree is clean. Without this the
+        # timestamp-only diff would sit there looking like a pending change.
+        if: steps.dataset.outputs.changed != 'true'
+        run: |
+          git checkout -- data/articles.json
+          echo "Dataset content unchanged (generatedAt moved, nothing else). No commit."
+
+      - name: require the push credential
+        # Fails loudly and specifically, instead of letting `git push` fail with
+        # a generic authentication error eight steps later. Only reached when
+        # there is genuinely something to commit.
+        if: steps.dataset.outputs.changed == 'true'
+        run: |
+          if [ -z "${{ secrets.PAT_TOKEN }}" ]; then
+            echo "::error::PAT_TOKEN repository secret is not set, so the dataset cannot be committed. See docs/DEPLOY.md."
+            exit 1
+          fi
+
+      - name: commit and push the dataset
+        if: steps.dataset.outputs.changed == 'true'
+        env:
+          ADDED: ${{ steps.dataset.outputs.added }}
+          REMOVED: ${{ steps.dataset.outputs.removed }}
+          TOTAL: ${{ steps.dataset.outputs.total }}
+        run: |
+          # Identity is the repository owner's, NOT github-actions[bot]. Two
+          # reasons: a bot-authored commit is excluded from the contributor
+          # graph and can trip branch rules that are written to ignore bots, and
+          # the commits stay attributable to the person who can actually act on
+          # them. Change these two lines if the repo owner differs.
+          git config user.name "Bloodfeather"
+          git config user.email "mstricklandtech@gmail.com"
+          git add data/articles.json
+          # The message states only what the measure step computed from article
+          # ids. No timestamp, no "update".
+          git commit -m "data: refresh dataset (+${ADDED} added, -${REMOVED} removed, ${TOTAL} articles)"
+          git push origin "HEAD:${{ github.ref_name }}"
+
+  deploy:
+    name: build and deploy to pages
+    # needs, not always(). A failed refresh skips this job, which is the whole
+    # point of the decision documented at the top of this file.
+    needs: refresh
+    runs-on: ubuntu-latest
+    permissions:
+      # Reading the source for checkout.
+      contents: read
+      # Publishing the Pages deployment.
+      pages: write
+      # Required by deploy-pages to mint the OIDC token that proves to GitHub
+      # that this workflow, not a stranger, is the one deploying.
+      id-token: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          # Default depth 1 is right here: this job only needs the current tree.
+          # It builds from the branch TIP, which - if the refresh job committed
+          # and pushed - is the new commit. So what gets published is exactly
+          # what is in git, which is the whole argument for committing the
+          # dataset at all.
+          persist-credentials: false
+
+      - name: set up node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: install dependencies
+        run: npm ci
+
+      - name: warn if BASE_PATH is unset
+        # astro.config.mjs reads BASE_PATH and falls back to "/" when it is
+        # empty. "/" is CORRECT for a user or organization Pages site and WRONG
+        # for a project site, where it must be "/<repo-name>". The workflow
+        # cannot tell those two cases apart, so it refuses to guess silently:
+        # set the repository variable BASE_PATH (Settings > Secrets and
+        # variables > Actions > Variables) and this is a one-line no-op.
+        run: |
+          echo "BASE_PATH=[${{ vars.BASE_PATH }}] repository=[${{ github.event.repository.name }}] owner_type_is_user_site=${{ contains(github.event.repository.name, '.') }}"
+          if [ -z "${{ vars.BASE_PATH }}" ]; then
+            echo "::warning::Repository variable BASE_PATH is not set. If this is a PROJECT repo (github.com/OWNER/REPO), set BASE_PATH=/${{ github.event.repository.name }} or every asset URL will 404 and the site will render unstyled."
+          fi
+
+      - name: build
+        env:
+          BASE_PATH: ${{ vars.BASE_PATH }}
+        run: npm run build
+        # astro build writes dist/. Its own non-zero exit fails the job; nothing
+        # here needs to swallow it.
+
+      - name: upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: deploy to pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+# ---------------------------------------------------------------------------
+# END. The single most important line in this file is `run: npm run fetch`
+# with nothing added to it. If you ever find yourself tempted to add `|| true`,
+# a continue-on-error, or --allow-partial to make a red action go green, read
+# ROADMAP design rule 3 first. The green build on stale data is the failure mode
+# this project was built to make impossible.
+# Setup steps, PAT permissions and the open astro.config.mjs items: docs/DEPLOY.md
+# ---------------------------------------------------------------------------

@@ -79,6 +79,10 @@ Measured across the 40 captured articles, 2026-10-05:
 - The feed returns **20 posts per publication, roughly 6 weeks** (oldest
   2026-08-20, newest 2026-10-05). There is no history in RSS at all.
 
+Counts above were measured on the earlier 2-feed placeholder set (40 articles).
+The live set is 3 feeds / 43 articles as of 2026-10-05 - see data/sources.yml,
+which is the source of truth for what is actually wired up.
+
 The last point is the hard scope boundary. We are not a library; we are a
 pointing surface. Any copy implying otherwise would be a lie the data tells.
 
@@ -135,12 +139,66 @@ and "why is this article on the site" is answerable with `git log`.
 - [ ] Manual `workflow_dispatch` trigger
 - [ ] GitHub repo creation, Pages configured to publish from workflow
 
+### Phase 3.5 - Events calendar  [COMPLETE 2026-10-05]
+
+A second dataset with the opposite provenance to `articles.json`: nothing writes
+it, a human or an AI assistant does. That single fact drove every decision below.
+
+- [x] `src/lib/events-schema.ts` - the schema as CODE: field table, closed type
+      vocabulary, wall-clock date rules, formatting. Pure, so three callers share it.
+- [x] `src/lib/events.ts` - the loader. Validates and **throws**, so a malformed
+      file fails `npm run build` rather than rendering a partial calendar.
+- [x] `src/lib/months.ts` - month names, extracted so the events code does not
+      drag `articles.json` in with it.
+- [x] `src/pages/events.astro` + `src/components/EventRow.astro` - the calendar.
+      Selection is **pure CSS** (`html:has()`), zero JavaScript, and a radio group
+      so keyboard support is the platform's rather than hand-written.
+- [x] `data/events.json` - 7 sample events, one per type, deliberately including
+      an all-day event and two with missing artwork so the degraded paths are
+      *known* rather than believed.
+- [x] `data/events.schema.md` - the written contract an AI assistant works from.
+- [x] `scripts/check-events.mjs` + `npm run events:check` - readable report, all
+      problems at once, plus an on-disk check that every referenced image exists.
+- [x] `public/img/events/` - 11 placeholder SVGs (thumbnails + banners).
+- [x] `test/events.test.mjs` - 30 tests.
+
+**Decisions taken here that a later phase must not undo**
+
+| Decision | Choice | Consequence |
+| --- | --- | --- |
+| Event timestamps | **Local wall clock, `YYYY-MM-DDTHH:MM`, offsets REJECTED.** | The file holds no absolute instant, so the zone is a human `timezone` label. A DST-arithmetic dependency is avoided entirely. Stated as a limitation, not hidden. |
+| Past vs upcoming | Split on `reviewedOn`, a date **in the data**. | `new Date()` at build time would make the built HTML depend on the build day - design rule 8 broken in its most literal form. A human bumps the date when they review the list. |
+| Panel visibility | One panel per event in the DOM, CSS picks one. | No state, no handler, nothing to desync, identical with scripting off. Costs markup proportional to event count. |
+| Hand-authored data | **Unknown keys are a hard error.** | A misspelled `loction` would otherwise render a row with no venue, green build, page looking finished. This is the whole reason the schema is code. |
+| Problem reporting | Collect **every** problem, not the first. | Deliberate departure from `scripts/lib/validate.mjs`, which short-circuits. Right for one HTTP response, wrong for a 40-row hand-edited file. |
+| Type filter | Not built. | Needs URL or script state, both out of scope for a page that must work without either. The vocabulary is closed and the present set is derived from data, so a filter is a page-only change. |
+
+**Known follow-ups, recorded so absence is not read as oversight**
+
+- `articles.ts` still declares its own `MONTHS` table. Collapsing it to import
+  `src/lib/months.ts` is a one-line change to a file owned by the reading-room
+  work, deliberately not made underneath its owner.
+  `test/events.test.mjs` asserts the two tables are equal, so drift fails loudly.
+- `eventTypesPresent()` is exported and tested but **no page consumes it** - it
+  exists for the type filter that has not been built. It is not a feature.
+- Adding an event requires a matching `:has()` selector in `events.astro`, because
+  Astro scopes component CSS and cannot generate one from data. A test enforces
+  it; see `data/events.schema.md` section 10.
+- No CI wiring: `refresh.yml` runs only `npm run fetch` and `npm run build`, and
+  never `npm test`. The events tests therefore do not run on GitHub. The
+  build-time throw in `src/lib/events.ts` is what guards the deployed site.
+
 ### Phase 5 - Handover
 - [ ] Swap placeholder sources for the real Substack URLs
 - [ ] Naming, copy, domain
+- [ ] Swap the placeholder event artwork for real images, and replace the sample
+      events in `data/events.json` with the real calendar
 
 ## Open items needing the user
 
 - The actual Substack URLs (placeholder feeds in `data/sources.yml` meanwhile)
 - Organization name, tagline, real domain
 - Whether they want full-text search now or source filtering first
+- Whether the event `type` vocabulary should stay at seven, and whether `Lecture`
+  singular is right (the brief said "Lectures"; normalised, flagged, one-word revert)
+- Whether events need their own detail pages later, or stay one calendar document

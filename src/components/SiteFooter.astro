@@ -1,0 +1,140 @@
+---
+// src/components/SiteFooter.astro - the honest disclosure, the outbound rule,
+// and the theme switcher.
+//
+// ---------------------------------------------------------------------------
+// WHY THE DISCLOSURE LIVES HERE AND NOT ONLY ON THE HOME PAGE
+// ---------------------------------------------------------------------------
+//
+// The most important fact about this site is a LIMITATION: publication feeds
+// return only each publication's most recent posts, so there is no history here.
+// That fact has to be visible on every page that lists articles - a topic page
+// reached directly from a search result has no home page above it to explain
+// itself, and a reader who lands there and sees twelve items from one week is
+// entitled to know why.
+//
+// Placing the note in the footer means it is on /latest/, /topic/*/, the home
+// page and any future page, without anyone remembering to add it. It is repeated
+// rather than referenced because a disclosure a reader has to go looking for is
+// not a disclosure.
+//
+// THE DATE IS RENDERED IN UTC by formatUtcDate(), for the reason documented
+// there: a build machine in UTC-4 and the GH Pages runner in UTC must produce
+// identical HTML. "Last updated 1 October 2026" is a claim about the data; if
+// that string moves with the build machine's timezone it is a claim about the
+// build machine.
+//
+
+import ThemeSwitcher from './ThemeSwitcher.astro'
+import { formatUtcDate } from '../lib/articles'
+import {
+  SITE_NAME,
+  SITE_OUTBOUND_NOTE,
+  SITE_WINDOW_NOTE,
+  withBase
+} from '../lib/site'
+
+interface Props {
+  /** dataset.generatedAt - when the feeds were last fetched. */
+  generatedAt: string
+  currentPath?: string
+}
+
+const { generatedAt, currentPath = '/' } = Astro.props
+const fetchedOn = formatUtcDate(generatedAt)
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__notes">
+      <section class="site-footer__note" aria-labelledby="footer-window">
+        <h2 class="label" id="footer-window">What this is, and is not</h2>
+        <p>{SITE_WINDOW_NOTE}</p>
+      </section>
+
+      <section class="site-footer__note" aria-labelledby="footer-links">
+        <h2 class="label" id="footer-links">About these links</h2>
+        <p>{SITE_OUTBOUND_NOTE}</p>
+      </section>
+
+      {
+        fetchedOn && (
+          <p class="site-footer__stamp">
+            Feeds last checked <time datetime={generatedAt}>{fetchedOn}</time>.
+          </p>
+        )
+      }
+    </div>
+
+    <ThemeSwitcher />
+
+    <nav class="site-footer__nav" aria-label="Footer">
+      <a class="site-footer__link" href={withBase('/')}>Home</a>
+      <a class="site-footer__link" href={withBase('/about/')}>About</a>
+      <a class="site-footer__link" href={withBase('/latest/')}>All recent writing</a>
+    </nav>
+
+    <p class="site-footer__colophon">
+      {SITE_NAME}
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-block-start: var(--space-8);
+    padding-block: var(--space-6) var(--space-8);
+    border-block-start: var(--rule-width-strong) solid var(--rule-strong);
+  }
+
+  .site-footer__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .site-footer__notes {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-columns: 1fr;
+  }
+
+  .site-footer__note p {
+    max-width: var(--measure);
+    margin-block-end: 0;
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  .site-footer__stamp {
+    margin-block-end: 0;
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  .site-footer__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+  }
+
+  .site-footer__link {
+    font-size: var(--size-sm);
+  }
+
+  .site-footer__colophon {
+    margin-block-end: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 52rem) {
+    .site-footer__notes {
+      /* Two columns at width, one below it. The window disclosure is the
+         longer of the two statements, so it gets the wider column. */
+      grid-template-columns: 1.4fr 1fr;
+      align-items: start;
+    }
+  }
+</style>

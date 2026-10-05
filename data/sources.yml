@@ -95,6 +95,25 @@ sources:
     feedUrl: https://evanmulch.substack.com/feed
     tag: commentary
 
+  # Added 2026-10-05 by the client as "RWMaloneMD".
+  # Verified: HTTP 200, application/xml, 20 items.
+  #
+  # REDIRECT, and this one is a genuine identity case worth reading. The feed was
+  # requested at rwmalonemd.substack.com and RESOLVES to www.malone.news - a
+  # different host, and the channel title is "Malone News", not "RW Malone MD".
+  # This is NOT a wrong-publication bug: the response carries `x-sub: rwmalonemd`,
+  # every one of the 20 items is authored by "Dr. Robert W. Malone", and the site
+  # was simply moved onto a custom domain. Same class as the bariweiss -> thefp
+  # redirect recorded above, and the reason design rule 4 exists.
+  #
+  # Cadence: publishing daily. Range at add time 2026-09-20 to 2026-10-05.
+  # This is the most active source in the set and the one that will make the
+  # "latest writing" framing on the homepage feel true rather than decorative.
+  - id: malone
+    name: Malone News
+    feedUrl: https://rwmalonemd.substack.com/feed
+    tag: commentary
+
   # Parked, not deleted. See the rejection reasoning at the top of this file.
   - id: epochtimes-focus-substack
     name: Epoch Times - Focus (Substack coverage)

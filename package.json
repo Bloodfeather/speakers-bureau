@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "fetch": "node scripts/fetch-feeds.mjs",
+    "events:check": "node scripts/check-events.mjs",
     "test": "node --test \"test/*.test.mjs\""
   },
   "engines": {

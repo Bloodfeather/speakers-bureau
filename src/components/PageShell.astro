@@ -1,0 +1,56 @@
+---
+// src/components/PageShell.astro - masthead + main + footer, on every page.
+//
+// This is a composition component, not a layout: src/layouts/Layout.astro owns
+// the html shell and the theme script, and this owns what sits inside body.
+// Splitting them that way means Layout.astro stays the single file the theme
+// system owns (test/theme-contrast.test.mjs asserts its structure), and a new
+// page gets the header, footer, disclosures and theme switcher by construction
+// rather than by remembering to copy them.
+//
+// The empty-feed case is NOT an error here. If the fetch pipeline fails, it
+// exits non-zero and nothing is written (ROADMAP design rule 3), so the site
+// keeps serving the last good dataset. A genuinely empty dataset renders an
+// honest page that says so, which is what `articles` being empty looks like.
+//
+
+import Layout from '../layouts/Layout.astro'
+import SiteHeader from './SiteHeader.astro'
+import SiteFooter from './SiteFooter.astro'
+import { generatedAt } from '../lib/articles'
+
+interface Props {
+  title: string
+  description?: string
+  /** dataset.generatedAt, forwarded to the footer stamp. */
+  generatedAt?: string
+}
+
+const { title, description, generatedAt: stamp = generatedAt } = Astro.props
+
+// Astro.url.pathname is already base-relative (Astro strips the base), which is
+// what the header's current-section comparison needs.
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/'
+---
+
+<Layout title={title} description={description}>
+  <SiteHeader currentPath={currentPath} />
+
+  <main class="page" id="main">
+    <slot />
+  </main>
+
+  <div class="container">
+    <SiteFooter generatedAt={stamp} currentPath={currentPath} />
+  </div>
+</Layout>
+
+<style>
+  .page {
+    width: 100%;
+    max-width: var(--container);
+    margin-inline: auto;
+    padding-inline: var(--space-4);
+    padding-block: var(--space-6);
+  }
+</style>

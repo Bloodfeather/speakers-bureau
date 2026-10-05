@@ -1,0 +1,156 @@
+---
+// src/pages/about.astro - PLACEHOLDER.
+//
+// What this page should eventually say is a real editorial decision, so it is
+// deliberately not written here. Inventing an origin story, a mission statement
+// or a founding date would put invented claims on the site under the guise of a
+// placeholder, and a placeholder is only useful while it is obviously one.
+//
+// What IS here is everything the page can state truthfully today: how the
+// collection works, where the articles come from, what the window actually is,
+// and how to reach the publications. Those are facts the dataset and the
+// pipeline already establish.
+//
+// Phase 5 replaces the placeholder section with the client's own words, removes
+// `data-provisional` from this file, and drops the notice in the body.
+//
+
+import PageShell from '../components/PageShell.astro'
+import { articles, formatUtcDate, publicationNames, summarise, topics } from '../lib/articles'
+import { SITE_NAME, SITE_WINDOW_NOTE } from '../lib/site'
+
+const feed = articles
+const stats = summarise(feed)
+const publications = publicationNames(feed)
+const topicList = topics(feed)
+const fetchedOn = formatUtcDate(stats.newest)
+
+const description =
+  `How ${SITE_NAME} works: which publications it reads, where the articles are written, and ` +
+  `what the window of recent writing on this site does and does not contain.`
+---
+
+<PageShell title="About" description={description}>
+  <div class="page-head">
+    <p class="label page-head__label">About</p>
+    <h1 class="page-head__title">About {SITE_NAME}</h1>
+  </div>
+
+  <div class="prose">
+    <section aria-labelledby="about-placeholder">
+      <h2 id="about-placeholder">This page is a placeholder</h2>
+      <p>
+        The organisation's own story, its purpose and the names of the people behind it
+        have not been supplied yet. Nothing has been written in their place, because
+        inventing a mission statement and marking it "draft" is how a draft becomes a
+        published claim. This section is replaced in the handover phase with the real
+        text.
+      </p>
+      <p>
+        Everything below it, however, is not placeholder. It describes how this site
+        actually works, and it is derived from the data rather than typed.
+      </p>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="about-how">
+      <h2 id="about-how">How this site works</h2>
+      <p>
+        A scheduled job reads the RSS feed of each publication listed in the site's own
+        configuration, checks that each response really is a feed, normalises the posts
+        into one dataset, and rebuilds this site. If a feed fails to validate, the job
+        fails loudly and the site is not rebuilt on stale data.
+      </p>
+      <p>
+        Articles are not copied here. Each one links out to the publication that wrote
+        it, and it opens on that publication's own site in a new tab.
+      </p>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="about-window">
+      <h2 id="about-window">What is in the window, and what is not</h2>
+      <p>{SITE_WINDOW_NOTE}</p>
+      <p>
+        At the moment that window holds <strong>{stats.total}</strong> article
+        {stats.total === 1 ? '' : 's'}
+        {
+          stats.oldest && stats.newest && (
+            <>
+              , published between <strong>{formatUtcDate(stats.oldest)}</strong> and{' '}
+              <strong>{formatUtcDate(stats.newest)}</strong>
+            </>
+          )
+        }
+        .
+      </p>
+      <p>
+        Of those, <strong>{stats.withByline}</strong> carry an individual author's name
+        and <strong>{stats.suppressedByline}</strong> report the publication itself as
+        the author, which is not printed as though it were a person.
+      </p>
+      <p>
+        A publication that stops publishing will quietly age out of this window, and so
+        will an article that ages out of its feed. If a source here has been silent for a
+        long time, that is a fact about the source, not a gap in the collection.
+      </p>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="about-sources">
+      <h2 id="about-sources">Where the writing comes from</h2>
+      <p>
+        These publications are independent and are not affiliated with this site. They are
+        linked to, not reproduced.
+      </p>
+      <ul>
+        {publications.map((name) => <li>{name}</li>)}
+      </ul>
+      {
+        topicList.length > 0 && (
+          <p>
+            {topicList.length === 1 ? 'One topic tag is' : `${topicList.length} topic tags are`} in
+            use: {topicList.map((topic) => topic.label.toLowerCase()).join(', ')}.
+          </p>
+        )
+      }
+      {
+        fetchedOn && (
+          <p>
+            The feeds were last checked on <strong>{fetchedOn}</strong>.
+          </p>
+        )
+      }
+    </section>
+  </div>
+</PageShell>
+
+<style>
+  .page-head {
+    padding-block-end: var(--space-5);
+    margin-block-end: var(--space-5);
+    border-block-end: var(--rule-width) solid var(--rule);
+  }
+
+  .page-head__label {
+    margin-block-end: var(--space-2);
+  }
+
+  .page-head__title {
+    font-size: var(--size-3xl);
+  }
+
+  /* Prose gets the reading measure; everything else on the site is a feed and
+     runs wide. */
+  .prose {
+    max-width: var(--measure);
+  }
+
+  .prose h2 {
+    margin-block-end: var(--space-3);
+    font-size: var(--size-xl);
+  }
+</style>

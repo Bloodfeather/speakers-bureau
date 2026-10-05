@@ -1,0 +1,133 @@
+---
+// src/components/TopicNav.astro - topic filtering, as LINKS to pre-built pages.
+//
+// ---------------------------------------------------------------------------
+// THE FILTERING DECISION, AND WHAT IT COSTS - read this before "improving" it
+// ---------------------------------------------------------------------------
+//
+// This site filters topics with ZERO JAVASCRIPT, by linking to statically
+// generated pages at /topic/SLUG/ (src/pages/topic/[topic].astro).
+//
+// The alternative was client-side filtering: one page, all 23 cards in the DOM,
+// a short script that toggles `hidden` on the non-matching ones. It was
+// rejected, and the reasons are not "JavaScript is bad":
+//
+//   1. THE BRIEF MAKES NO-JS A HARD REQUIREMENT, NOT A POLISH ITEM. With
+//      client-side filtering there is exactly one way to filter and it needs a
+//      script, so the no-JS fallback is a second implementation that has to be
+//      written, tested and kept in step. Two implementations of the same filter
+//      is two things to get wrong. Build-time filtering has ONE implementation,
+//      and it is the HTML that is already there.
+//   2. SEO. Every topic becomes a real, crawlable, linkable URL. A client-side
+//      filter is invisible to a crawler: the crawler gets the unfiltered page,
+//      and no link on the site points at "commentary" for a search engine to
+//      follow. The topics are exactly the kind of thing people search for.
+//   3. THE DATASET IS 23 ARTICLES AND WILL PROBABLY STAY UNDER A FEW HUNDRED.
+//      `getStaticPaths` over the topics actually present in the data costs one
+//      page per topic. There are 2 today. Even 20 publications with 3 tags each
+//      is 60 pages of static HTML, which a static host serves for nothing.
+//   4. DEEP LINKS SURVIVE. /topic/commentary/ can be bookmarked, shared and
+//      emailed, and it still works in a year. A `?topic=commentary` client-side
+//      filter can do the same, but only if you write and test the history
+//      handling, which is the complexity this choice exists to avoid.
+//
+// WHAT THIS CHOICE ACTUALLY GIVES UP, stated plainly:
+//
+//   - A topic switch is a PAGE LOAD, not an instant swap. Clicking "News" then
+//     "Commentary" is two navigations. With 23 articles that is a few hundred
+//     milliseconds on a warm cache; the honest fix for a reader who finds it
+//     slow is a faster host, not a script.
+//   - Every topic page is a separate document, so there is no single page on
+//     which all topics are simultaneously visible for comparison. If a future
+//     phase wants "show me the 3 most recent from each topic interleaved", that
+//     is a new page and is fine - it does not undo this.
+//
+// IF THIS EVER NEEDS TO CHANGE: the moment the dataset passes a few thousand
+// articles, or a topic count passes a few dozen, per-topic pages stop being free
+// and the client-side filter wins on cost. The switch is contained to this file
+// and src/pages/topic/[topic].astro, because the topic list is derived from the
+// data rather than hardcoded (see topics() in src/lib/articles.ts).
+//
+// ---------------------------------------------------------------------------
+// THE LIST IS DERIVED, NOT TYPED
+// ---------------------------------------------------------------------------
+//
+// `topics()` reads the actual articles. A hardcoded `['news', 'commentary']`
+// would be a filter that quietly stops working the first time someone assigns a
+// third tag in data/sources.yml, and would keep offering a topic that returns
+// nothing. There is nothing to keep in step.
+//
+
+import type { Topic } from '../lib/articles'
+import { withBase } from '../lib/site'
+
+interface Props {
+  topics: Topic[]
+  /** Slug of the topic currently being viewed, so it can be excluded. */
+  currentTopic?: string | null
+  /** Heading above the list. */
+  heading?: string
+}
+
+const { topics, currentTopic = null, heading = 'Browse by topic' } = Astro.props
+---
+
+{
+  topics.length > 0 && (
+    <nav class="topics" aria-label={heading}>
+      <h2 class="label topics__heading">{heading}</h2>
+      <ul class="topics__list">
+        {topics.map((topic) => {
+          const isCurrent = topic.slug === currentTopic
+          return (
+            <li class="topics__item">
+              {isCurrent ? (
+                /* The current topic is rendered as plain text, not as a link to
+                   itself. A link to the page you are on is a dead control, and
+                   aria-current is what conveys the state. */
+                <span class="chip chip-accent" aria-current="true">
+                  {topic.label}
+                  <span class="topics__count">{topic.count}</span>
+                </span>
+              ) : (
+                <a class="chip" href={withBase(`/topic/${topic.slug}/`)}>
+                  {topic.label}
+                  <span class="topics__count">{topic.count}</span>
+                </a>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
+  )
+}
+
+<style>
+  .topics__heading {
+    margin-block-end: var(--space-3);
+  }
+
+  .topics__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-end: 0;
+    padding-inline-start: 0;
+    list-style: none;
+  }
+
+  .topics__item {
+    display: flex;
+  }
+
+  /* The count sits inside the chip so the chip and its number are one
+     control, and it is ordinary text rather than a badge with its own colour -
+     a count nobody can read is a count that does not exist. */
+  .topics__count {
+    margin-inline-start: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--size-xs);
+    opacity: 0.75;
+  }
+</style>

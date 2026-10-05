@@ -1,0 +1,92 @@
+---
+// src/pages/latest.astro - the whole window, unfiltered, on one page.
+//
+// WHY THIS PAGE EXISTS: the home page shows a short "start here" run, and the
+// topic pages show one topic each. Without a page that shows EVERY article in
+// one document, a reader on a topic page who wants "everything, newest first"
+// has to visit each topic in turn and mentally merge them - and would have no
+// way to know they had seen everything.
+//
+// IT IS NOT AN ARCHIVE PAGE and it does not claim to be. Its heading is
+// "All recent writing", the word "all" is scoped by "recent", and the window
+// disclosure with the real date range is repeated in the header rather than
+// being left in the footer where a reader arriving from a search result would
+// not necessarily scroll to it.
+//
+// SORT ORDER is inherited from articles[] in src/lib/articles.ts, which is
+// already newest-first with a stable id tiebreak. This page does not re-sort,
+// because a second sort call is a second thing to get wrong.
+//
+
+import PageShell from '../components/PageShell.astro'
+import ArticleFeed from '../components/ArticleFeed.astro'
+import TopicNav from '../components/TopicNav.astro'
+import { articles, formatUtcDate, summarise, topics } from '../lib/articles'
+import { SITE_WINDOW_NOTE } from '../lib/site'
+
+const feed = articles
+const topicList = topics(feed)
+const stats = summarise(feed)
+const newestLabel = formatUtcDate(stats.newest)
+const oldestLabel = formatUtcDate(stats.oldest)
+
+const description =
+  `Every article currently held from the publications we follow, newest first: ${stats.total} ` +
+  `items published between ${oldestLabel} and ${newestLabel}. A recent window, not an archive.`
+---
+
+<PageShell title="All recent writing" description={description}>
+  <div class="page-head">
+    <h1 class="page-head__title">All recent writing</h1>
+
+    <p class="page-head__window">
+      {SITE_WINDOW_NOTE}
+      {
+        newestLabel && oldestLabel && (
+          <span class="page-head__span">
+            {' '}
+            Everything on this page was published between <strong>{oldestLabel}</strong> and{' '}
+            <strong>{newestLabel}</strong>, and is ordered newest first.
+          </span>
+        )
+      }
+    </p>
+
+    <TopicNav topics={topicList} heading="Narrow by topic" />
+  </div>
+
+  <ArticleFeed
+    articles={feed}
+    label="All recent writing, newest first"
+    emptyMessage="The feeds returned nothing on the last run. When publication feeds respond again their posts will appear here."
+  />
+</PageShell>
+
+<style>
+  .page-head {
+    padding-block-end: var(--space-5);
+    margin-block-end: var(--space-5);
+    border-block-end: var(--rule-width) solid var(--rule);
+  }
+
+  .page-head__title {
+    font-size: var(--size-3xl);
+  }
+
+  .page-head__window {
+    max-width: var(--measure);
+    padding-inline-start: var(--space-4);
+    border-inline-start: var(--rule-width-strong) solid var(--rule-strong);
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  .page-head__span {
+    display: block;
+    margin-block-start: var(--space-2);
+  }
+
+  .page-head :global(.topics) {
+    margin-block-start: var(--space-5);
+  }
+</style>

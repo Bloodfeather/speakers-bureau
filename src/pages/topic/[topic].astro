@@ -1,0 +1,161 @@
+---
+// src/pages/topic/[topic].astro - one statically generated page per topic.
+//
+// ---------------------------------------------------------------------------
+// WHY THIS IS getStaticPaths AND NOT CLIENT-SIDE FILTERING
+// ---------------------------------------------------------------------------
+//
+// The full reasoning is in src/components/TopicNav.astro, which is where the
+// decision is visible to a reader of the site. The short version: topic
+// filtering has to work with JavaScript disabled (a hard requirement, not a
+// polish item), and build-time pages give that for free while also giving every
+// topic a real crawlable URL. With 23 articles and 2 topics the cost is 2 pages.
+//
+// The alternative was one page holding all 23 cards plus a script that toggles
+// `hidden`. That has exactly one implementation, and it needs the script. A
+// no-JS fallback would be a second implementation of the same filter. Two
+// implementations of a filter is two things to get wrong, and the client-side
+// one is invisible to crawlers while this one is a page.
+//
+// WHAT IS GIVEN UP, plainly: a topic switch is a page load rather than an instant
+// swap, and there is no single document on which all topics are visible at once.
+// For 23 items over a static host that is the right trade. When the dataset is in
+// the thousands, revisit it.
+//
+// ---------------------------------------------------------------------------
+// THE PAGE LIST IS DERIVED FROM THE DATA
+// ---------------------------------------------------------------------------
+//
+// `topics()` reads the actual articles' `categories`, which the fetch pipeline
+// fills from the `tag` in data/sources.yml. So a new tag in sources.yml produces
+// a new page with no edit to any file here, and a tag that no article carries
+// produces no page rather than an empty one.
+//
+// Astro REQUIRES one path per generated page and nothing else, so the source of
+// truth has to be exactly the same function the UI uses. topics() is it, which
+// is why the two cannot disagree.
+//
+
+import type { GetStaticPaths } from 'astro'
+
+import PageShell from '../../components/PageShell.astro'
+import ArticleFeed from '../../components/ArticleFeed.astro'
+import TopicNav from '../../components/TopicNav.astro'
+import {
+  articles,
+  articlesByTopic,
+  formatUtcDate,
+  summarise,
+  topics
+} from '../../lib/articles'
+import { SITE_WINDOW_NOTE, withBase } from '../../lib/site'
+
+export const getStaticPaths = (() =>
+  topics().map((topic) => ({
+    params: { topic: topic.slug },
+    props: {
+      topic,
+      feed: articlesByTopic(topic.slug),
+      allTopics: topics()
+    }
+  }))) satisfies GetStaticPaths
+
+interface Props {
+  topic: { slug: string; label: string; count: number }
+  feed: typeof articles
+  allTopics: ReturnType<typeof topics>
+}
+
+const { topic, feed, allTopics } = Astro.props
+
+const stats = summarise(feed)
+const newestLabel = formatUtcDate(stats.newest)
+const oldestLabel = formatUtcDate(stats.oldest)
+
+const description =
+  `${stats.total} article${stats.total === 1 ? '' : 's'} tagged "${topic.label}" from the ` +
+  `publications we follow, newest first.`
+---
+
+<PageShell title={`${topic.label} - writing`} description={description}>
+  <div class="page-head">
+    <p class="label page-head__label">Topic</p>
+    <h1 class="page-head__title">{topic.label}</h1>
+
+    <p class="page-head__count">
+      <strong>{stats.total}</strong> article{stats.total === 1 ? '' : 's'} carry this tag
+      {
+        newestLabel && oldestLabel && (
+          <span class="page-head__span">
+            , published between <strong>{oldestLabel}</strong> and <strong>{newestLabel}</strong>
+          </span>
+        )
+      }
+      .
+    </p>
+
+    {/*
+      The window disclosure is repeated on every topic page, not just in the
+      footer. A topic page can be reached directly from a search result, with no
+      home page above it to set expectations, and "13 articles" reads very
+      differently to a reader who has just been told there is no history here.
+    */}
+    <p class="page-head__window">{SITE_WINDOW_NOTE}</p>
+
+    <p class="page-head__all">
+      <a class="page-head__link" href={withBase('/latest/')}>
+        See all {articles.length} articles in one page
+      </a>
+    </p>
+
+    <TopicNav topics={allTopics} currentTopic={topic.slug} heading="Other topics" />
+  </div>
+
+  <ArticleFeed
+    articles={feed}
+    label={`Articles tagged ${topic.label}`}
+    emptyMessage="No article carries this tag right now. The tag is assigned per publication in data/sources.yml, so a topic disappears when no publication is currently filed under it."
+  />
+</PageShell>
+
+<style>
+  .page-head {
+    padding-block-end: var(--space-5);
+    margin-block-end: var(--space-5);
+    border-block-end: var(--rule-width) solid var(--rule);
+  }
+
+  .page-head__label {
+    margin-block-end: var(--space-2);
+  }
+
+  .page-head__title {
+    font-size: var(--size-3xl);
+  }
+
+  .page-head__count {
+    max-width: var(--measure);
+    font-size: var(--size-md);
+    color: var(--text);
+  }
+
+  .page-head__window {
+    max-width: var(--measure);
+    padding-inline-start: var(--space-4);
+    border-inline-start: var(--rule-width-strong) solid var(--rule-strong);
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  .page-head__span {
+    color: var(--text-muted);
+  }
+
+  .page-head__all {
+    font-size: var(--size-sm);
+  }
+
+  .page-head :global(.topics) {
+    margin-block-start: var(--space-5);
+  }
+</style>

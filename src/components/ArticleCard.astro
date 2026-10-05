@@ -1,0 +1,334 @@
+---
+// src/components/ArticleCard.astro - one article, as a card.
+//
+// ---------------------------------------------------------------------------
+// DESIGNED AROUND THE REAL DATA, NOT AN IMAGINED FEED
+// ---------------------------------------------------------------------------
+//
+// Measured on the 23 articles in data/articles.json (2026-10-05):
+//
+//   dek       EMPTY ON 23 OF 23. Substack RSS carries no subtitle field.
+//             So this card NEVER renders a dek unconditionally and never
+//             reserves space for one. There is no conditional dek with a CSS
+//             fallback, because "CSS hides it gracefully" is not a thing - an
+//             empty paragraph still occupies a margin block, and reserving a
+//             blank line above the excerpt is a visible hole in every card.
+//
+//   excerpt   Present on all 23, but 3 are UNDER 40 CHARACTERS and one is 12
+//             characters: "Dear Reader," plus the title. Those are real
+//             excerpts and they are rendered as-is. There is no
+//             min-height on the excerpt, no fixed line count and no
+//             line-clamp, because clamping would hide content on the long ones
+//             and a min-height would leave a gap on the short ones. A short
+//             card is allowed to be shorter than its neighbours. Cards in a
+//             grid align at the top; that is what alignment is for.
+//
+//   author    A REAL PERSON on 21 of 23 ("Alaina Stone", "Evan Mulch"). On the
+//             other 2 the feed reports the publication's own name with the
+//             word "News" missing. `bylineFor()` decides, and it is the only
+//             implementation of that decision in the project.
+//
+//   image     Present on 23 of 23, but typed `string | null` and rendered
+//             conditionally anyway. A card whose image fails to load (hosting
+//             removed it, CDN 404, network) must still be a complete card, so
+//             the image is decorative-adjacent and the title never depends on
+//             it.
+//
+// ---------------------------------------------------------------------------
+// OUTBOUND LINKS
+// ---------------------------------------------------------------------------
+//
+// This site's job is to point OUT. Every link here leaves for the publication's
+// own host, so each one is marked three ways, because any one of them alone is
+// insufficient:
+//
+//   1. `rel="external noopener noreferrer"` - machine-readable, and noopener
+//      closes the tabnabbing hole that target="_blank" opens.
+//   2. A visible "(external)" marker in the link text - for sighted readers.
+//   3. An arrow glyph - a shape, not a colour, so it survives any form of
+//      colour vision deficiency and greyscale printing.
+//
+// The destination host is also printed in full on the card. A reader who is
+// about to leave should be able to see where to, without hovering anything.
+//
+// NO BARE `---` LINE IN THIS FRONTMATTER. The Astro frontmatter regex is
+// /^---(.*?)^---/ms - NON-GREEDY - so the first line that is exactly three
+// dashes after the opening fence closes the frontmatter, and everything after it
+// is parsed as template markup. A horizontal-rule-looking separator line typed
+// into the middle of a comment block therefore ends the frontmatter early, and
+// every import and every line of TypeScript below it is silently reinterpreted
+// as page content. The build then fails with `Expected "}" but found ":"`,
+// pointing at a line inside the comments with no apparent connection to the
+// cause. This file had exactly that bug, and it cost a bisect of every
+// construct in the component to find. Comment separators here use `// ---`
+// with a leading `//`, which is not a fence.
+import type { Article } from '../lib/articles'
+import { bylineFor, formatUtcDate, imageUrl, machineDate } from '../lib/articles'
+
+interface Props {
+  article: Article
+}
+
+const { article, headingLevel = 'h3' } = Astro.props
+
+const Heading = headingLevel
+
+// The ONE attribution decision, delegated. No local copy of the rule.
+const byline = bylineFor(article)
+
+const dek = article.dek?.trim() ?? ''
+const excerpt = article.excerpt?.trim() ?? ''
+const image = imageUrl(article)
+const published = formatUtcDate(article.publishedAt)
+const datetime = machineDate(article.publishedAt)
+
+// Substack article URLs look like NAME.substack.com/p/SLUG. Showing the host is
+// the point of an external link; deriving the label from the URL rather than
+// typing "Substack" keeps this correct if a source ever lives elsewhere, which
+// data/sources.yml explicitly allows.
+//
+// NO ANGLE BRACKETS IN THIS COMMENT, and that is a compiler trap rather than a
+// style rule. The Astro compiler scans frontmatter for what looks like a
+// component reference, and it does not know that this is a comment: an
+// angle-bracketed word on a // line inside frontmatter is rewritten into a
+// renderComponent() call inside the template literal the compiler emits. In this
+// file that produced an unbalanced interpolation, and esbuild then failed with
+// 'Expected "}" but found ":"' pointing at a comment line thirty lines away from
+// the actual cause. Recorded so the next person does not spend the afternoon I
+// did bisecting an innocent-looking comment.
+const destinationHost = (() => {
+  try {
+    return new URL(article.url).hostname.replace(/^www\./, '')
+  } catch (error) {
+    // A malformed URL in the dataset must not take the build down. The card
+    // simply omits the destination line, which is a smaller lie than printing a
+    // broken address - and the link itself is still rendered, because a
+    // browser will report the problem to the reader rather than silently
+    // swallowing it.
+    return ''
+  }
+})()
+
+// The primary topic drives nothing structurally, it is just the first chip;
+// every topic is rendered, so an article with two tags shows both.
+const chips = (article.categories ?? []).filter((category) => category.trim() !== '')
+---
+
+<article class="card">
+  {
+    image && (
+      <div class="card__media">
+        <img
+          class="card__image"
+          src={image}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          width="480"
+          height="320"
+        />
+      </div>
+    )
+  }
+
+  <div class="card__body">
+    <p class="card__meta">
+      <span class="card__publication">{article.sourceName}</span>
+      {byline && <span class="card__byline">By {byline}</span>}
+      {
+        published && (
+          <time class="card__date" datetime={datetime}>
+            {published}
+          </time>
+        )
+      }
+    </p>
+
+    <Heading class="card__title">
+      <a
+        class="card__link"
+        href={article.url}
+        rel="external noopener noreferrer"
+        target="_blank"
+      >
+        <span class="card__link-text">{article.title}</span>
+        <span class="card__link-marker" aria-hidden="true">&#8599;</span>
+        <span class="visually-hidden">(external link, opens in a new tab)</span>
+      </a>
+    </Heading>
+
+    {/* The dek is rendered only when it exists, which today is never. See the
+        header comment: it is empty on 23 of 23 articles. */}
+    {dek && <p class="card__dek">{dek}</p>}
+
+    {excerpt && <p class="card__excerpt">{excerpt}</p>}
+
+    {
+      chips.length > 0 && (
+        <p class="card__chips">
+          {chips.map((chip) => (
+            <span class="chip">{chip.trim()}</span>
+          ))}
+        </p>
+      )
+    }
+
+    {destinationHost && (
+      <p class="card__destination">
+        Read at <span class="card__host">{destinationHost}</span>
+      </p>
+    )}
+  </div>
+</article>
+
+<style>
+  /* Every value below is a token from src/styles/themes.css. There is no colour
+     literal, no px font-size and no raw spacing step in this file, and
+     test/theme-contrast.test.mjs fails the suite if one appears.
+
+     The card reads as an entry in a printed bulletin rather than a product
+     tile: hairline rule above, no border box, no shadow, no radius. The image
+     sits at the inline-start in a fixed-ratio frame so cards align on a grid
+     regardless of the image's own proportions. */
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-block: var(--space-5);
+    border-block-start: var(--rule-width) solid var(--rule);
+  }
+
+  .card__media {
+    /* Substack images are author-supplied and arrive at arbitrary aspect
+       ratios. A fixed 3:2 frame with object-fit keeps the grid regular; a
+       `height: auto` image would make card heights depend on remote content. */
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    background: var(--chip-bg);
+    border-radius: var(--radius-sm);
+  }
+
+  .card__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-3);
+    margin-block-end: var(--space-1);
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  /* A dot between the meta items. Rendered as a flex-row separator rather than
+     as punctuation in the markup, so that the publication, the byline and the
+     date stay three independent elements that wrap cleanly when the card is
+     narrow - and so no screen reader announces "United Patriots Alliance News,
+     By Alaina Stone, 1 October 2026" with commas that are not there. */
+  .card__meta > * + *::before {
+    content: '\00b7';
+    margin-inline-end: var(--space-3);
+    color: var(--rule-strong);
+  }
+
+  .card__publication {
+    font-family: var(--font-display);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-normal);
+    color: var(--text);
+  }
+
+  .card__title {
+    /* The title is the card's whole point, so it is set a step above the
+       surrounding feed text and never truncated. */
+    font-size: var(--size-lg);
+    line-height: var(--leading-snug);
+  }
+
+  .card__link {
+    color: var(--link);
+  }
+
+  .card__link-text {
+    /* An underline is the link affordance; see global.css. The marker sits
+       outside the underline so the arrow reads as a symbol, not as part of the
+       title's typography. */
+    text-decoration: underline;
+  }
+
+  .card__link-marker {
+    display: inline-block;
+    margin-inline-start: var(--space-1);
+    /* A shape, not a colour: this is the outbound signal that survives
+       greyscale printing and any form of colour vision deficiency. */
+    font-size: var(--size-sm);
+    text-decoration: none;
+  }
+
+  .card__dek {
+    margin-block-end: 0;
+    font-size: var(--size-md);
+    line-height: var(--leading-snug);
+    color: var(--text);
+  }
+
+  .card__excerpt {
+    margin-block-end: 0;
+    /* Deliberately no min-height and no line clamp. 3 of the 23 real excerpts
+       are under 40 characters; reserving space for a paragraph they do not
+       contain would leave a hole in every short card, and clamping would hide
+       the end of every long one. */
+    color: var(--text-muted);
+  }
+
+  .card__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-end: 0;
+  }
+
+  .card__destination {
+    margin-block-end: 0;
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  .card__host {
+    /* The destination host is monospaced so it reads as an address rather than
+       as prose, and so two hosts are visibly different strings at a glance. */
+    font-family: var(--font-mono);
+    /* UPPERCASE via text-transform, not by typing capitals: the string comes
+       from the data and typing it in caps would be a lie about the host. */
+    text-transform: lowercase;
+  }
+
+  @media (min-width: 48rem) {
+    .card {
+      flex-direction: row;
+      gap: var(--space-6);
+    }
+
+    .card__media {
+      /* A thumbnail rather than a hero. The reading room's unit is the
+         headline, and a full-bleed image per entry turns a reading list into a
+         magazine, which is a different site. */
+      flex: 0 0 14rem;
+    }
+
+    .card__title {
+      font-size: var(--size-xl);
+    }
+  }
+</style>
