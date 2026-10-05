@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  test/fixtures/single-item-feed.xml
+
+  A well-formed feed with exactly ONE item. Its purpose is to catch the classic
+  aggregator bug: fast-xml-parser returns channel.item as an OBJECT for a
+  single item and an ARRAY for several. Code that assumes an array works on a
+  20-item feed and breaks on a 1-item feed. Verified live that real feeds do
+  vary: 20, 20 and 1 items were observed across different publications, so a
+  fixed page size must never be assumed.
+
+  ASCII ONLY. XML comments, not JS line comments.
+-->
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0">
+  <channel>
+    <title><![CDATA[Solo Weekly]]></title>
+    <description><![CDATA[One item only.]]></description>
+    <link>https://solo.test</link>
+    <item>
+      <title><![CDATA[The only post this week]]></title>
+      <description><![CDATA[A short standfirst.]]></description>
+      <link>https://solo.test/p/only</link>
+      <guid isPermaLink="false">https://solo.test/p/only</guid>
+      <dc:creator><![CDATA[Sam Solo]]></dc:creator>
+      <pubDate>Sat, 03 Oct 2026 12:00:00 GMT</pubDate>
+      <enclosure url="https://cdn.solo.test/only.jpeg" length="0" type="image/jpeg"/>
+      <content:encoded><![CDATA[<p>Body text.</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>

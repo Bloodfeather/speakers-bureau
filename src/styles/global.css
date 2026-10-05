@@ -1,0 +1,326 @@
+/* src/styles/global.css - element defaults and shared layout classes.
+ *
+ * THE RULE FOR THIS FILE: every colour, font size, spacing step, radius, rule
+ * width and measure is a `var(--token)` from src/styles/themes.css. There is no
+ * hex, no `Npx` font size and no raw `2rem` here, and `test/theme-contrast.test.mjs`
+ * fails the suite if one appears. That is what lets a theme be a data attribute
+ * instead of a rewrite.
+ *
+ * Only `rem`/`%`/`em`/`ch` units and keywords appear literally, plus `0`, and
+ * only where they are not a design decision: `margin: 0`, `min-width: 0` on a
+ * flex child, and so on.
+ */
+
+/* --------------------------------------------------------------------------
+ * Box model
+ * ------------------------------------------------------------------------ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+ * Document
+ * ------------------------------------------------------------------------ */
+html {
+  /* Nothing here sets colour-scheme. That lives on the theme selectors in
+   * themes.css, and setting it here would be the second place it is decided. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--size-base);
+  line-height: var(--leading-normal);
+  font-weight: var(--weight-normal);
+  /* A civic page should not hand a reader an unstyled-looking flash of bare
+   * white while the stylesheet resolves. */
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+/* --------------------------------------------------------------------------
+ * Typography
+ * ------------------------------------------------------------------------ */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--size-3xl);
+}
+h2 {
+  font-size: var(--size-2xl);
+}
+h3 {
+  font-size: var(--size-xl);
+}
+h4 {
+  font-size: var(--size-lg);
+}
+
+p,
+li,
+dd {
+  /* `text-wrap: pretty` avoids a single stranded word on the last line of a
+   * paragraph, which is the most common typographic tell of an unstyled page. */
+  text-wrap: pretty;
+}
+
+p {
+  margin-block: 0 var(--space-4);
+  max-width: var(--measure);
+}
+
+small {
+  font-size: var(--size-sm);
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--font-mono);
+  font-size: var(--size-sm);
+}
+
+/* The small-caps label that gives an institutional page its voice. */
+.label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--size-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+ * Links
+ * ------------------------------------------------------------------------ */
+a {
+  color: var(--link);
+  text-decoration: underline;
+  /* Set explicitly rather than left to the browser default, so the underline
+   * clears the descenders in every theme instead of only in some. */
+  text-underline-offset: 0.16em;
+  text-decoration-thickness: var(--rule-width);
+}
+
+a:hover,
+a:focus-visible {
+  color: var(--link-hover);
+}
+
+/* Keyboard focus must always be visible. `:focus-visible` rather than `:focus`
+ * so a mouse click does not leave a ring behind, but the ring itself is thick
+ * enough and offset from the element to be seen on every theme. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-width);
+  border-radius: var(--radius-sm);
+}
+
+/* Never remove the ring without replacing it. */
+a:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* --------------------------------------------------------------------------
+ * Rules and lists
+ * ------------------------------------------------------------------------ */
+hr {
+  border: 0;
+  border-top: var(--rule-width) solid var(--rule);
+  margin-block: var(--space-6);
+}
+
+ul,
+ol {
+  padding-inline-start: var(--space-5);
+  margin-block: 0 var(--space-4);
+  max-width: var(--measure);
+}
+
+blockquote {
+  margin-block: var(--space-5);
+  padding-inline-start: var(--space-5);
+  border-inline-start: var(--rule-width-strong) solid var(--rule-strong);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* --------------------------------------------------------------------------
+ * Layout primitives
+ * ------------------------------------------------------------------------ */
+.container {
+  /* Centre-first, because every page in Phase 3 is a single centred column and
+   * a 46rem inline width was already going to be replaced by --container. */
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+
+.stack > * + * {
+  margin-block-start: var(--space-4);
+}
+
+.stack-lg > * + * {
+  margin-block-start: var(--space-6);
+}
+
+.page-header {
+  padding-block: var(--space-7) var(--space-5);
+  border-block-end: var(--rule-width) solid var(--rule);
+}
+
+.page-title {
+  margin-block: var(--space-2) 0;
+}
+
+/* --------------------------------------------------------------------------
+ * Chips - text on a coloured background.
+ *
+ * The pair --chip-text on --chip-bg is one of the pairs the contrast test
+ * measures in every theme, because a chip is the easiest place in a design
+ * system to ship unreadable text: it is small, it is decorative, and it is
+ * checked last.
+ * ------------------------------------------------------------------------ */
+.chip {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border: var(--rule-width) solid var(--rule);
+  border-radius: var(--radius-pill);
+  background: var(--chip-bg);
+  color: var(--chip-text);
+  font-size: var(--size-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-normal);
+  text-decoration: none;
+}
+
+.chip-accent {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
+ * The theme switcher.
+ * ------------------------------------------------------------------------ */
+.theme-switcher {
+  margin-block-start: var(--space-6);
+  padding-block-start: var(--space-4);
+  border-block-start: var(--rule-width) solid var(--rule);
+}
+
+.theme-switcher__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+/* The radio itself stays focusable and in the accessibility tree; only its
+ * painting is replaced. `display: none` on an input would remove it from
+ * keyboard navigation, which is the one thing it must never lose. */
+.theme-switcher__option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: var(--rule-width) solid var(--rule);
+  border-radius: var(--radius-pill);
+  color: var(--text);
+  font-size: var(--size-sm);
+  cursor: pointer;
+}
+
+.theme-switcher__option:hover {
+  border-color: var(--rule-strong);
+  color: var(--link-hover);
+}
+
+/* The selected state is marked by a fill AND a border AND a ring, never by
+ * colour alone, so it survives any form of colour vision deficiency and any
+ * future theme. */
+.theme-switcher__option:has(:checked) {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+
+.theme-switcher__option:has(:focus-visible) {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-width);
+}
+
+.theme-switcher__label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: baseline;
+}
+
+/* The hint is ordinary text at the muted colour, not a colour-coded dot or an
+ * icon: a hint a reader cannot read is a hint that does not exist. */
+.theme-switcher__hint {
+  color: var(--text-muted);
+  font-size: var(--size-xs);
+  letter-spacing: var(--tracking-normal);
+}
+
+.theme-switcher__option:has(:checked) .theme-switcher__hint {
+  /* Must not inherit the muted colour on the accent fill, where that ratio was
+   * never measured. It becomes the plain label colour instead. */
+  color: inherit;
+}
+
+/* NO swatch of each theme's own colour. Doing that honestly would mean a hex
+ * per theme here, which is exactly the colour literal this project forbids in
+ * a style file. The names carry the meaning; the applied theme carries the
+ * colour. */
+
+.theme-switcher__note {
+  margin-block-start: var(--space-3);
+  font-size: var(--size-sm);
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+ * Utilities
+ * ------------------------------------------------------------------------ */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

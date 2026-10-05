@@ -1,0 +1,291 @@
+/* src/styles/themes.css - THE ONLY FILE IN THE PROJECT ALLOWED TO CONTAIN A
+ * COLOUR LITERAL. Every colour, type size, font stack, spacing step, radius,
+ * rule width and measure used by the site is a custom property declared here.
+ *
+ * A component that writes a hex value, a `font-size: Npx` or a raw `2rem` is
+ * not a style choice, it is a bug: that value cannot be themed, and it is the
+ * reason retrofitting themes onto baked-in colours is a rewrite rather than a
+ * config change. `test/theme-contrast.test.mjs` fails the build if a colour
+ * literal appears anywhere else in src/.
+ *
+ * ---------------------------------------------------------------------------
+ * HOW THEMING WORKS
+ * ---------------------------------------------------------------------------
+ *
+ * 1. THE ACTIVE THEME IS A `data-theme` ATTRIBUTE ON <html>. Values:
+ *
+ *      civic     warm institutional. The house style.
+ *      ledger    high-contrast print. Near-monochrome, one brick accent,
+ *                hard black rules, tight measure.
+ *      slate     cool modern neutral. Dark-native.
+ *      system    NO palette of its own: it renders the civic palette and lets
+ *                the operating system choose light or dark.
+ *
+ *    `system` is what src/layouts/Layout.astro ships in the markup, so the
+ *    DEFAULT PALETTE IS CIVIC and the DEFAULT RENDERING FOLLOWS THE OS. That
+ *    answers "default is civic" without pretending a dark-mode reader wants a
+ *    bright page on first visit.
+ *
+ * 2. `light-dark()` IS THE WHOLE DARK-MODE MECHANISM. It resolves to its first
+ *    argument or its second depending on the computed `color-scheme` of the
+ *    element the value is used on. So one token can carry both renderings and
+ *    nothing has to be duplicated per theme:
+ *
+ *      --bg: light-dark(#faf6ef, #17130f);
+ *
+ *    A theme is therefore chosen in exactly one place: its `color-scheme`.
+ *
+ * 3. AN EXPLICIT CHOICE BEATS THE OS. This is the classic bug and it is
+ *    prevented structurally rather than by careful ordering:
+ *
+ *      - `system` (and a bare <html> with no attribute) sets
+ *        `color-scheme: light dark`, so the OS decides.
+ *      - An explicit theme sets `color-scheme: light` or `color-scheme: dark`,
+ *        which OVERRIDES the OS. A reader who picks `ledger` gets ledger on
+ *        paper in the browser's dark mode, because they asked for it.
+ *
+ *    Note that this is `color-scheme`, NOT a `@media (prefers-color-scheme)`
+ *    block. A media block cannot know whether the reader made a choice, so it
+ *    inevitably wins over one, and the reader's choice is silently discarded.
+ *    `color-scheme` is a per-element resolution mode, so a media query is
+ *    simply not needed here - and cannot be added without reintroducing the
+ *    bug. Do not add one.
+ *
+ *    A `data-theme` value of `system` therefore means "civic palette, OS
+ *    scheme", which is exactly one click from `civic` ("civic palette, light
+ *    scheme") - the pair is what makes the interaction legible to a reader.
+ *
+ * 4. BROWSER SUPPORT IS A STATED ASSUMPTION, NOT AN ACCIDENT.
+ *    `light-dark()` and `color-scheme` together are Baseline widely available
+ *    from Chrome 123, Safari 17.5 and Firefox 120 (mid-2024). Civic, the one
+ *    theme whose values depend on `light-dark()`, declares its colours
+ *    through it. Ledger and slate are plain single-scheme themes and therefore
+ *    have no such dependency at all. If this project's support policy ever
+ *    moves below that window, the fix is to duplicate civic's two renderings
+ *    into two separate theme blocks - not to sprinkle fallbacks through the
+ *    components, which would put colour literals back where they do not belong.
+ *
+ * ---------------------------------------------------------------------------
+ * HOW TO ADD A FOURTH THEME
+ * ---------------------------------------------------------------------------
+ *
+ * 1. Decide its SCHEME first (`light` or `dark`) and its accent. Two themes
+ *    that differ only by hex are one theme with two names.
+ * 2. Add one rule below. It must set `color-scheme` (an explicit theme does not
+ *    follow the OS - see 3 above) and must define EVERY token in the token list.
+ *    `test/theme-contrast.test.mjs` compares token key sets across themes, so a
+ *    missing token fails the suite rather than inheriting the previous theme.
+ * 3. Run the suite. It prints the measured WCAG ratio for every text pair in
+ *    your theme. AA needs 4.5:1 for body text and 3:1 for large text and for
+ *    non-text UI such as a focus ring. Do not adjust the threshold to fit.
+ * 4. Add the value to THEME_VALUES in src/layouts/Layout.astro (the pre-paint
+ *    script allowlists it) and to the switcher in
+ *    src/components/ThemeSwitcher.astro.
+ *
+ * ---------------------------------------------------------------------------
+ * TOKEN LIST (the required key set; all themes define all of these)
+ * ---------------------------------------------------------------------------
+ *
+ *   Colour    --bg --surface --text --text-muted --link --link-hover
+ *              --accent --accent-contrast --rule --rule-strong --focus
+ *              --chip-bg --chip-text
+ *   Type      --font-display --font-body --font-mono
+ *              --size-xs --size-sm --size-base --size-md --size-lg --size-xl
+ *              --size-2xl --size-3xl
+ *              --leading-tight --leading-snug --leading-normal --leading-relaxed
+ *              --tracking-tight --tracking-normal --tracking-caps
+ *              --weight-normal --weight-medium --weight-bold
+ *   Space     --space-1 .. --space-9
+ *   Measure   --container --measure
+ *   Rule      --radius-sm --radius-md --radius-pill
+ *              --rule-width --rule-width-strong --focus-width
+ */
+
+/* ---------------------------------------------------------------------------
+ * 1. DEFAULTS AND THE SYSTEM THEME (civic palette, OS scheme)
+ *
+ * This block IS the default. It is written on `:root` so a document with no
+ * data-theme attribute at all still renders correctly, which is what makes the
+ * zero-JavaScript baseline a real baseline rather than a broken page.
+ * ------------------------------------------------------------------------- */
+:root {
+  color-scheme: light dark;
+
+  /* ---- colour: civic ---- */
+  --bg: light-dark(#faf6ef, #17130f);
+  /* --surface is the card / raised panel colour, one step off --bg so an edge
+   * is visible without a border being mandatory. */
+  --surface: light-dark(#fffdf8, #201b15);
+  --text: light-dark(#201c17, #f2ece2);
+  --text-muted: light-dark(#57504a, #b5aa9b);
+  --link: light-dark(#8a2f16, #e8a888);
+  --link-hover: light-dark(#5e1d0c, #f5c6ae);
+  --accent: light-dark(#7d2a12, #e39b74);
+  --accent-contrast: light-dark(#fff8f0, #1b1208);
+  --rule: light-dark(#ded3c2, #352d24);
+  --rule-strong: light-dark(#b6a992, #4a4036);
+  /* The focus ring is deliberately a different HUE from the links. A ring the
+   * same colour as the link it surrounds is easy to miss when the reader's
+   * eyes are following the link underline. */
+  --focus: light-dark(#1f4f8f, #8fb6ef);
+  --chip-bg: light-dark(#efe4d2, #2a231b);
+  --chip-text: light-dark(#4a3f31, #ddcfba);
+
+  /* ---- type ---- */
+  /* A reading room: serif headings and a serif reading face, in that order of
+   * preference. No web fonts: a page that blocks on a font download is a page
+   * that does not render for a reader on a slow connection. */
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Charter, Georgia,
+    Cambria, 'Times New Roman', serif;
+  --font-body: Charter, 'Iowan Old Style', Georgia, Cambria, 'Times New Roman', serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+  --size-xs: 0.75rem;
+  --size-sm: 0.875rem;
+  --size-base: 1rem;
+  --size-md: 1.125rem;
+  --size-lg: 1.375rem;
+  --size-xl: 1.875rem;
+  --size-2xl: 2.5rem;
+  /* The one fluid step. Everything else is a fixed rem step, because a fixed
+   * scale is what makes vertical rhythm predictable across breakpoints. */
+  --size-3xl: clamp(2.25rem, 1.55rem + 2.8vw, 3.5rem);
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+  --tracking-tight: -0.011em;
+  --tracking-normal: 0em;
+  --tracking-caps: 0.09em;
+  --weight-normal: 400;
+  --weight-medium: 600;
+  --weight-bold: 700;
+
+  /* ---- space: a 4px-rooted scale. Steps, not one-off values, so vertical
+   * rhythm stays legible in the stylesheet. ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+
+  /* ---- measure ---- */
+  --container: 78rem;
+  /* 66ch is roughly 75 characters at the body size, which is the top of the
+   * comfortable range. A civic reading room with a 120ch measure would be a
+   * worse reading room. */
+  --measure: 66ch;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-pill: 999px;
+  --rule-width: 1px;
+  --rule-width-strong: 2px;
+  --focus-width: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+ * 2. SYSTEM - the OS follows, the civic palette does not change.
+ *
+ * Declared separately from `:root` even though it resolves identically today,
+ * so that the value has one obvious home. If civic ever gets a second scheme,
+ * this is the rule to change.
+ * ------------------------------------------------------------------------- */
+html[data-theme='system'] {
+  color-scheme: light dark;
+}
+
+/* ---------------------------------------------------------------------------
+ * 3. CIVIC, chosen explicitly - warm institutional, pinned to light.
+ *
+ * Explicit means explicit: a reader on a dark OS who picks civic is asking for
+ * paper, and gets it. The tokens are not repeated - `:root` already defined
+ * them for both renderings, and `color-scheme: light` is what selects the light
+ * one. That is the entire interaction between a reader's choice and the OS.
+ *
+ * The `:has()` selector is the no-JavaScript path for the switcher: a checked
+ * radio inside the page repaints the theme immediately, with no script involved.
+ * It is additive - the same themes work identically with scripting off, and the
+ * only thing scripting adds is that the choice survives navigation.
+ * ------------------------------------------------------------------------- */
+html[data-theme='civic'],
+html:has(#theme-civic:checked) {
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------------------------------
+ * 4. LEDGER - high-contrast print. Near-monochrome, one brick accent.
+ *
+ * A single scheme on purpose: this theme is PAPER, and its identity is hard
+ * black hairlines and maximum contrast rather than a mood. Everything is a
+ * neutral except the accent, which is what makes a one-accent theme read as
+ * deliberate rather than unfinished.
+ * ------------------------------------------------------------------------- */
+html[data-theme='ledger'],
+html:has(#theme-ledger:checked) {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --text: #000000;
+  --text-muted: #3a3a3a;
+  /* Links are ink, not colour, and are underlined in global.css. Print has no
+   * blue link. Hover introduces the accent so the state is unmistakable. */
+  --link: #0f0f0f;
+  --link-hover: #7a1c00;
+  --accent: #7a1c00;
+  --accent-contrast: #ffffff;
+  /* Real black rules, because this is the theme where the rules ARE the design. */
+  --rule: #000000;
+  --rule-strong: #000000;
+  --focus: #7a1c00;
+  --chip-bg: #ebebeb;
+  --chip-text: #000000;
+
+  --tracking-tight: -0.02em;
+  --tracking-caps: 0.14em;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --measure: 62ch;
+}
+
+/* ---------------------------------------------------------------------------
+ * 5. SLATE - cool modern neutral, dark-native.
+ *
+ * Also single scheme, and for the opposite reason to ledger: this theme's
+ * identity IS the dark surface. Declaring a light variant would be a fourth
+ * palette nobody asked for.
+ * ------------------------------------------------------------------------- */
+html[data-theme='slate'],
+html:has(#theme-slate:checked) {
+  color-scheme: dark;
+
+  --bg: #14181d;
+  --surface: #1c2127;
+  --text: #eef2f6;
+  --text-muted: #a9b4c0;
+  --link: #8ab6ec;
+  --link-hover: #b9d5f7;
+  /* Lightened from #3f7fbf after measuring: that value was 4.24:1 on this
+   * theme's background, below the 4.5:1 body-text minimum, and an accent that
+   * fails as text gets used as text within one release. */
+  --accent: #4d8fcc;
+  --accent-contrast: #0b0e12;
+  --rule: #2b323a;
+  --rule-strong: #3d4650;
+  --focus: #7fb3ff;
+  --chip-bg: #232a32;
+  --chip-text: #cfd9e2;
+
+  --font-display: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --leading-normal: 1.65;
+  --measure: 70ch;
+}

@@ -1,0 +1,103 @@
+# data/sources.yml - THE ONLY FILE A HUMAN EDITS TO ADD A PUBLICATION.
+#
+# ---------------------------------------------------------------------------
+# CURRENT STATE, 2026-10-05: two client feeds verified working, one rejected.
+# All three candidate URLs from the client were probed live before this file was
+# written. What the probes found is recorded here, because two of the three URLs
+# do not work as given and one of them is not a Substack at all.
+#
+# ---------------------------------------------------------------------------
+# URL RESOLUTION - THE GIVEN URLS DID NOT ALL WORK
+#
+# Probed 2026-10-05:
+#
+#   https://substack.com/@unitedpatriotsalliance/feed   FAILED (connection closed)
+#   https://unitedpatriotsalliance.substack.com/feed     OK, 20 items
+#   https://substack.com/@evanmulch/feed                 FAILED (connection closed)
+#   https://evanmulch.substack.com/feed                   OK, 3 items
+#   https://www.theepochtimes.com/focus/substack/feed    OK, 7 items - REJECTED, see below
+#
+# A `substack.com/@name` PROFILE url is not a feed url. The profile page is HTML.
+# Append the subdomain form: for a profile at substack.com/@NAME the feed is at
+# https://NAME.substack.com/feed. Do not paste a profile url into feedUrl.
+#
+# ---------------------------------------------------------------------------
+# REJECTED: https://www.theepochtimes.com/focus/substack/feed
+#
+# This one is NOT a Substack publication and is not a speakers feed. It is a
+# generic RSS feed of Epoch Times ARTICLES, and the articles are Epoch Times
+# reporting ON Substack as a business:
+#
+#   "Does Elon Musk want to buy Substack? Bill Ottman on Twitter Substack rift"
+#   "Substack CEO lays off 13 employees citing market conditions"
+#   "misinformation will end once the FDA releases these records"  (2023)
+#
+# 7 items total, newest 2024-04-20, oldest 2022-01-04. Adding it would put
+# two-to-four-year-old news about Substack's corporate situation on a site whose
+# job is to point at writing people actually want to read and speak from.
+#
+# It is parked below as `enabled: false` rather than deleted, so the decision and
+# its reason survive. To include it anyway, set enabled to true - but read the
+# reasoning above first.
+#
+# ---------------------------------------------------------------------------
+# HOW TO ADD ONE
+#
+# 1. Copy one of the blocks below and paste at the end of the `sources:` list,
+#    keeping the two-space indentation exactly as-is.
+# 2. `id`       - short, lowercase, hyphenated, stable forever. It becomes
+#                 sourceId in the dataset and the slug in site URLs, so renaming
+#                 it later orphans any link already published.
+# 3. `name`     - human-readable publication name, shown on cards.
+# 4. `feedUrl`  - the Substack RSS url: https://NAME.substack.com/feed
+# 5. `tag`      - topic we assign. Optional but recommended; it is the ONLY
+#                 taxonomy the site has, because Substack RSS carries no
+#                 categories of its own.
+# 6. `enabled`  - optional, defaults to true. Set false to keep an entry and its
+#                 notes without feeding from it.
+#
+# VERIFY A CANDIDATE BEFORE ADDING IT. A publication that does not exist returns
+# HTTP 200 with Content-Type text/html, NOT a 404, so "it loaded fine" in a
+# browser proves nothing. The three assertions in scripts/lib/validate.mjs are
+# what make a feed valid. Fastest check from the project root:
+#
+#     npm run fetch
+#
+# and read the per-source report it prints. A rejected feed names its own reason.
+#
+# NOTE ON REDIRECTS: a feedUrl may redirect to an entirely different host. The
+# pipeline follows redirects and records the FINAL resolved url as canonical
+# (ROADMAP design rule 4). The configured feedUrl is only the entry point.
+
+sources:
+  # Verified 2026-10-05: HTTP 200, application/xml, 20 items, no redirect.
+  # Range: 2026-04-20 to 2026-10-01. Actively publishing.
+  #
+  # STRUCTURE NOTE: this feed carries NO dc:creator and NO subtitle on all 20
+  # items. So every article from this source has no byline and no dek, and the
+  # card must fall back to the publication name. This is the normal case here,
+  # not an edge case - see the byline helper.
+  - id: unitedpatriotsalliance
+    name: United Patriots Alliance News
+    feedUrl: https://unitedpatriotsalliance.substack.com/feed
+    tag: news
+
+  # Verified 2026-10-05: HTTP 200, application/xml, 3 items, no redirect.
+  #
+  # CAVEAT, verified not assumed: newest item is 2025-02-26, oldest 2023-06-23.
+  # This publication has not posted in roughly 19 months. It is wired in because
+  # the client asked for it, and it will simply contribute few or no new items
+  # until it resumes. If it stays silent, the fix is editorial (a different
+  # source), not technical. Same structural gap as above: no dc:creator, no
+  # subtitle, on all 3 items.
+  - id: evanmulch
+    name: Evan's Substack
+    feedUrl: https://evanmulch.substack.com/feed
+    tag: commentary
+
+  # Parked, not deleted. See the rejection reasoning at the top of this file.
+  - id: epochtimes-focus-substack
+    name: Epoch Times - Focus (Substack coverage)
+    feedUrl: https://www.theepochtimes.com/focus/substack/feed
+    tag: media
+    enabled: false

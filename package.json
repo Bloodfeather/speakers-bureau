@@ -1,0 +1,24 @@
+{
+  "name": "speakers-bureau",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "fetch": "node scripts/fetch-feeds.mjs",
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "astro": "^5.0.0"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.11.2",
+    "yaml": "^2.9.1"
+  }
+}

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  test/fixtures/substack-feed.xml
+
+  A REALISTIC Substack-shaped RSS 2.0 document, hand-built from the structure
+  verified live against bariweiss.substack.com/feed on 2026-10-05. It is not a
+  real post: the body is truncated and the wording is invented. What matters is
+  that every STRUCTURAL quirk of the real feed is present, because those are
+  what break naive parsers:
+
+    - dc:creator and content:encoded carry NAMESPACE PREFIXES. A regex for
+      title, or a parser that ignores namespaces, mangles these.
+    - content:encoded is a large HTML fragment whose tags look like feed
+      structure. It also contains nested tags, class attributes and style.
+    - Numeric entities (&#8217; &#8216; &#8220;) appear inside CDATA. The XML
+      parser must NOT have decoded them, and neither may we before the text
+      layer asserts on them.
+    - guid carries isPermaLink="false", which makes it an OBJECT in the parse
+      tree, not a string.
+    - enclosure carries the image in an ATTRIBUTE, not in text.
+    - The channel has NO subtitle element. Subtitle must be optional.
+    - Two items, so the parser must handle the array case. A separate fixture
+      covers the single-item, non-array case.
+
+  ASCII ONLY. The typographic characters appear here as numeric entities,
+  exactly as the real feed carries them.
+
+  NOTE: these comments MUST be XML comments. An earlier draft used JS-style
+  // line comments here, which made the whole file invalid XML and every
+  fixture-driven test failed at parse. Comment syntax is not decoration.
+-->
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+  <channel>
+    <title><![CDATA[The Example Press]]></title>
+    <description><![CDATA[A sample publication used by the parser tests.]]></description>
+    <link>https://examplepress.test</link>
+    <image>
+      <url>https://examplepress.test/favicon.png</url>
+      <title>The Example Press</title>
+      <link>https://examplepress.test</link>
+    </image>
+    <generator>Substack</generator>
+    <language><![CDATA[en]]></language>
+    <atom:link href="https://examplepress.test/feed" rel="self" type="application/rss+xml"/>
+    <item>
+      <title><![CDATA[The gas station problem &amp; what it means]]></title>
+      <description><![CDATA[The &#8216;corner store&#8217; economy &#8212; and what it means for towns.]]></description>
+      <link>https://examplepress.test/p/gas-station-problem</link>
+      <guid isPermaLink="false">https://examplepress.test/p/gas-station-problem</guid>
+      <dc:creator><![CDATA[Jane Reporter]]></dc:creator>
+      <pubDate>Mon, 05 Oct 2026 10:03:33 GMT</pubDate>
+      <category>economy</category>
+      <category>cities</category>
+      <enclosure url="https://cdn.example.test/images/gas-station_1024x683.jpeg" length="0" type="image/jpeg"/>
+      <content:encoded><![CDATA[<div class="sponsorship-campaign-embed" data-attrs="{&quot;id&quot;:&quot;abc-123&quot;}"></div><p><em>It&#8217;s Monday. This is <strong>The Front Page</strong>, your daily window.</em></p><p>Corner stores have become the last retail foothold in towns where the supermarket left years ago.</p><style>.hidden{display:none;}</style>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Why the bridge closed]]></title>
+      <description><![CDATA[Three years of deferred maintenance.]]></description>
+      <link>https://examplepress.test/p/why-the-bridge-closed</link>
+      <guid isPermaLink="false">https://examplepress.test/p/why-the-bridge-closed</guid>
+      <dc:creator><![CDATA[Jane Reporter]]></dc:creator>
+      <pubDate>Sun, 04 Oct 2026 08:00:00 GMT</pubDate>
+      <category>infrastructure</category>
+      <enclosure url="https://cdn.example.test/images/bridge_1024x683.jpeg" length="0" type="image/jpeg"/>
+      <content:encoded><![CDATA[<p>The bridge closed in March and has not reopened.</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>

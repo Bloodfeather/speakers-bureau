@@ -1,0 +1,25 @@
+---
+// Phase 2.5 placeholder page. It exists to prove the theme foundation end to
+// end - three themes, one default, no colour literal in this file - and to give
+// the switcher somewhere to live before Phase 3 designs the real front page.
+// Phase 3 replaces the body; the Layout, the styles and the switcher do not
+// change.
+import Layout from '../layouts/Layout.astro'
+import ThemeSwitcher from '../components/ThemeSwitcher.astro'
+---
+
+<Layout title="Speakers Bureau">
+  <main class="container page-header">
+    <p class="label">A reading room</p>
+    <h1 class="page-title">Speakers Bureau</h1>
+    <p class="stack">
+      The site is being built. The theme foundation is in place: three themes,
+      selected by a <code>data-theme</code> attribute on the
+      <code>&lt;html&gt;</code> element, with this page defaulting to
+      <strong>civic</strong> and following the operating system's light or dark
+      setting until a theme is chosen.
+    </p>
+
+    <ThemeSwitcher />
+  </main>
+</Layout>

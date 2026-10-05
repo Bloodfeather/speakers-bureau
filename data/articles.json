@@ -1,0 +1,379 @@
+{
+  "generatedAt": "2026-10-05T20:52:55.663Z",
+  "articleCount": 23,
+  "sourceCount": 2,
+  "duplicateCount": 0,
+  "sources": [
+    {
+      "id": "unitedpatriotsalliance",
+      "name": "United Patriots Alliance News",
+      "tag": "news",
+      "status": "ok",
+      "httpStatus": 200,
+      "configuredUrl": "https://unitedpatriotsalliance.substack.com/feed",
+      "resolvedUrl": "https://unitedpatriotsalliance.substack.com/feed",
+      "itemCount": 20,
+      "newItemCount": 20,
+      "error": null
+    },
+    {
+      "id": "evanmulch",
+      "name": "Evan's Substack",
+      "tag": "commentary",
+      "status": "ok",
+      "httpStatus": 200,
+      "configuredUrl": "https://evanmulch.substack.com/feed",
+      "resolvedUrl": "https://evanmulch.substack.com/feed",
+      "itemCount": 3,
+      "newItemCount": 3,
+      "error": null
+    }
+  ],
+  "articles": [
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-birds-of-a-liberal-feather-flock",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Birds of a Liberal Feather Flock Together: The ACLU Goes to Bat for Howard Knapp",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/birds-of-a-liberal-feather-flock",
+      "image": "https://substackcdn.com/image/fetch/$s_!Lia4!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F67787c1b-b3ef-4736-94b2-379d45eed972_1616x1080.jpeg",
+      "publishedAt": "2026-10-01T18:00:46.000Z",
+      "excerpt": "One year to the day after the South Carolina Election Commission (SEC) board voted 3-2 behind closed doors to fire Executive Director Howard “Howie” Knapp, the American Civil Liberties Union (ACLU) of South Carolina went to court on his behalf.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-the-trajectory-that-hillary-clinton",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "The Trajectory That Hillary Clinton and the CFR Want Us On",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://unitedpatriotsalliance.substack.com/p/the-trajectory-that-hillary-clinton",
+      "image": "https://api.substack.com/feed/podcast/218377170/ac19357b5f5647d3be964407edd1ee40.mp3",
+      "publishedAt": "2026-10-01T17:38:04.000Z",
+      "excerpt": "Watch now (2 mins) | Learn more by going to the archive tab on UnitedPatriotsAlliance.Substack.com and typing “CFR” in the search box.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-qatar-carolina-how-nelson-mullins",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Qatar Carolina: How Nelson Mullins Law Firm and Darline Graham’s Network Established Islamic Dominance Over USC",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://unitedpatriotsalliance.substack.com/p/qatar-carolina-how-nelson-mullins",
+      "image": "https://substackcdn.com/image/fetch/$s_!Q0dP!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fde62dbce-05ee-4b1d-bc7c-b4665811dba9_2056x765.png",
+      "publishedAt": "2026-09-29T19:01:29.000Z",
+      "excerpt": "Please visit unitedpatriotsalliance.substack.com/t/darline and read our previous articles to better understand this infographic.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-qatari-money-and-the-neoconservative",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Qatari Money and the Neoconservative Machine: Andrew King’s Influence on Darline Graham",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://unitedpatriotsalliance.substack.com/p/qatari-money-and-the-neoconservative",
+      "image": "https://substackcdn.com/image/fetch/$s_!bh37!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F562099d1-fc47-435d-832a-99cecef011b1_2048x768.png",
+      "publishedAt": "2026-09-09T19:44:16.000Z",
+      "excerpt": "This article is the sixth installment in a series examining the sources of dark money associated with the Darline Graham family.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-recycled-how-sc-reused-a-bill-built",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Recycled: How SC Reused a Bill Built to Silence Critics to Move $350 Million in Pork",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/recycled-how-sc-reused-a-bill-built",
+      "image": "https://substackcdn.com/image/fetch/$s_!rDPM!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3dc373be-7331-40f1-bc56-4e4f8ece6b91_1616x1080.jpeg",
+      "publishedAt": "2026-09-03T20:14:06.000Z",
+      "excerpt": "Last year, we warned you about H.3305, a bill that would shield politicians from their critics.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-did-lindsey-graham-cleverly-queer",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Did Lindsey Graham Cleverly Queer The World?",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://unitedpatriotsalliance.substack.com/p/did-lindsey-graham-cleverly-queer",
+      "image": "https://substackcdn.com/image/fetch/$s_!Ks8-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6067f3f4-c359-4432-8e58-709a03d736c9_1942x809.png",
+      "publishedAt": "2026-09-01T18:06:02.000Z",
+      "excerpt": "Will Darline Do The Same?",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-dark-money-loyalists-who-does-security",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Dark Money Loyalists: Who Does Security Is Strength PAC Do Business With?",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://unitedpatriotsalliance.substack.com/p/dark-money-loyalists-who-does-security",
+      "image": "https://substackcdn.com/image/fetch/$s_!z8Bj!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2213ab34-e183-4e81-a506-71fce8025189_1942x809.png",
+      "publishedAt": "2026-08-27T15:18:05.000Z",
+      "excerpt": "When it comes to any Dark Money PAC, it’s not just who they get money from; it’s who is paid to do the dirty work on behalf of the PAC.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-hidden-money-flow-pac-supporting",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Hidden Money Flow: PAC Supporting Darline Graham Funneled Money to Texas PAC",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://unitedpatriotsalliance.substack.com/p/hidden-money-flow-pac-supporting",
+      "image": "https://substackcdn.com/image/fetch/$s_!ySm2!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe1687b18-2271-479c-9fb9-51579a6a48a0_1942x809.png",
+      "publishedAt": "2026-08-26T14:43:10.000Z",
+      "excerpt": "As we noted in our previous article, Secretly LGBTQAI+-Led PAC Backing Darline Graham, the American people should examine Security Is Strength PAC for its involvement in Republican Party politics. In the recent primary election, Security Is Strength PAC spent $1,382,063 on negative ads against U.S.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-secretly-lgbtqai-led-pac-backing",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Secretly LGBTQAI+-Led PAC Backing Darline Graham",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://unitedpatriotsalliance.substack.com/p/secretly-lgbtqai-led-pac-backing",
+      "image": "https://substackcdn.com/image/fetch/$s_!8RY6!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa59d79ed-7e25-4b82-a941-908c55f5e908_1942x809.png",
+      "publishedAt": "2026-08-20T19:24:38.000Z",
+      "excerpt": "Security Is Strength Super PAC initially formed to support the late U.S.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-pop-up-pacs-and-political-power",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Pop-Up PACs and Political Power",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://unitedpatriotsalliance.substack.com/p/pop-up-pacs-and-political-power",
+      "image": "https://substackcdn.com/image/fetch/$s_!LT2o!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7a38ba31-f48b-4e7f-b5b6-2f76ee8c82f9_1774x887.png",
+      "publishedAt": "2026-08-14T16:56:08.000Z",
+      "excerpt": "Tim Scott, Crosby Ottenhoff, Epstein's Friends and the War Waged Against Mark Lynch",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-the-1-trick-how-south-carolina-hid",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "The $1 Trick: How South Carolina Hid $309 Million in Earmarks to Pass Its Biggest Budget Yet",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/the-1-trick-how-south-carolina-hid",
+      "image": "https://substackcdn.com/image/fetch/$s_!6pwh!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0fbf158d-9f72-4e5b-855e-8f0a89d81422_1616x1080.jpeg",
+      "publishedAt": "2026-08-11T01:18:32.000Z",
+      "excerpt": "After the longest stretch our legislators have gone without spending money in recent memory, the party is back in town.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-richland-co-councilman-derrek-pugh",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Richland Co. Councilman Derrek Pugh Secures Sweetheart Position with Scout Motors",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/richland-co-councilman-derrek-pugh",
+      "image": "https://substackcdn.com/image/fetch/$s_!zVBm!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff6ac35c2-e06b-44a9-a4dd-9f7ad1ca6b5b_1537x1023.jpeg",
+      "publishedAt": "2026-08-04T18:55:11.000Z",
+      "excerpt": "Earlier this week, we asked whether Scout Motors was about to receive more government benefits and how Richland County Council Vice Chair Derrek Pugh was tied in.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-house-of-cards-sc-gop-exposed-episode",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "House of Cards: SC GOP Exposed (Episode 2)",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/house-of-cards-sc-gop-exposed-episode",
+      "image": "https://api.substack.com/feed/podcast/205505678/ddcb919189ba978c8151ccd33c050c9c.mp3",
+      "publishedAt": "2026-07-06T13:44:12.000Z",
+      "excerpt": "Watch now | A few days ago, delegates from across South Carolina gathered for the SCGOP’s special-called convention.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-what-is-happening-inside-the-scgop",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "What Is Happening Inside the SCGOP? Convention Chaos & Grassroots Reform (Episode 1)",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/what-is-happening-inside-the-scgop",
+      "image": "https://api.substack.com/feed/podcast/204917882/dbf637343364beaaedb83818f3cb1847.mp3",
+      "publishedAt": "2026-07-03T14:16:58.000Z",
+      "excerpt": "It happened again!",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-a-south-carolinians-guide-to-voting",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "A South Carolinian’s Guide to Voting, Patriot-Style",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/a-south-carolinians-guide-to-voting",
+      "image": "https://substackcdn.com/image/fetch/$s_!syI_!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fab0e4bbc-9b89-43b1-af75-ea7ad8425468_1616x1080.jpeg",
+      "publishedAt": "2026-06-04T13:45:31.000Z",
+      "excerpt": "South Carolina’s June 9th, 2026 primary is quickly approaching and the field is saturated with candidates.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-disgraced-former-election-officials",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Disgraced Former Election Officials Set Criminal Court Dates",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/disgraced-former-election-officials",
+      "image": "https://substackcdn.com/image/fetch/$s_!aoJ6!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc9672ac1-a7e6-4f63-934d-8a4b47269858_1616x1080.jpeg",
+      "publishedAt": "2026-05-19T13:00:35.000Z",
+      "excerpt": "On the morning of April 23, 2026, the Richland County Courthouse docket on the second floor read like roll call of reckoning.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-the-house-always-wins-lawyer-legislators",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "The House Always Wins: Lawyer-Legislators on the SCAG's Tab",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/the-house-always-wins-lawyer-legislators",
+      "image": "https://substackcdn.com/image/fetch/$s_!Sk_E!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F585521b7-ba49-4647-bd0f-e156363014e8_1616x1080.jpeg",
+      "publishedAt": "2026-05-12T21:06:25.000Z",
+      "excerpt": "Palmetto State Watch Foundation‘s ongoing investigation into the South Carolina Attorney General‘s (SCAG) Litigation Retention Agreements has, until now, focused heavily on the Senate side of the legislature and on the network of outside counsel that has profited from the state’s biggest...",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-sc-election-commission-signs-voter",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "SC Election Commission Signs Voter Data Deal with DOJ as Pennsylvania Makes CVRs Public",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/sc-election-commission-signs-voter",
+      "image": "https://substackcdn.com/image/fetch/$s_!794-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6e012577-8c3d-403a-8211-6768e3ccd79f_1616x1080.jpeg",
+      "publishedAt": "2026-05-04T21:01:39.000Z",
+      "excerpt": "The South Carolina State Election Commission (SEC) voted 4-1 last week to authorize Executive Director Conway Belangia to execute a Memorandum of Understanding (MOU) with the U.S.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-call-to-action-tell-your-state-r-811dhq",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Call to Action: Tell Your State Representative to Vote NO on H.3556",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/call-to-action-tell-your-state-representative",
+      "image": "https://substackcdn.com/image/fetch/$s_!CE3Z!,w_256,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F88914fe9-99ea-4dd1-a69d-35b26e08085e_788x788.png",
+      "publishedAt": "2026-04-21T13:00:10.000Z",
+      "excerpt": "H.3556 would make major changes to how primary election disputes are handled…and not for the better.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-the-great-south-carolina-tax-scam",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "The Great South Carolina Tax Scam: What Your Legislators Did While You Were Filing Your Taxes",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/the-great-south-carolina-tax-scam",
+      "image": "https://substackcdn.com/image/fetch/$s_!7-Nb!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F013538c5-3aea-4f9c-b0b9-88cd4609cc6e_1616x1080.jpeg",
+      "publishedAt": "2026-04-20T20:43:01.000Z",
+      "excerpt": "Have you been wondering why you owe the government more money than usual while filing your taxes this year?",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "evanmulch-substack-com-p-the-forgotten-truth-robert-welch-14b",
+      "sourceId": "evanmulch",
+      "sourceName": "Evan's Substack",
+      "title": "The Forgotten Truth: Robert Welch Stood Against the Zionist Conspiracy and for Christianity (Part 2)",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://evanmulch.substack.com/p/the-forgotten-truth-robert-welch-14b",
+      "image": "https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1d9a7523-d00b-4f9c-8698-b630cbf78af6_1042x720.png",
+      "publishedAt": "2025-02-26T11:29:58.000Z",
+      "excerpt": "Dear Reader,",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "evanmulch-substack-com-p-the-bible-lesson-heard-around-the",
+      "sourceId": "evanmulch",
+      "sourceName": "Evan's Substack",
+      "title": "The Bible Lesson Heard Around The World: On Tucker Carlson's Show, Country Music Legend John Rich Explains How He Thinks 99% of Christians Are Deceived By A False Rapture Teaching",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://evanmulch.substack.com/p/the-bible-lesson-heard-around-the",
+      "image": "https://substackcdn.com/image/fetch/$s_!UUxu!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff0f221f4-8afb-481a-b69e-dedabefa4395_2168x1704.png",
+      "publishedAt": "2024-07-17T11:48:34.000Z",
+      "excerpt": "If you read my previous Substack post titled, The Forgotten Truth: Robert Welch Stood Against the Zionist Conspiracy and for Christianity (Part 1), you will see that I’m leading readers to a very important book titled The Rapture Cult by Robert Pierce",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "evanmulch-substack-com-p-the-forgotten-truth-robert-welch",
+      "sourceId": "evanmulch",
+      "sourceName": "Evan's Substack",
+      "title": "The Forgotten Truth: Robert Welch Stood Against the Zionist Conspiracy and for Christianity (Part 1)",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://evanmulch.substack.com/p/the-forgotten-truth-robert-welch",
+      "image": "https://substackcdn.com/image/fetch/$s_!r4xj!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fde0b5626-357a-4931-a7f7-68240629c459_600x325.jpeg",
+      "publishedAt": "2024-06-23T22:01:57.000Z",
+      "excerpt": "The John Birch Society's Founder had a Low Opinion of the State of Israel",
+      "categories": [
+        "commentary"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+---
+// src/components/ThemeSwitcher.astro - the theme control.
+//
+// MARKUP ONLY, AND THAT IS THE POINT.
+//
+// This component contains no <script> and no inline <style>. It is a
+// fieldset of radio inputs, and the entire visual response lives in CSS:
+//
+//   - Zero JavaScript: a radio inside the page is matched by
+//     `html:has(#theme-ledger:checked)` in src/styles/themes.css, so clicking
+//     an option repaints the theme immediately. All three themes are reachable
+//     with scripting disabled.
+//   - With JavaScript: src/layouts/Layout.astro owns ONE pre-paint script and
+//     one delegated change handler, which additionally persists the choice in
+//     localStorage and re-applies it on the next page load. Two components
+//     each carrying their own copy of that script would be two places for the
+//     flash-of-wrong-theme bug to live, so there is only one.
+//
+// THE NO-SCRIPT CAVEAT IS STATED, NOT HIDDEN: without JavaScript the choice
+// applies to the current page only and is not remembered. Silently degrading a
+// control is worse than saying what it does.
+//
+// The active theme is marked on the INPUT via `checked`, so the selection is
+// conveyed by native radio state as well as by fill, border and ring in
+// global.css. Nothing here depends on colour to be understood.
+
+interface Props {
+  /** Pre-selected theme, used by the pre-paint script path. Empty when unknown. */
+  storedTheme?: string | null
+}
+
+const options = [
+  { value: 'civic', label: 'Civic', hint: 'warm institutional' },
+  { value: 'ledger', label: 'Ledger', hint: 'high-contrast print' },
+  { value: 'slate', label: 'Slate', hint: 'cool neutral' },
+  { value: 'system', label: 'Match system', hint: 'civic, light or dark' }
+]
+
+// The server cannot know the reader's choice or their OS setting, so nothing is
+// pre-checked unless the caller passes one. The documented default is civic.
+const stored = Astro.props.storedTheme ?? null
+---
+
+<fieldset class="theme-switcher">
+  <legend class="label">Theme</legend>
+  <div class="theme-switcher__options">
+    {
+      options.map((option) => (
+        <label class="theme-switcher__option" for={`theme-${option.value}`}>
+          <input
+            type="radio"
+            id={`theme-${option.value}`}
+            name="theme"
+            value={option.value}
+            data-theme-option
+            checked={stored === null ? option.value === 'civic' : stored === option.value}
+          />
+          <span class="theme-switcher__label">
+            {option.label}
+            <span class="theme-switcher__hint"> - {option.hint}</span>
+          </span>
+        </label>
+      ))
+    }
+  </div>
+  <noscript>
+    <p class="theme-switcher__note">
+      Choosing a theme works on this page without JavaScript, but the choice is
+      not remembered on your next visit.
+    </p>
+  </noscript>
+</fieldset>

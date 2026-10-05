@@ -1,0 +1,101 @@
+---
+// src/layouts/Layout.astro - the HTML shell and the ONE place theme
+// JavaScript is allowed to exist.
+//
+// PHASE 2.5: the theme foundation. Before this file the site had its colours as
+// hex literals in a component's <style>, which meant "add a theme" was a
+// rewrite. Now every colour, type size and spacing step is a custom property in
+// src/styles/themes.css, and the theme is a single attribute on <html>.
+//
+// WHY THE STYLES ARE IMPORTED HERE AND NOT INLINED. An inline <style> in a
+// component is what made the old hex values invisible to review. Two imported
+// files, one place for all tokens, one place for all element styles, and a test
+// that fails if a colour literal appears in either.
+
+import '../styles/themes.css'
+import '../styles/global.css'
+
+interface Props {
+  title: string
+  description?: string
+}
+
+const {
+  title,
+  description = 'A speakers bureau aggregating independent publications.'
+} = Astro.props
+
+// The allowlist for a persisted theme. Shared with the inline script below, so
+// the two can never disagree about what a legal value is.
+const THEME_VALUES = ['civic', 'ledger', 'slate', 'system']
+---
+
+<!doctype html>
+<html lang="en" data-theme="system">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    {/*
+      THEME APPLIED BEFORE PAINT. This is the no-flash requirement, and the
+      ordering is the whole mechanism:
+
+        - This script is the FIRST thing in <head>, before the stylesheet link
+          Astro injects and before any body markup exists. The browser cannot
+          paint anything above the fold until it has reached the end of <head>,
+          so nothing is ever visible in the wrong theme.
+        - It runs before DOMContentLoaded and does not wait for `defer`, because
+          a deferred script is exactly the thing that flashes.
+        - Every step is wrapped: a theme must never be the reason a page fails to
+          render. A storage read that throws (Safari private browsing, blocked
+          third-party storage, a hardened profile) is caught and the page falls
+          back to `system`, which is a correct, fully themed state.
+        - The stored value is checked against the allowlist before it is applied.
+          localStorage is writable by anything that has run on the origin, so an
+          arbitrary string must never reach a `data-theme` attribute.
+        - The matching radio is checked here too, so the switcher shows the
+          active theme on first paint instead of snapping to it afterwards.
+
+      `is:inline` keeps the script inline. Astro would otherwise bundle it into
+      a module script, which is deferred by default and would flash.
+    */}
+    <script is:inline define:vars={{ THEME_VALUES }}>
+      (function () {
+        try {
+          var stored = window.localStorage.getItem('sb-theme');
+          if (stored && THEME_VALUES.indexOf(stored) === -1) {
+            // Stale key or junk. Dropped rather than rendered as a theme.
+            window.localStorage.removeItem('sb-theme');
+            stored = null;
+          }
+          if (stored) {
+            document.documentElement.setAttribute('data-theme', stored);
+            var radio = document.getElementById('theme-' + stored);
+            if (radio) radio.checked = true;
+          }
+        } catch (err) {
+          /* Unreadable storage still renders a correct default theme. */
+        }
+
+        // Delegated on `document` because the controls below do not exist yet.
+        document.addEventListener('change', function (event) {
+          var input = event.target;
+          if (!input || input.getAttribute('data-theme-option') === null) return;
+          var value = input.value;
+          if (THEME_VALUES.indexOf(value) === -1) return;
+          document.documentElement.setAttribute('data-theme', value);
+          try {
+            window.localStorage.setItem('sb-theme', value);
+          } catch (err) {
+            /* Applied for this page; storage refused to remember it. */
+          }
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

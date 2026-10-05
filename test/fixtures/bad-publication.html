@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!--
+  test/fixtures/bad-publication.html
+
+  THE REAL-WORLD FAILURE CASE, reproduced exactly.
+
+  Verified live on 2026-10-05: https://nostarch.substack.com/feed returned
+  HTTP 200 with Content-Type text/html for a publication that DOES NOT EXIST.
+  It redirects to https://substack.com/@nostarch and serves an ordinary HTML
+  landing page. There is no 404 to catch.
+
+  This fixture exists so that case is permanently under test. A fetcher that
+  checks only the status code ships this garbage into the dataset.
+
+  Two deliberate properties:
+
+    1. It is WELL-FORMED XML, because a tidy document like this genuinely is,
+       and XMLValidator.validate() accepts it. That is precisely why assertion 2
+       must ALSO check the root element instead of trusting well-formedness -
+       well-formedness alone does not mean "feed".
+
+       NOTE the self-closing <meta ... />. Real Substack 404 pages contain a
+       bare <meta charset="utf-8">, and HTML void elements are NOT well-formed
+       XML. A real page therefore usually fails at well-formedness rather than
+       at the root check. Both are rejections, and both are covered by tests;
+       this fixture deliberately uses the well-formed form so the root-element
+       assertion is genuinely exercised rather than being shadowed by an
+       earlier failure. See the "real-world HTML with void elements" test.
+
+    2. It carries a single <title>. fast-xml-parser turns that into a top-level
+       "title" key with no rss/channel structure, which is what parseFeed()
+       must detect and report.
+
+  The DOCTYPE comes FIRST, as in real HTML. A comment before the doctype makes
+  XMLValidator reject the file outright, which would silently downshift this
+  fixture from the "well-formed non-feed" case it is meant to exercise into the
+  merely "not XML" case - a weaker test that no longer proves what it claims.
+
+  ASCII ONLY.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Substack</title>
+</head>
+<body>
+<div id="main">
+<h1>Substack</h1>
+<p>This publication does not exist, or you do not have permission to view it.</p>
+<a href="/@nostarch">Go to Substack</a>
+</div>
+</body>
+</html>

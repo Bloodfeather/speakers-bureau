@@ -1,0 +1,31 @@
+# Dependencies and build output - reproducible from package.json, so tracking
+# them only adds noise and merge conflicts.
+node_modules/
+dist/
+.astro/
+
+# Secrets. The fetch pipeline may read feed tokens or an API key later.
+.env
+.env.*
+
+# Fetch caches and temp artifacts written by scripts/fetch-feeds.mjs.
+# Design rule 7: a probe or test must never write inside the project, so
+# anything this script caches is disposable and ignored.
+.cache/
+*.cache
+tmp/
+*.tmp
+data/*.tmp
+data/articles.json.tmp
+
+# data/articles.json IS COMMITTED ON PURPOSE - do not ignore it.
+# It is the committed dataset the whole site renders from. Committing it means
+# the site builds offline with no network, every change to it is reviewable in
+# git history, and "why is this article on the site" is answerable with
+# `git log -p data/articles.json`. Ignoring it would trade a large, reviewable
+# diff for a site that silently empties when a fetch fails.
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+*.swp
