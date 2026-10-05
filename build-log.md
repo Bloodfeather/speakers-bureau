@@ -748,6 +748,89 @@ runtime is assumption, clearly labelled as such.
 
 ---
 
+## 2026-10-05 - Canonical repository moved to Documents/GitHub/Speakers/Speakers
+
+### What changed
+
+The client created a git repository by hand at
+`C:\Users\SCSpeakers\Documents\GitHub\Speakers\Speakers` (one commit,
+`.gitattributes` only, no remote) and asked for the work to live there. The
+working copy had been at `Desktop\The TARDIS\SpeakersBureau`. **That repo is now
+canonical; this file lives in it.**
+
+Connected rather than moved, so nothing was duplicated or lost:
+
+1. `git remote add local <path>` from the working copy.
+2. `git fetch local`, then
+   `git merge local/main --allow-unrelated-histories --no-commit`.
+   The client's `.gitattributes` (`* text=auto`) came across cleanly. Only one
+   file was added by the merge; no conflicts.
+3. Committed, then fast-forwarded the client repo with
+   `git fetch <source> main` + `git merge --ff-only FETCH_HEAD`.
+
+Result: **4 commits, 65 tracked files, clean tree**, both sides sharing history.
+
+### A git refusal worth recording
+
+`git push local main` was **rejected**: `receive.denyCurrentBranch` refuses a push
+to the branch checked out in a non-bare repository. Verified afterwards that the
+client repo was completely untouched - 1 commit, clean, nothing damaged. The
+refusal happened before any write, which is exactly what that setting is for.
+
+**Not worked around.** The available workarounds (setting
+`receive.denyCurrentBranch=updateInstead`, or making the repo bare) both change
+how the client's own working copy behaves, and neither was asked for. The
+fast-forward route achieves the same result without touching their configuration.
+
+### Clean-room verification, because "it copied" is not "it works"
+
+The client's repo was verified from scratch, not assumed:
+
+- `npm install` -> 288 packages, exit 0
+- `npm run build` -> **7 pages**, exit 0
+- `npm test` -> **152 pass / 0 fail**, exit 0
+- 43 articles / 3 sources in the copied dataset
+- `git status` clean after the build, so `node_modules/` and `dist/` are genuinely
+  ignored and not merely absent
+
+A repo that builds only because of something in the original working directory is
+not a repo, so this was run in the destination, not the source.
+
+### Documentation
+
+- `README.md` created (new).
+- `docs/DEPLOY.md` rewritten in plain English. It was technically correct but
+  assumed deployment knowledge, and the client had said they did not understand
+  the first explanation of the token. It now explains in one sentence what a
+  personal access token is - a password GitHub generates so an automated job can
+  act as you - before using the term.
+
+Two errors in the previous DEPLOY.md, both corrected:
+
+1. It told the client to add `Desktop\The TARDIS\SpeakersBureau` as the repository,
+   which is **not** canonical. That alone would have caused the wrong repo to be
+   published.
+2. It claimed "29 commits / 29 files", which was the working copy's state. This
+   repo has 4 commits.
+
+### One verification bug of my own, recorded
+
+My first ASCII and script check reported `README.md` as 0 bytes and most scripts
+as undocumented. Cause: `[System.IO.File]::ReadAllBytes()` resolves relative paths
+against the **process** working directory, not the PowerShell location set with
+`Set-Location`. It had read from the old Desktop folder. Re-run with absolute
+paths: both files 0 non-ASCII bytes, all scripts documented. The doc agent's
+report was correct and my check was the broken instrument - the same shape of
+error as the theme probes, and the reason to check the harness before the code.
+
+### Still blocked on the client, unchanged
+
+Publishing to GitHub Pages needs a remote on github.com and a `PAT_TOKEN`
+repository secret. Neither can be created from here. Everything up to that line
+is done and verified.
+
+---
+
 ## 2026-10-05 - Third feed added; a real homepage bug found and fixed
 
 ### The bug, and why it only appeared now
