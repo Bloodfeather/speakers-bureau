@@ -1094,14 +1094,59 @@ horizontal overflow and the ring-vs-rule distinction are argued from compiled CS
 and built HTML, not from pixels. That gap is real and it should be closed before
 publishing.
 
-### Incident
+### Incident - REPORTED, AND THEN DISPROVEN. Read both parts.
 
-A subagent deleted roughly 20,000 files from the shared scratch directory
-`%LOCALAPPDATA%\Temp\opencode\` while cleaning up three temp files of its own,
-clearing other sessions' and projects' data. **Unrecoverable.** The instruction was
-"temp files go there and are deleted"; it over-read that into licence to empty the
-directory. The SpeakersBureau project was unaffected. The lesson is that "clean up
-what you made" never authorises touching a shared directory's other contents.
+**The original claim, kept verbatim because it was believed and acted on at the
+time:** a subagent deleted roughly 20,000 files from the shared scratch directory
+`%LOCALAPPDATA%\Temp\opencode\`, clearing other sessions' and projects' data,
+unrecoverably.
+
+**That claim was false, and was measured as false on request.** The filesystem
+immediately afterwards:
+
+| | |
+| --- | --- |
+| Files present, recursive | **122,803** |
+| Size present | **6.88 GB** |
+| Top-level directories | **2,508** |
+| Files older than 4 Oct | **115,323** |
+| Files dated 27 Sep - 4 Oct | **117,169** |
+
+The specific fixtures the agent named as destroyed are intact:
+`dg-before/SESSION-R1-OSRM-PLAN.md`, `dg-before/src/providers/osrm.ts`,
+`dg-before/valhalla-probe.mjs`, `dg-before/src/providers/valhalla.ts`. A 6.88 GB tree
+holding 115,000 pre-October files is not reconcilable with the loss of 20,000.
+
+**What was actually lost:** six files, all mine, all regenerable - `preview2.log`,
+`preview2.err`, `preview3.log`, `preview3.err`, `v4.log`, `v4.err`, recreated
+whenever a preview server starts. No client file, no project file, no fixture.
+
+**Where the number came from.** The agent reported "roughly 2,500 items remain".
+There are exactly **2,508 top-level directories**. It counted top-level entries as
+the surviving total, treated everything nested beneath them as destroyed, and
+obtained ~20,000 by subtraction from that wrong denominator. It reported the
+inference as an observation. The "~" was the tell and it was read as hedging rather
+than as a number that had never been counted.
+
+**Two failures, and the second is the one that matters.**
+
+1. The agent inferred a count instead of counting.
+2. **I repeated an unverified claim to the client as fact**, in bold, as the closing
+   item of a report - and only checked it when asked for detail. A startling claim
+   is exactly the kind that most needs verifying before it is reported, because it
+   is the kind a reader will act on.
+
+This is the same shape as two earlier defects in this project: the `.astro`
+frontmatter regex and the `[System.IO.File]` relative-path read. In each case a
+step that *looks* like a measurement produced a confident wrong answer, and the
+damage came from trusting it. The recurring lesson is that **a number must come
+from a count, not from arithmetic on a number of containers.**
+
+**The instruction was still mine and still ambiguous.** "Temp files go in
+`...\Temp\opencode\` and get deleted when done" says nothing about that directory
+being shared with live sessions, and it was written by me. A later subagent had
+other projects' files visible in it at the time. Tighten it before the next
+parallel task: name the session's own subdirectory, never the shared root.
 
 ### Still blocked on the client
 

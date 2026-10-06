@@ -3,17 +3,23 @@
 // positioning, and the primary navigation.
 //
 // ---------------------------------------------------------------------------
-// PLACEHOLDER NAME AND COPY - DO NOT SHIP AS IS
+// THE NAME AND BYLINE ARE NOW REAL
 // ---------------------------------------------------------------------------
 //
-// SITE_NAME and SITE_TAGLINE in src/lib/site.ts are PROVISIONAL. The client has
-// not chosen the organisation's name, tagline, voice or domain (ROADMAP.md,
-// "Open items needing the user"). They are deliberately plain rather than
-// plausibly impressive: a placeholder that reads like a finished brand is one
-// somebody forgets to replace, and this masthead is the first thing on the page.
+// SITE_NAME ("The Citizen's Reading Room") and SITE_CURATOR ("By the SC Speakers
+// Bureau Curator") were chosen by the client on 2026-10-05, replacing the
+// placeholders "Speakers Bureau" and "A reading room". Both `data-provisional`
+// markers are removed from this file for that reason, and the grep that used to
+// find them now returns nothing here.
 //
-// The `data-provisional` attribute below is a machine-readable marker so the
-// swap is findable by grep and not only by reading. Remove it in Phase 5.
+// The tagline under the name is still project-written copy and is NOT the
+// client's, so `data-provisional="tagline"` stays on that one element alone. It is
+// the last honest marker in the masthead.
+//
+// NOTE ON THE TWO NAMES. "The Citizen's Reading Room" is the publication. "The
+// SC Speakers Bureau" is the curator that assembles it. They are deliberately not
+// the same string, so the byline and the masthead read as a publication and its
+// editor rather than as one organisation written two ways.
 //
 // ---------------------------------------------------------------------------
 // WHY THE NAV IS LINKS AND NOT A SCRIPT
@@ -30,7 +36,7 @@
 // removing a page load.
 //
 
-import { SITE_NAME, SITE_TAGLINE, withBase } from '../lib/site'
+import { SITE_CURATOR, SITE_NAME, SITE_TAGLINE, withBase } from '../lib/site'
 
 interface Props {
   /** The current path, used to mark the current nav item. */
@@ -52,17 +58,17 @@ const isCurrent = (href: string) => currentPath === href
 
 <header class="masthead">
   <div class="masthead__inner">
-    <p class="label masthead__label" data-provisional="name-and-tagline">
-      A reading room
+    <p class="label masthead__label">
+      {SITE_CURATOR}
     </p>
 
     <p class="masthead__name">
-      <a class="masthead__home" href={withBase('/')} data-provisional="org-name">
+      <a class="masthead__home" href={withBase('/')}>
         {SITE_NAME}
       </a>
     </p>
 
-    <p class="masthead__tagline">{SITE_TAGLINE}</p>
+    <p class="masthead__tagline" data-provisional="tagline">{SITE_TAGLINE}</p>
 
     <nav class="masthead__nav" aria-label="Primary">
       <ul class="masthead__list">
@@ -96,6 +102,33 @@ const isCurrent = (href: string) => currentPath === href
     gap: var(--space-2);
   }
 
+  /* CENTRED MASTHEAD, client decision 2026-10-05.
+   *
+   * The whole masthead block is centred rather than ranged left. Three rules do
+   * the work, and all three are needed:
+   *
+   *   1. `align-items: center` centres the flex children - the byline, the name,
+   *      the tagline and the nav - because a column flex container otherwise
+   *      stretches them to full width and leaves their text flush left.
+   *   2. `text-align: center` centres the text INSIDE each of those children,
+   *      which `align-items` alone does not do. Without it the name would sit
+   *      centred as a box with its own text still flush left.
+   *   3. The two children that set their own max-width - the tagline and the nav -
+   *      need `margin-inline: auto` so the narrowed box itself is centred rather
+   *      than left in a full-width slot.
+   *
+   * Why the nav is centred too rather than kept flush left: a centred masthead
+   * with a left-hanging nav reads as two alignments fighting. The nav is the
+   * horizontal element of the group, so centring the group centres it.
+   *
+   * Long single-word titles wrap by overflowing, so `overflow-wrap: anywhere` is
+   * on the name. With a centred block an overflowing word pushes the whole line
+   * off-centre, which is far more visible here than in a left-aligned one. */
+  .masthead__inner {
+    align-items: center;
+    text-align: center;
+  }
+
   .masthead__label {
     margin-block-end: var(--space-2);
   }
@@ -107,6 +140,7 @@ const isCurrent = (href: string) => currentPath === href
     font-weight: var(--weight-bold);
     line-height: var(--leading-tight);
     letter-spacing: var(--tracking-tight);
+    overflow-wrap: anywhere;
   }
 
   /* The site name is a link home on every page except the home page itself,
@@ -125,18 +159,21 @@ const isCurrent = (href: string) => currentPath === href
   .masthead__tagline {
     max-width: var(--measure);
     margin-block-end: 0;
+    margin-inline: auto;
     font-size: var(--size-md);
     color: var(--text-muted);
   }
 
   .masthead__nav {
     margin-block-start: var(--space-4);
+    margin-inline: auto;
   }
 
   .masthead__list {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-5);
+    justify-content: center;
+    gap: var(--space-2) var(--space-5);
     margin-block-end: 0;
     padding-inline-start: 0;
     list-style: none;

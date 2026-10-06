@@ -5,11 +5,15 @@
 // PLACEHOLDER CONTENT - READ BEFORE SHIPPING
 // ---------------------------------------------------------------------------
 //
-// SITE_NAME, SITE_TAGLINE and SITE_INTRO are PROVISIONAL. The client has not
-// chosen the organisation's name, tagline, voice or domain yet (ROADMAP.md,
-// "Open items needing the user"). They are written to be plainly generic rather
-// than plausibly impressive, because a placeholder that reads like a finished
-// name is one somebody ships by accident. Phase 5 replaces this file.
+// SITE_NAME and SITE_CURATOR were CHOSEN by the client on 2026-10-05 and are no
+// longer placeholders. SITE_TAGLINE, SITE_INTRO and SITE_WINDOW_NOTE are still
+// written for this project rather than supplied by the client, and the `site`
+// value in astro.config.mjs is still https://example.org.
+//
+// A placeholder is only useful while it is obviously one. The name and byline were
+// written plainly as placeholders so nobody would ship them by accident; now that
+// they are real, the remaining provisional values keep that property until the
+// client replaces them too.
 //
 // ---------------------------------------------------------------------------
 // THE BASE PATH IS NOT A CONSTANT
@@ -25,12 +29,29 @@
 // (see src/lib/articles.ts, which IS unit tested and imports no env).
 // ---------------------------------------------------------------------------
 
-/** The organisation's name. PROVISIONAL - see the note above. */
-export const SITE_NAME = 'Speakers Bureau';
+/**
+ * The publication's name, chosen by the client 2026-10-05. This was the
+ * placeholder "Speakers Bureau"; the apostrophe in "Citizen's" is an ASCII `'` and
+ * the string uses double quotes because of it.
+ *
+ * NOT the same thing as the organisation. `SITE_CURATOR` names the body that puts
+ * the collection together, which the client described as "the SC Speakers Bureau
+ * Curator". Keeping the two apart is deliberate: a reader who sees "The Citizen's
+ * Reading Room" at the top and "SC Speakers Bureau" in the byline should be able to
+ * tell that one is the publication and the other is the curator, rather than having
+ * to guess whether they are two names for one thing.
+ */
+export const SITE_NAME = "The Citizen's Reading Room";
+
+/**
+ * The byline above the masthead name, chosen by the client 2026-10-05, replacing
+ * the placeholder "A reading room".
+ */
+export const SITE_CURATOR = 'By the SC Speakers Bureau Curator';
 
 /**
  * One line of positioning, shown under the name in the masthead.
- * PROVISIONAL - see the note above.
+ * PROVISIONAL - see the note above. The name is now chosen; this line is not.
  */
 export const SITE_TAGLINE = 'A front door to independent writing.';
 
