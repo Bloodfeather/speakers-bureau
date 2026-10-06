@@ -1,0 +1,47 @@
+{
+  // wrangler.jsonc - how the built site is published to Cloudflare.
+  //
+  // THE SITE IS PUBLISHED TO WORKERS STATIC ASSETS, NOT PAGES. That was settled by
+  // the deployed reality rather than by preference: the live site is
+  // https://bold-unit-b37a.mstricklandtech.workers.dev, a Workers address.
+  // Cloudflare's Pages and Workers products are separate and a Pages deploy
+  // command will NOT update a Workers project, so a workflow written for Pages
+  // would have reported success while publishing nothing.
+  //
+  // `name` MUST match the existing Worker, exactly. Wrangler creates a NEW
+  // worker with a NEW random workers.dev address if the name does not already
+  // exist, so a typo here does not fail loudly - it silently orphans the site you
+  // already have and creates a second one nobody is looking at. If this project
+  // is ever renamed in the dashboard, this line must change in the same commit.
+  //
+  // `bold-unit-b37a` is the name Cloudflare generated. It is not pretty. Renaming
+  // it is a dashboard action plus this one line, and it is not urgent: the
+  // address only has to keep matching itself.
+  "name": "bold-unit-b37a",
+
+  // Today's date, per Cloudflare's own guidance. Not a decorative field: the
+  // compatibility date decides which runtime behaviours are enabled, and pinning
+  // it is what makes a deploy reproducible.
+  "compatibility_date": "2026-10-06",
+
+  "assets": {
+    // Where `npm run build` puts its output. The build itself is completely
+    // unchanged by the hosting target - Astro does not know or care where the
+    // folder goes - so this is the only line that had to be written to move the
+    // site from Pages to Workers.
+    "directory": "./dist",
+
+    // WITHOUT THIS LINE THE 404 PAGE NEVER APPEARS. The default is to serve
+    // Workers' own bare-bones 404, and src/pages/404.astro - the page with the
+    // real topic links and three article suggestions - would simply never be
+    // requested. One line, and it is the difference between a dead end and a way
+    // back into the content.
+    "not_found_handling": "404-page"
+
+    // `html_handling` is deliberately absent. It defaults to
+    // "auto-trailing-slash", which serves `about/index.html` at `/about/` and
+    // `404.html` at `/404`. That is exactly what Astro's build.format: 'directory'
+    // produces, so the default is already correct. Pinning it would add a second
+    // place to keep in step with the Astro config for no benefit.
+  }
+}

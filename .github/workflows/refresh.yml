@@ -99,6 +99,18 @@ on:
     # fires on the hour queues against the same infrastructure, so an off-hour
     # minute starts faster and jitter-spreads the load.
     - cron: '17 */4 * * *'
+  # A push to the branch publishes. This is the trigger that makes the everyday
+  # answer to "I changed something" be `git push` and nothing else - no waiting
+  # up to four hours for the schedule, and no manual run from the Actions tab.
+  #
+  # It runs the FULL pipeline, fetch included, rather than deploy-only, and that
+  # is deliberate. A code change should not be able to publish a dataset it never
+  # checked, and a change to the fetch rules should not need two triggers. It
+  # also means the "a failed feed must not publish" guarantee below applies to
+  # your own commits, not only to the timer.
+  push:
+    branches:
+      - main
   # Manual trigger. Same path, same guards, no arguments - the workflow has no
   # modes that could differ from the scheduled one and quietly do something else.
   workflow_dispatch:
@@ -262,7 +274,7 @@ jobs:
           git push origin "HEAD:${{ github.ref_name }}"
 
   deploy:
-    name: build and deploy to cloudflare pages
+    name: build and deploy to cloudflare workers
     # needs, not always(). A failed refresh skips this job, which is the whole
     # point of the decision documented at the top of this file.
     needs: refresh
@@ -312,16 +324,22 @@ jobs:
             echo "::error::CLOUDFLARE_ACCOUNT_ID repository secret is not set. It is shown in the Cloudflare dashboard sidebar. See docs/DEPLOY.md."
             exit 1
           fi
-          # The project name is the third thing that must be present, and it is a
-          # VARIABLE rather than a secret. Checked here anyway, because an unset
-          # variable expands to an empty string, and `--project-name=""` fails
-          # inside wrangler with a message about the Pages API rather than about
-          # a missing setting on this repository.
-          if [ -z "${{ vars.CLOUDFLARE_PAGES_PROJECT }}" ]; then
-            echo "::error::CLOUDFLARE_PAGES_PROJECT repository variable is not set. It is the name of the Pages project in the Cloudflare dashboard, lower case and hyphenated. See docs/DEPLOY.md."
+          # There is deliberately NO check for a project name here. On the Pages
+          # side of this file there was one, and it no longer applies: the Worker
+          # name lives in wrangler.jsonc, committed, where a typo is reviewable
+          # rather than buried in a settings page. Two sources of truth for one
+          # name is worse than one source of truth and a code review.
+          # The Worker name is NOT read out of wrangler.jsonc here on purpose. An
+          # earlier version tried to echo it with a regex over the file, which
+          # means parsing JSONC with a regular expression - and a config file
+          # whose contents are checked by a guess is a config file that will one
+          # day report a name it did not actually find. Wrangler reads the file
+          # properly a few steps later; this step only checks that it is there.
+          if [ ! -f wrangler.jsonc ]; then
+            echo "::error::wrangler.jsonc is missing from the repository, so there is nothing telling wrangler which Worker to publish to or where the built site is. This file is committed on purpose."
             exit 1
           fi
-          echo "Cloudflare credentials and project name are present. Project: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}"
+          echo "Cloudflare credentials are present, and wrangler.jsonc is committed."
 
       - name: install wrangler (pinned)
         # PINNED, not `@latest` and not a floating range, for the same reason the
@@ -359,7 +377,7 @@ jobs:
         # astro build writes dist/. Its own non-zero exit fails the job; nothing
         # here needs to swallow it.
 
-      - name: deploy to cloudflare pages
+      - name: deploy to cloudflare workers
         env:
           # Secrets arrive as environment variables, never interpolated into the
           # command line. `echo ${{ secrets.X }}` would print the token into the
@@ -367,37 +385,21 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          wrangler pages deploy dist \
-            --project-name="${{ vars.CLOUDFLARE_PAGES_PROJECT }}" \
-            --commit-dirty=true
-        # --project-name comes from a repository VARIABLE, not a secret: it is a
-        # project name, not a credential, and it is the one piece of Cloudflare
-        # configuration you are most likely to change. It is read into the command
-        # from a variable so that renaming the project is a one-line edit in the
-        # dashboard plus one variable change, with no code edit at all.
+          wrangler deploy
+        # ONE COMMAND, AND THE PROJECT NAME IS NOT IN IT.
         #
-        # THERE IS DELIBERATELY NO --branch FLAG HERE, and this is the single most
-        # dangerous flag on this command.
+        # The name and the asset directory both come from wrangler.jsonc in the
+        # repository. That is the right place for them, unlike the previous
+        # arrangement where the Pages project name was a repository VARIABLE read
+        # into a command line: the Worker name is now committed alongside the
+        # build it describes, so the thing that could silently orphan a live site
+        # by being mistyped is reviewable in a pull request rather than hidden in
+        # a settings page.
         #
-        # `wrangler pages deploy` with no --branch deploys to PRODUCTION. Add
-        # --branch=<name> and you are asking for a PREVIEW deployment, published
-        # at <name>.<project>.pages.dev instead of <project>.pages.dev. The two
-        # are only the same when <name> happens to equal the project's configured
-        # production branch.
-        #
-        # An earlier version of this file passed `--branch=main`. That was wrong,
-        # and wrong in the worst possible direction: for a Direct Upload project
-        # Cloudflare does not expose the production branch in the dashboard at
-        # all, so nobody can check that it is `main`, and if it is anything else
-        # then every scheduled run would have published a fresh preview URL
-        # while production sat frozen on whatever the last manual upload left
-        # there. The automation would report success on every run and the site
-        # would never update again. Omitting the flag removes the dependency on a
-        # setting that is invisible and unchangeable from the dashboard.
-        #
-        # Verified against `wrangler pages deploy --help` for the pinned version:
-        # --branch is documented as "The name of the branch you want to deploy to",
-        # and Cloudflare's own CI guide deploys to production without it.
+        # `wrangler deploy` publishes a static-assets Worker to PRODUCTION. There
+        # is deliberately no --branch flag: on the Pages side of this file there
+        # was, and it was wrong, because a branch name routes the deployment to a
+        # PREVIEW url instead. See the note that used to sit there.
         #
         # --commit-dirty=true because the working tree IS dirty by design in this
         # job: the refresh job committed the dataset on the branch, and
@@ -414,11 +416,16 @@ jobs:
 #
 # THE THREE THINGS THIS FILE NOW NEEDS FROM A REPOSITORY, all in docs/DEPLOY.md:
 #   secret   PAT_TOKEN                  - pushes the refreshed dataset back to git
-#   secret   CLOUDFLARE_API_TOKEN       - creates the Pages deployment
+#   secret   CLOUDFLARE_API_TOKEN       - publishes the built site
 #   secret   CLOUDFLARE_ACCOUNT_ID      - says which Cloudflare account
-#   variable CLOUDFLARE_PAGES_PROJECT   - which Pages project to deploy into
 #
-# All four are checked by name in this file and all four fail with a message that
-# names the missing setting, because a workflow that fails obscurely on a
+# There is NO project-name setting, and that is the point. On the Pages side of
+# this file the Worker name was a repository VARIABLE read into a command line;
+# it is now `name` in wrangler.jsonc, committed beside the build it describes. A
+# name that can silently orphan a live site by being mistyped belongs in code
+# review, not in a settings page nobody opens.
+#
+# All three are checked by name in this file and all three fail with a message
+# that names the missing setting, because a workflow that fails obscurely on a
 # schedule six times a day is a workflow that stays broken for weeks.
 # ---------------------------------------------------------------------------

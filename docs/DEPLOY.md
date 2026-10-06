@@ -1,4 +1,33 @@
-# Publishing this site to Cloudflare Pages
+# Publishing this site to Cloudflare
+
+> **THIS DOCUMENT IS PARTLY OUT OF DATE. READ THIS FIRST.**
+>
+> The site is published to **Cloudflare Workers with Static Assets**, not to
+> Cloudflare Pages. That was settled by what is actually deployed - the live
+> address is a `workers.dev` one - and it is now recorded in `wrangler.jsonc` at
+> the repository root, which is the authoritative statement of how the site is
+> published.
+>
+> **What that means for the instructions below:**
+>
+> - **Sections 1-4 are still correct.** The GitHub repository, the public/private
+>   decision, checking what got uploaded, and the `PAT_TOKEN` are all unchanged.
+>   `PAT_TOKEN` is still needed: the refresh job commits the dataset back.
+> - **Section 5 is wrong.** There is no drag-and-drop upload for Workers static
+>   assets. The site was first published by hand, which is how it came to be on
+>   Workers, but that route does not exist for the platform we now target. The
+>   automatic route in section 8 is the route.
+> - **The Cloudflare token in section 7 is still correct**, with one addition:
+>   `wrangler` may also ask for **Account > Account Settings > Read**. Grant it
+>   if the first publish is refused.
+> - **Section 8 lists one setting too many.** There is no
+>   `CLOUDFLARE_PAGES_PROJECT` variable any more. The Worker name lives in
+>   `wrangler.jsonc`, committed, not in repository settings.
+>
+> The repository is at <https://github.com/Bloodfeather/speakers-bureau> and the
+> live site is at the `workers.dev` address in that repository's description.
+
+# (superseded heading) Publishing this site to Cloudflare Pages
 
 This document takes you from "the site works on my computer" to "the site
 updates itself every four hours, on its own, forever," published at
