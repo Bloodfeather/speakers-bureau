@@ -114,6 +114,32 @@ sources:
     feedUrl: https://rwmalonemd.substack.com/feed
     tag: commentary
 
+  # Added 2026-10-06 by the client as "melthevcl".
+  # Verified 2026-10-06 before adding, with the three assertions the validator
+  # makes: HTTP 200, content-type application/xml, 6 items. Response carries
+  # `x-sub: melthevcl`, so this is the publication itself and not a redirect to
+  # somewhere else.
+  #
+  # NAME: the channel title is literally "Mel", so that is what is shown on
+  # cards. It is a short name to read in a list beside "Malone News", and if the
+  # publication would rather be called something fuller, change `name` here -
+  # that one line is the only place it appears.
+  #
+  # CADENCE: actively publishing, and the most recent item at add time was
+  # 2026-10-06, the same day. Range 2026-06-16 to 2026-10-06.
+  #
+  # STRUCTURE, measured not assumed: NO dc:creator on any of the 6 items and NO
+  # subtitle on any of them. So every article from this source has no byline and
+  # no dek, and the card falls back to the publication name for attribution.
+  # That is the same gap as unitedpatriotsalliance and evanmulch, so it is the
+  # normal case in this set rather than an edge case. All 6 items carry a real
+  # image/jpeg enclosure, so unlike the podcast posts elsewhere in the dataset
+  # these all have artwork.
+  - id: melthevcl
+    name: Mel
+    feedUrl: https://melthevcl.substack.com/feed
+    tag: commentary
+
   # Parked, not deleted. See the rejection reasoning at the top of this file.
   - id: epochtimes-focus-substack
     name: Epoch Times - Focus (Substack coverage)

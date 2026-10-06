@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-06T22:53:17.100Z",
-  "articleCount": 43,
-  "sourceCount": 3,
+  "generatedAt": "2026-10-06T23:38:20.461Z",
+  "articleCount": 49,
+  "sourceCount": 4,
   "duplicateCount": 0,
   "sources": [
     {
@@ -39,6 +39,18 @@
       "itemCount": 20,
       "newItemCount": 20,
       "error": null
+    },
+    {
+      "id": "melthevcl",
+      "name": "Mel",
+      "tag": "commentary",
+      "status": "ok",
+      "httpStatus": 200,
+      "configuredUrl": "https://melthevcl.substack.com/feed",
+      "resolvedUrl": "https://melthevcl.substack.com/feed",
+      "itemCount": 6,
+      "newItemCount": 6,
+      "error": null
     }
   ],
   "articles": [
@@ -53,6 +65,21 @@
       "image": "https://substackcdn.com/image/fetch/$s_!ou1c!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6c892407-515d-4ac6-9049-b8ad133a040f_1672x941.png",
       "publishedAt": "2026-10-06T14:36:17.000Z",
       "excerpt": "Mongolia, Marmots, Golden Eagles, and the ongoing plague investigation",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "melthevcl-substack-com-p-the-king-of-blood-bond-county",
+      "sourceId": "melthevcl",
+      "sourceName": "Mel",
+      "title": "The King of Blood Bond County",
+      "dek": null,
+      "author": "Mel",
+      "url": "https://melthevcl.substack.com/p/the-king-of-blood-bond-county",
+      "image": "https://substackcdn.com/image/fetch/$s_!h_lv!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff32b9160-a6dc-44e9-a021-b7119e8c11aa_1550x1676.png",
+      "publishedAt": "2026-10-06T02:15:30.000Z",
+      "excerpt": "The man behind Palm Beach County’s record investment in genocide",
       "categories": [
         "commentary"
       ]
@@ -523,6 +550,21 @@
       ]
     },
     {
+      "id": "melthevcl-substack-com-p-ritchie-torres-fight-for-equality",
+      "sourceId": "melthevcl",
+      "sourceName": "Mel",
+      "title": "Ritchie Torres' Fight For Equality",
+      "dek": null,
+      "author": "Mel",
+      "url": "https://melthevcl.substack.com/p/ritchie-torres-fight-for-equality",
+      "image": "https://substackcdn.com/image/fetch/$s_!ule5!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa79e1ed0-be3a-445d-adba-f7b9c974837a_1600x1067.webp",
+      "publishedAt": "2026-07-30T15:33:49.000Z",
+      "excerpt": "The fight for Equality™ has turned into quite the cash-cow for Torres and a few of his friends",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
       "id": "unitedpatriotsalliance-substack-com-p-house-of-cards-sc-gop-exposed-episode",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -550,6 +592,66 @@
       "excerpt": "It happened again!",
       "categories": [
         "news"
+      ]
+    },
+    {
+      "id": "melthevcl-substack-com-p-charlie-kirk-and-the-nar-5ea",
+      "sourceId": "melthevcl",
+      "sourceName": "Mel",
+      "title": "Charlie Kirk & the NAR: Part III",
+      "dek": null,
+      "author": "Mel",
+      "url": "https://melthevcl.substack.com/p/charlie-kirk-and-the-nar-5ea",
+      "image": "https://substackcdn.com/image/fetch/$s_!_yuh!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ffd29841c-42b9-4da4-85cf-546536e0e62d_2506x1002.jpeg",
+      "publishedAt": "2026-06-24T00:07:52.000Z",
+      "excerpt": "Where did these people come from?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "melthevcl-substack-com-p-charlie-kirk-and-the-nar-f57",
+      "sourceId": "melthevcl",
+      "sourceName": "Mel",
+      "title": "Charlie Kirk & the NAR: Part II",
+      "dek": null,
+      "author": "Mel",
+      "url": "https://melthevcl.substack.com/p/charlie-kirk-and-the-nar-f57",
+      "image": "https://substackcdn.com/image/fetch/$s_!a9Ws!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8f00b345-993d-442d-b300-1aa17ad0de1f_829x900.jpeg",
+      "publishedAt": "2026-06-24T00:03:33.000Z",
+      "excerpt": "The prophet, the Donald & the cabana boy",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "melthevcl-substack-com-p-charlie-kirk-and-the-nar",
+      "sourceId": "melthevcl",
+      "sourceName": "Mel",
+      "title": "Charlie Kirk & the NAR: Part I",
+      "dek": null,
+      "author": "Mel",
+      "url": "https://melthevcl.substack.com/p/charlie-kirk-and-the-nar",
+      "image": "https://substackcdn.com/image/fetch/$s_!H7x4!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbec66a01-cad9-4257-8164-45a76c261c13_900x675.jpeg",
+      "publishedAt": "2026-06-23T23:18:47.000Z",
+      "excerpt": "What is NAR?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "melthevcl-substack-com-p-turning-points-pac",
+      "sourceId": "melthevcl",
+      "sourceName": "Mel",
+      "title": "Turning Point's PAC",
+      "dek": null,
+      "author": "Mel",
+      "url": "https://melthevcl.substack.com/p/turning-points-pac",
+      "image": "https://substack-post-media.s3.amazonaws.com/public/images/85ec5b61-c305-47b8-8126-b3841e77cf7d_1696x2080.png",
+      "publishedAt": "2026-06-16T16:40:04.000Z",
+      "excerpt": "Where is all the money going?",
+      "categories": [
+        "commentary"
       ]
     },
     {
