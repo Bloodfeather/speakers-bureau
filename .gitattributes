@@ -1,2 +1,22 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Generated SVG artwork is compared BYTE FOR BYTE against a fresh render by
+# test/placeholders.test.mjs. That check is the point: it is what makes a
+# generated file reviewable, because a hand-edited SVG then fails the build
+# instead of quietly shipping.
+#
+# It only works if the bytes on disk are the bytes the renderer produced. Under
+# `* text=auto` with core.autocrlf=true, checkout rewrites these files to CRLF
+# and the comparison fails on files nobody touched - which happened on 2026-10-06
+# on a clean tree, where git itself reported no modification.
+#
+# `-text` marks these as binary for normalisation purposes: no CRLF conversion on
+# checkout, no LF conversion on commit. The renderer emits LF, so the bytes now
+# survive a round trip unchanged, which is the only way "these bytes are
+# reproducible" can mean anything.
+*.svg -text
+
+# Same argument, different reason: npm rewrites this file wholesale and it is
+# not ours to normalise.
+package-lock.json -text
