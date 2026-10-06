@@ -154,7 +154,27 @@ jobs:
           # See the credential note above. Without this the later push has no
           # credential to use.
           persist-credentials: true
-          token: ${{ secrets.PAT_TOKEN }}
+          # `secrets.PAT_TOKEN || github.token` IS LOAD-BEARING, and the fallback
+          # is the whole point. An absent secret expands to an EMPTY STRING, and
+          # actions/checkout treats an explicitly-supplied empty `token` as "a
+          # token was required and none was given" - a hard failure at the FIRST
+          # step. Measured, not assumed: the first run of this workflow on
+          # 2026-10-06 died in 5 seconds at checkout with exactly that error,
+          # before the fetcher, the build or the deploy had run a single line.
+          #
+          # That is the wrong place to fail. Reading the repository needs no
+          # secret at all - GITHUB_TOKEN always has it - so when PAT_TOKEN is
+          # missing, fall back to GITHUB_TOKEN and let checkout succeed. The job
+          # then fetches, builds and deploys normally, and the ONE thing that
+          # genuinely needs the PAT - committing the refreshed dataset - fails
+          # later, at the step that already exists to say so in plain words.
+          #
+          # With no PAT_TOKEN you therefore lose the ability to SAVE new
+          # articles, and keep the ability to publish code changes. Failing at
+          # checkout instead would lose both, over a secret that only one step
+          # uses. When PAT_TOKEN IS set, this expression is exactly what it was
+          # before.
+          token: ${{ secrets.PAT_TOKEN || github.token }}
 
       - name: set up node
         uses: actions/setup-node@v4
