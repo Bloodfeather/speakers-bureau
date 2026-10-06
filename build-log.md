@@ -128,6 +128,60 @@ check would otherwise pass trivially on an empty corpus.
 
 ---
 
+## 2026-10-06 - First successful deploy, verified against the live site
+
+The site is published to `https://bold-unit-b37a.mstricklandtech.workers.dev`.
+Version `38e1a966-2423-498b-bd28-bf39e6b5cbe1`. This is the first time a build
+produced by this project has been verified by a visitor's browser rather than by
+a local file read, and it is worth recording how, because the method mattered
+more than the deploy.
+
+**How it was deployed, and why that is not a one-off manual step.** `wrangler
+login` on this machine, then `wrangler deploy`, using the SAME pinned wrangler
+version and the SAME `wrangler.jsonc` that CI uses. So the bytes now being served
+are the bytes CI would serve. The alternative - dragging a folder in - does not
+exist for Workers at all, which is why the original site landed on a
+`workers.dev` address in the first place.
+
+**Verified before deploying, not after guessing.** `wrangler deployments list`
+confirmed the Worker named in `wrangler.jsonc` already existed, because
+wrangler CREATES a new Worker with a new random address when the name does not
+match. A typo there would not fail loudly; it would silently orphan the live
+site. Then `deploy --dry-run`, which is wrangler's own parser agreeing the config
+and the 32 assets are acceptable.
+
+**Verified after deploying, against the live origin.** 14 checks, all passing:
+no `<img>` on `/`, `/latest/` or `/topic/commentary/` points at an audio file;
+the three podcast posts are still LISTED, because an article that silently
+vanishes is a worse defect than a broken image icon; `object-position: left
+center` is served on all three pages carrying the Five Hospitals artwork; an
+unknown path returns HTTP 404 **and** serves this project's own 404 page with
+the site chrome rather than Workers' bare default; and a positive control proves
+the audio detector can still fail.
+
+The 404 check is the one that would have caught a silent regression. It is the
+only thing `assets.not_found_handling: "404-page"` does, and without it Workers
+serves its own default page and `src/pages/404.astro` is never requested at all.
+
+**Account ID, needed for CI and now known:** `da978ed1ad70fd76a2486982616e2551`.
+
+### What is still broken, and it is not the deploy
+
+- **The 4-hourly refresh does not work.** GitHub's runners receive HTTP 403 from
+  all three Substack feeds; the identical code returns 200 from this machine.
+  Same code, same headers, same User-Agent, different network, so it is egress
+  and not code. Reproduced on two consecutive runs.
+- **The failure behaved correctly.** The dataset was NOT written, the deploy job
+  was SKIPPED, and the live site was untouched. That is the fail-loud guarantee
+  catching a real problem, which is the outcome it exists to produce.
+- **No repository secrets exist yet**, so CI cannot publish even once the 403 is
+  solved. The deploy path is proven; it simply has no credentials.
+- Wrangler warns that `preview_urls` is enabled by default on this deployment.
+  Harmless for a site that deploys from one branch, and setting
+  `preview_urls = false` in `wrangler.jsonc` would silence it.
+
+---
+
 ## 2026-10-06 - Two image defects, found by looking at the live site
 
 The site went live on Cloudflare and a reader looked at it. Both defects below
