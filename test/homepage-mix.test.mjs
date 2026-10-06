@@ -2,12 +2,12 @@
 //
 // REGRESSION TEST for a real bug, not a hypothetical one.
 //
-// WHAT HAPPENED: the home page selected its "start here" run with
-// `feed.slice(0, 6)` over the newest-first list. That was fine with 2 feeds.
-// When a third feed was added - Malone News, which publishes DAILY - all 6 slots
-// filled with Malone posts. The front door of an organisation that exists to
-// point at SEVERAL writers displayed exactly ONE of them, and two publications
-// were invisible on the page whose entire job is to introduce them.
+// WHAT GOES WRONG: the home page selects its "start here" run with
+// `feed.slice(0, 6)` over the newest-first list. That works only while every
+// publication publishes at the same rate. Malone News publishes DAILY, so all 6
+// slots fill with Malone posts, and the front door of an organisation that exists
+// to point at SEVERAL writers displays exactly ONE of them: two publications are
+// invisible on the page whose entire job is to introduce them.
 //
 // The bug is not the constant 6. It is the assumption that a "latest N" run
 // samples the publications. That holds only when publications publish at
@@ -67,7 +67,7 @@ function selectFeatured(feed, count) {
   return featured
 }
 
-// A dataset shaped like the real one on 2026-10-05: one daily publication, one
+// A dataset shaped like the real one: one daily publication, one
 // weekly, one dormant. The ordering is genuine chronological order.
 const DAILY = 'malone'
 const WEEKLY = 'unitedpatriotsalliance'
@@ -131,8 +131,7 @@ test('no publication can be crowded out by a busier one', () => {
   const publicationCount = new Set(REALISTIC.map((a) => a.sourceId)).size
   assert.equal(publicationCount, 3, 'fixture must have 3 publications for this test to mean anything')
 
-  // REPRESENTATION, not equal share. This distinction is load-bearing and the
-  // first version of this test got it wrong.
+  // REPRESENTATION, not equal share. This distinction is load-bearing.
   //
   // The obvious rule to write is "no publication exceeds ceil(slots / pubs)",
   // which here is 2 each. The real data does not satisfy it and is not

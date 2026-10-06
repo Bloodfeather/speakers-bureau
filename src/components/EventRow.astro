@@ -2,13 +2,12 @@
 // src/components/EventRow.astro - one event in the LIST view.
 //
 // ---------------------------------------------------------------------------
-// WHAT CHANGED, AND WHY IT IS BETTER
+// WHY THIS ROW IS A LABEL FOR A SHARED RADIO
 // ---------------------------------------------------------------------------
 //
-// Previously this component owned a radio input and its accessible name was the
-// event's. It no longer does. The selection unit is now a DAY, and the day radios
-// live in ONE hidden group in the page - so the same date can be selected from
-// either the calendar or the list, and both stay in sync with no JavaScript.
+// The selection unit is a DAY, and the day radios live in ONE hidden group in the
+// page - so the same date can be selected from either the calendar or the list,
+// and both stay in sync with no JavaScript.
 //
 // The consequence worth stating: this row is now a `<label for>` pointing at a
 // shared radio, so its accessible name comes from the DAY's radio, not from the

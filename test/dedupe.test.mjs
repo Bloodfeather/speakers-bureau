@@ -173,7 +173,7 @@ test('writeJsonAtomic ends the file with a newline', async () => {
 });
 
 test('DESIGN RULE 7: writing to a temp path does not touch the real dataset', async (t) => {
-  // The real dataset may not exist yet (Phase 2 runs before the first fetch).
+  // The real dataset may not exist yet (it is produced by the first fetch).
   // Assert absence-or-unchanged, so this test is meaningful either way.
   const existedBefore = existsSync(REAL_DATASET);
   const before = existedBefore ? await readFile(REAL_DATASET, 'utf8') : null;

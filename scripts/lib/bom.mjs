@@ -1,13 +1,10 @@
 // scripts/lib/bom.mjs - remove a leading UTF-8 byte order mark, ONE implementation.
 //
-// WHY THIS IS ITS OWN MODULE. It used to be a private function in
-// scripts/check-events.mjs and a byte-identical private function in
-// scripts/make-placeholders.mjs. Both CLIs read the same hand-edited
-// data/events.json, so both needed it, and check-events.mjs's own comment above
-// its copy argued against reimplementing anything the other CLI needs - while
-// doing exactly that one function over. Two copies means one of them eventually
-// changes and the other does not, and the symptom is a mystery "unexpected token"
-// on one command and not the other.
+// WHY THIS IS ITS OWN MODULE. Both CLIs read the same hand-edited
+// data/events.json, so both need this, and check-events.mjs's own comment above
+// its copy argues against reimplementing anything the other CLI needs. Two copies
+// means one of them eventually changes and the other does not, and the symptom is
+// a mystery "unexpected token" on one command and not the other.
 //
 // THE CHARACTER IS BUILT FROM ITS CODE POINT, never typed. U+FEFF is invisible,
 // and this project is ASCII-only in authored files (ROADMAP design rule 9): a

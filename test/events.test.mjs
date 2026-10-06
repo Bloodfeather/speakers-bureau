@@ -237,10 +237,10 @@ test('every DATE in the dataset has a selection rule in the page', async (t) => 
   // rather than hardcoded, so the test follows the data.
   const keys = [...new Set(result.events.map((event) => event.startsAt.slice(0, 10)))].sort();
 
-  // The per-day selectors are no longer hand-written in events.astro: they are
-  // GENERATED from the same `days` array into an `is:inline` block. So this test
+  // The per-day selectors are GENERATED from the same `days` array into an
+  // `is:inline` block, not hand-written in events.astro. So this test
   // asserts against the BUILT page, not the source, which is both stronger (it
-  // sees what a browser receives) and correct about the new design.
+  // sees what a browser receives) and correct about the design.
   //
   // It is asserted on the built HTML rather than by running Astro, because the
   // build is a separate step; when dist is absent the test builds nothing and says
@@ -254,9 +254,10 @@ test('every DATE in the dataset has a selection rule in the page', async (t) => 
   );
 
   // The inline block is unscoped, so the selectors appear WITHOUT `:global()`.
-  // That difference is the whole reason this assertion had to move: the source
-  // form is `html:has(#day-X:checked) [data-panel='X']` and the old string, with
-  // its `:global(...)` wrapper, no longer exists anywhere.
+  // That difference is why this assertion reads the built page: the source
+  // form is `html:has(#day-X:checked) [data-panel='X']`, and a `:global(...)`
+  // wrapper around it would match nothing, because Astro still appends the page's
+  // scope id to the unscoped tail.
   const missing = { panel: [], checked: [], focus: [] };
   for (const key of keys) {
     if (!built.includes(`#day-${key}:checked) [data-panel='${key}']`)) missing.panel.push(key);
@@ -1152,14 +1153,13 @@ test('the rendered dates do not change with the machine timezone', () => {
   // WHAT THIS PROVES, AND WHAT IT DOES NOT
   // ---------------------------------------------------------------------------
   //
-  // An earlier version of this comment overclaimed. It said a failure would mean
-  // "a formatter that reached for a local-time accessor (getHours,
-  // toLocaleDateString)". A review showed that is not true: an implementation using
-  // getHours would still PASS this comparison, because every fixture here is a WALL
+  // A failure does NOT mean "a formatter that reached for a local-time accessor
+  // (getHours, toLocaleDateString)". An implementation using getHours would still
+  // PASS this comparison, because every fixture here is a WALL
   // CLOCK string. There is no UTC instant anywhere in the input for the machine's
   // zone to bite on, so TZ has nothing to shift and all three runs agree whether
-  // the accessors are local or not. The comment described a check the test does not
-  // perform, which is worse than no comment.
+  // the accessors are local or not. A comment describing a check the test does not
+  // perform is worse than no comment.
   //
   // So, precisely: THIS proves the output does not vary with the machine timezone.
   // That is the requirement - ROADMAP design rule 8 is about the built HTML being
@@ -1298,9 +1298,9 @@ test('the events page styles no class that belongs to another component', async 
   //      this test is not passing merely because the file was scrubbed.
   assert.ok(css.length > 500, `positive control: the extracted <style> block should be substantial, got ${css.length} characters`);
   // `.events__layout` is this page's own class, so it must survive extraction.
-  // `html:has(#day-` used to be checked here too, but the per-day selectors moved
-  // to a separate `is:inline` block when they were generated from the data, and
-  // `styleBlockOf` reads the scoped block only. Their presence is asserted against
+  // `html:has(#day-` is not checked here, because the per-day selectors are generated
+  // from the data into a separate `is:inline` block and `styleBlockOf` reads the
+  // scoped block only. Their presence is asserted against
   // the BUILT page in the selector tests above, which is the right place for them.
   assert.ok(
     css.includes('.events__layout'),
@@ -1437,7 +1437,7 @@ test('the events page ships no <noscript> fallback, and no :global() CLASS selec
   // things would happily pass on a page where the mechanism had been deleted
   // outright along with the :global() calls.
   //
-  // The per-day selectors are no longer in the page SOURCE: they are generated
+  // The per-day selectors are not in the page SOURCE: they are generated
   // into an `is:inline` block, which is why this reads the BUILT page. Asserted
   // here as the positive control for the :global()-class ban above, and
   // exhaustively in the selector tests near the top of this file.
@@ -1728,7 +1728,7 @@ test('an event day and an empty day differ by a NON-COLOUR property', async (t) 
   // The fix is a SHAPE: a small ring rendered beside the numeral on event days only.
   // Drawn with a BORDER rather than a background, because forced-colours mode
   // overrides `background-color` to the canvas colour - a dot painted that way is
-  // invisible exactly where it was added to help - while border-width and
+  // invisible exactly where it is needed most - while border-width and
   // border-style are not overridden, so the ring keeps its shape and its size.
   //
   // The test asserts on the BUILT page, not the source, so it checks what a
@@ -1814,7 +1814,7 @@ test('an event day and an empty day differ by a NON-COLOUR property', async (t) 
   // POSITIVE CONTROL 2, and the half that is easy to get wrong: it must NOT be
   // `background`. A dot painted with `background: currentColor` is overridden to
   // the canvas colour in forced-colours mode, so it disappears exactly where it
-  // was added. Asserting its absence here is what stops somebody "simplifying" the
+  // exists for. Asserting its absence here is what stops somebody "simplifying" the
   // ring into a filled dot later.
   assert.equal(
     /background(-color)?\s*:/.test(markerRule[1]),
@@ -2025,7 +2025,7 @@ test('a covered day is NOT selectable: no radio, no panel, no generated selector
 test('the covered-day marker is drawn with a border, not a background', async (t) => {
   // THE SAME RULE THE RING FOLLOWS, applied to the second marker. Forced-colours mode
   // overrides `background-color` to the canvas colour, so a bar painted that way
-  // disappears in exactly the mode it was added for. Border-width and border-style
+  // disappears in exactly the mode it exists for. Border-width and border-style
   // are not overridden, so a rule drawn with a border keeps its length and weight.
   //
   // Without this, the obvious "simplification" - make the covered mark a filled block
@@ -2301,9 +2301,8 @@ test('a multi-day all-day event renders as a SPAN, not as its start date', () =>
   const earlyVoting = REAL_DOC.events.find((event) => event.id === 'early-voting');
   assert.ok(earlyVoting, 'positive control: the real dataset must contain early-voting');
   // The expectation is DERIVED from the dataset rather than written out. The
-  // literal used to be spelled here as '15 - 31 October 2026', so correcting the
-  // start date to the real one (19 October, per scvotes.gov - the data had said
-  // the 15th) failed a test that was asserting the old, wrong value. The
+  // literal must not be spelled here: pinning the dates meant a correction to the
+  // real start date failed a test that was asserting the old, wrong value. The
   // invariant worth protecting is that it renders as a SPAN of the right length;
   // whether the dates themselves are correct is a question about the world, and
   // it is recorded in data/events.schema.md, not pinned here.
@@ -2494,7 +2493,7 @@ test('the real dataset carries the campaign note, and the page reads it from the
 });
 
 test('Meeting is in the vocabulary, and it is not an alias for Forum', () => {
-  // The type was added when the real events replaced the placeholders, because a party
+  // The type exists because a party
   // quarterly meeting is a scheduled gathering rather than a moderated Q&A - and the
   // chip is the first thing a reader scans. Filing it under Forum would make a filter
   // lie about its contents.

@@ -24,22 +24,22 @@
 // import.meta.env, is kept separate for that reason.
 //
 // ---------------------------------------------------------------------------
-// MEASURED FACTS ABOUT THE CURRENT DATASET (2026-10-05, 43 articles, 3 sources)
+// MEASURED FACTS ABOUT THE CURRENT DATASET
 // ---------------------------------------------------------------------------
 //
 // These are observations, not schema promises, and each one is a design input.
-// Recount them with `npm run fetch` and re-measure; the numbers below are a
-// snapshot, not a contract. Where they are cited in a comment above, the
-// reasoning depends on the SHAPE (all empty, all present, mostly real people)
-// rather than the exact count.
+// Re-measure with `npm run fetch`; the numbers below are a snapshot, not a
+// contract. Where they are cited in a comment above, the reasoning depends on
+// the SHAPE (all empty, all present, mostly real people) rather than the exact
+// count.
 //
-//   dek         empty on 43 of 43. Substack RSS carries no subtitle field.
+//   dek         empty on every article. Substack RSS carries no subtitle field.
 //               So NOTHING may depend on a dek existing. `dek` is typed
 //               `string | null` and every card conditionally renders it.
-//   image       present on 43 of 43, but typed `string | null` anyway: an
+//   image       present on every article, but typed `string | null` anyway: an
 //               optional field that happens to be always-populated today is
 //               still optional tomorrow, and the card must not break.
-//   author      present on 43 of 43, and a real person on the great majority
+//   author      present on every article, and a real person on the great majority
 //               ("Dr. Robert W. Malone", "Alaina Stone", "Evan Mulch"). On a
 //               small number it is "United Patriots Alliance", which is the
 //               PUBLICATION name minus
@@ -58,11 +58,6 @@ import datasetJson from '../../data/articles.json' with { type: 'json' }
 // validator or a script that wanted one month name would have to load every
 // article to get it - and a checker that fails because an unrelated JSON file is
 // missing is a checker whose failure reason lies.
-//
-// This module used to declare its own identical copy, held in step only by a
-// test that compared the two arrays. That guard cost a test run on every commit
-// to protect against a difference one import removes, and it compared a thing to
-// a copy of itself, so it could only ever fail for a reason nobody could act on.
 //
 // `.ts` ON THE SPECIFIER: bare Node cannot resolve an extensionless relative
 // import, and `node --test` imports this module. tsconfig extends
@@ -103,7 +98,7 @@ export interface Article {
   sourceId: string
   sourceName: string
   title: string
-  /** Substack RSS has no subtitle. Empty on 23 of 23. Treat as optional. */
+  /** Substack RSS has no subtitle. Treat as optional. */
   dek: string | null
   /** The feed's own author string. May be a publication name; see bylineFor. */
   author: string | null
@@ -259,11 +254,11 @@ const TRAILING_NOISE = new Set([
  * Reduce a name to something comparable: lowercase, apostrophes and punctuation
  * removed, leading articles and trailing genre words dropped.
  *
- * This exists because `author === sourceName` is NOT the rule. Measured on the
- * current dataset: the author "United Patriots Alliance" against the publication
+ * This exists because `author === sourceName` is NOT the rule. Real bylines carry
+ * this case: the author "United Patriots Alliance" against the publication
  * "United Patriots Alliance News" differs by one trailing word, so a strict
- * equality check would print the publication name as though it were a person on
- * those 2 articles - precisely the failure the rule exists to prevent.
+ * equality check would print the publication name as though it were a person -
+ * precisely the failure the rule exists to prevent.
  *
  * Apostrophes are DELETED rather than replaced with a space, so "Evan's Substack"
  * becomes "evans substack" and then, with "substack" dropped, "evans" - not
@@ -301,8 +296,8 @@ export function normalizeName(value: string): string {
  * under a card headed by an article FROM United Patriots Alliance News tells the
  * reader nothing and reads as though a masthead were a person.
  *
- * The comparison is the normalised one, which catches the measured 2-of-23 case
- * where the strings differ by a trailing "News". It also requires BOTH sides to
+ * The comparison is the normalised one, which catches bylines that differ from
+ * the publication name only by a trailing "News". It also requires BOTH sides to
  * be non-empty after normalisation, so that two names which normalise to nothing
  * (or to the same stop word) do not suppress each other by accident.
  */

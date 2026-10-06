@@ -1,11 +1,11 @@
 // test/tags.test.mjs - the manual topic tag from data/sources.yml reaching the
 // articles' `categories`.
 //
-// BACKGROUND, measured 2026-10-05: `categories` was empty on 40 of 40 real
-// articles, because Substack RSS carries no useful <category> elements and
-// `loadSources()` already parsed a `tag:` that then went nowhere. The client
-// chose manual topic tags as the browsing mechanism (ROADMAP "Decisions taken
-// 2026-10-05"), so this is load-bearing, not cosmetic.
+// BACKGROUND: `categories` is empty on every real article, because Substack RSS
+// carries no useful <category> elements and `loadSources()` already parsed a
+// `tag:` that then went nowhere. The client chose manual topic tags as the
+// browsing mechanism (ROADMAP "Decisions taken"), so this is load-bearing, not
+// cosmetic.
 //
 // WHERE THE FIX BELONGS. The tag is a property of the SOURCE, so it is applied
 // in `collectSource()` (the orchestrator) and not in `scripts/lib/rss.mjs`,
@@ -31,9 +31,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 /**
  * Serve a fixture file as a 200 application/xml response.
  *
- * Stubbed rather than live so these tests are deterministic and offline. The
- * pipeline's real HTTP path is covered by the live positive control in
- * build-log.md; what is under test here is what happens to the tag afterwards.
+ * Stubbed rather than live so these tests are deterministic and offline. What is
+ * under test here is what happens to the tag afterwards, not the real HTTP path.
  */
 async function serveFixture(fixtureName) {
   const xml = await readFile(resolve(HERE, 'fixtures', fixtureName), 'utf8');

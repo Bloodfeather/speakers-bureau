@@ -1,7 +1,7 @@
 ---
 // src/pages/index.astro - the front door.
 //
-// THE SITE'S JOB, per the client decision of 2026-10-05: "a front door / reading
+// THE SITE'S JOB, per the client's decision: "a front door / reading
 // room". Introduce the organisation, then present the latest writing as a curated
 // feed with strong obvious links OUT to the publications themselves. The client
 // chose this over a searchable library and over a booking funnel.
@@ -76,9 +76,9 @@ const nextEvent = events.find((event) => !isPast(event, reviewedOn)) ?? null
 // `feed.slice(0, 6)` over the newest-first list looks reasonable with two feeds
 // and breaks the moment a third arrives, because publications do not publish at
 // the same rate. On the current dataset one publication posts daily, one posts
-// roughly weekly, and one last wrote in February 2025 - so the six newest items
-// were six posts from a single publication, and the front door displayed one
-// writer out of three. Two of them were invisible.
+// roughly weekly, and one last wrote in February 2025 - so a plain slice fills
+// the run with six posts from a single publication and the front door displays one
+// writer out of three. Two of them are invisible.
 //
 // The bug is not the constant, it is the assumption: that a "latest N" run
 // samples the publications. It only does when they publish at similar rates.

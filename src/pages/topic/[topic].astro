@@ -9,9 +9,9 @@
 // decision is visible to a reader of the site. The short version: topic
 // filtering has to work with JavaScript disabled (a hard requirement, not a
 // polish item), and build-time pages give that for free while also giving every
-// topic a real crawlable URL. With 23 articles and 2 topics the cost is 2 pages.
+// topic a real crawlable URL. With a small dataset and 2 topics the cost is 2 pages.
 //
-// The alternative was one page holding all 23 cards plus a script that toggles
+// The alternative is one page holding every card plus a script that toggles
 // `hidden`. That has exactly one implementation, and it needs the script. A
 // no-JS fallback would be a second implementation of the same filter. Two
 // implementations of a filter is two things to get wrong, and the client-side
@@ -19,8 +19,8 @@
 //
 // WHAT IS GIVEN UP, plainly: a topic switch is a page load rather than an instant
 // swap, and there is no single document on which all topics are visible at once.
-// For 23 items over a static host that is the right trade. When the dataset is in
-// the thousands, revisit it.
+// For a few dozen items over a static host that is the right trade. When the
+// dataset is in the thousands, revisit it.
 //
 // ---------------------------------------------------------------------------
 // THE PAGE LIST IS DERIVED FROM THE DATA

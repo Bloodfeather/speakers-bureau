@@ -5,6 +5,129 @@ interruption, read the top entry, then `ROADMAP.md`, then continue.
 
 ---
 
+## 2026-10-06 - The Bureau's own words on About, and the removal of the notes
+
+The client supplied the organisation's About copy. It went on `/about/`, and the
+sponsorship section they then asked to leave off stayed off. The rest of the work
+was removing the things on the site that read as a builder's notes rather than as
+words for a visitor.
+
+**Verified after every step:** `npm run build` exit 0, 7 pages. `npm test` 213
+passing / 0 failing (was 209; four net new tests). `npm run events:check` exit 0,
+7 events, 0 images missing. Every source file touched is pure ASCII and ends in a
+newline, checked on the bytes.
+
+### What the About page said before
+
+A heading reading "This page is a placeholder". A paragraph explaining that the
+organisation's story "has not been supplied yet", and that inventing a mission
+statement and marking it draft "is how a draft becomes a published claim". A
+sentence promising that "Phase 5 replaces the placeholder section". A line saying
+"Everything below it, however, is not placeholder."
+
+None of that was wrong, and none of it broke anything. It parsed, it built, it
+passed 209 tests, and it would have published. That is the whole problem: it read
+as a project reporting its own incompleteness to every visitor who asked who was
+behind it.
+
+### What replaced it
+
+The client's own claims, in their order: the 501(c)(3) nonprofit founded in South
+Carolina; the first speaking tour; the founders' decision to carry on so there
+would be future tours; and the Bureau now working in South Carolina, Georgia and
+North Carolina.
+
+The reading room follows under its own heading, second, brief. Keeping the two
+sections visibly separate is the point - "who are you" is answered by the
+organisation, and "what is this page and why does it hold only recent posts" is
+answered from the dataset. The window disclosure and the publication list are still
+computed, so their numbers cannot drift from the articles actually on the site.
+
+One normalisation worth naming: the client wrote "a 501(c)3"; the page says
+501(c)(3), which is the form the IRS uses. No other claim was adjusted.
+
+### The other notes, and what was kept
+
+- `SITE_TAGLINE` was "A front door to independent writing." - a sentence about what
+  this project is, written to its builder. It is now cut from the client's own
+  phrase, "speakers who inform and educate local citizens". Because the tagline is
+  no longer provisional, `data-provisional="tagline"` came off the masthead. That
+  attribute was shipping in the HTML of every page on the site.
+- The home page's ", last reviewed 5 October 2026" is gone; it was an audit stamp
+  wedged into a sentence about the calendar. **The same phrase stays on `/events/`**,
+  which is the one deliberate exception and the reason this entry says so: those are
+  civic dates a reader has reason to check against a source, and it is the only
+  thing telling them when that check happened.
+- A topic page with no articles named `data/sources.yml` at the reader. The
+  behaviour is still explained; the filename is not.
+- `Layout.astro`'s fallback meta description still called the site "A speakers
+  bureau aggregating independent publications". No page used it, so it rendered
+  nowhere - and it would have shipped with the first page added without one.
+- Source comments lost their session narrative across 29 files: dated client
+  decisions, "Added 2026-10-05", "Phase 5", "the bug that produced this comment",
+  "TRIMMED 2026-10-05", "If you want the review date gone too, it is one element
+  and one test away". **The reasoning behind each decision stayed.** The comment
+  about never spelling a comment delimiter inside a comment is still there, with the
+  mechanism and the harm, because that rule is load-bearing.
+
+### How the comment pass was proved to be comment-only
+
+Not by reading the diff. The build was run with the pass applied and again with it
+stashed away from the working tree, and all 23 files in `dist/` were SHA-256 hashed
+both times. **Byte-identical.** 4,026 changed lines across 29 files, zero bytes of
+behavioural change.
+
+Ten of those files were also missing a trailing newline. That was checked against
+`HEAD` rather than assumed new: all ten were already missing one, so it was
+pre-existing. Appended byte-exact, and re-verified.
+
+### The guard that keeps it from coming back
+
+`test/no-process-notes.test.mjs`, 4 tests. Thirteen phrases must not appear in any
+built page, each carrying the reason it is forbidden. Three deliberate disclosures
+must still be present, so a later tidy-up cannot quietly delete the window note or
+the review date by making the site more polished and less honest.
+
+Two positive controls, and the first one earned its place immediately: the phrase
+list contained "not yet supplied" while the About page had actually said "have not
+been supplied yet". A different word order, matching nothing - a guard entry that
+looks like coverage and is not. The planted fixture caught it. The list now carries
+the real wording and the variant separately.
+
+The second control proves the disclosure check fires on an ABSENCE, since that
+check would otherwise pass trivially on an empty corpus.
+
+### Measured, not assumed
+
+- `data/articles.json` contains 57 bytes above 127: U+2018, U+2019, U+201C, U+201D
+  and one U+2026, all inside article titles. These are the publishers' own
+  punctuation, carried verbatim from their feeds, and **must not be normalised** -
+  altering a quoted title is the same class of silent data corruption the ASCII rule
+  guards against, just running the other way. The rule applies to files we author,
+  not to content we reproduce.
+- Sixteen tracked files still have no trailing newline, including three test
+  fixtures. Left alone: pre-existing, outside this task, and a fixture that stops
+  looking like a real feed is not a fixture any more.
+- A `write` of this file truncated it from 1,447 lines to 120 before being caught.
+  The log is the project's crash-recovery record, so losing 1,327 lines of it is the
+  worst single-file loss available in this repo. Restored from git, and the entry
+  prepended with a targeted edit instead. Prepending to this file is an `edit`, never
+  a `write`.
+
+### Still open, unchanged by any of this
+
+- `site:` in `astro.config.mjs` is still `https://example.org`. `example.org` is now
+  on the forbidden-phrase list, so the day a page emits a canonical URL the build
+  fails rather than shipping a placeholder domain.
+- Not published. No desktop browser has been available all session, so focus rings,
+  computed theme values and horizontal overflow remain argued from compiled CSS
+  rather than measured on screen.
+- The generated event artwork still prints PLACEHOLDER on itself. That is an
+  honesty decision, not debris: those events have no photograph, and the alternative
+  is a typographic plate passing for one.
+
+---
+
 ## 2026-10-05 - Eight defects in the events feature, found by review
 
 A review pass over the events work. No data file changed: `data/events.json`,

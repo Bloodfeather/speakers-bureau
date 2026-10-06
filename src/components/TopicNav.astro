@@ -8,9 +8,9 @@
 // This site filters topics with ZERO JAVASCRIPT, by linking to statically
 // generated pages at /topic/SLUG/ (src/pages/topic/[topic].astro).
 //
-// The alternative was client-side filtering: one page, all 23 cards in the DOM,
-// a short script that toggles `hidden` on the non-matching ones. It was
-// rejected, and the reasons are not "JavaScript is bad":
+// The alternative is client-side filtering: one page, every card in the DOM,
+// a short script that toggles `hidden` on the non-matching ones. It is rejected,
+// and the reasons are not "JavaScript is bad":
 //
 //   1. THE BRIEF MAKES NO-JS A HARD REQUIREMENT, NOT A POLISH ITEM. With
 //      client-side filtering there is exactly one way to filter and it needs a
@@ -22,7 +22,7 @@
 //      filter is invisible to a crawler: the crawler gets the unfiltered page,
 //      and no link on the site points at "commentary" for a search engine to
 //      follow. The topics are exactly the kind of thing people search for.
-//   3. THE DATASET IS 23 ARTICLES AND WILL PROBABLY STAY UNDER A FEW HUNDRED.
+//   3. THE DATASET IS SMALL AND WILL PROBABLY STAY UNDER A FEW HUNDRED ARTICLES.
 //      `getStaticPaths` over the topics actually present in the data costs one
 //      page per topic. There are 2 today. Even 20 publications with 3 tags each
 //      is 60 pages of static HTML, which a static host serves for nothing.

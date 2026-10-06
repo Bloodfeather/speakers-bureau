@@ -3,7 +3,7 @@
 // The three-assertion feed validity rule (ROADMAP design rule 2).
 //
 // WHY THREE AND NOT ONE: a fetcher that checks only the status code accepts
-// garbage. Verified live on 2026-10-05:
+// garbage. Observed live:
 //   https://nostarch.substack.com/feed  -> HTTP 200, Content-Type text/html
 // That is a publication that does not exist. It redirects to
 // https://substack.com/@nostarch and serves a 200 with an HTML body. There is

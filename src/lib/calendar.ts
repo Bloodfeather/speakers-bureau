@@ -4,8 +4,8 @@
 // WHY THE SELECTION UNIT IS A DAY, NOT AN EVENT
 // ---------------------------------------------------------------------------
 //
-// The first version of this page let a reader click an event row. That is wrong
-// for this dataset, and the shape of the data says so rather than a preference:
+// Letting a reader click an event row is wrong for this dataset, and the shape of
+// the data says so rather than a preference:
 // two events can share a calendar date. The election-day row is an all-day event
 // on 2026-11-03, and a debate can sit on 2026-11-03 at 6:30pm. A control whose
 // unit is the event cannot represent "the reader picked that date", so the panel
@@ -63,7 +63,7 @@
 //   - `eventDays` never throws: a missing list is an empty list.
 //   - `monthGridFor` returns null for a key that is not a real month, because a
 //     caller that passed a bad key has a bug and a blank calendar would hide it.
-//   - `monthGrids` skips such a month rather than throwing (it used to).
+//   - `monthGrids` skips such a month rather than throwing.
 //   - `dayRadioLabel`, `isSelectableDay` and `continuationLabel` return a false or
 //     an empty string for anything that is not a day.
 //
@@ -143,8 +143,8 @@ const MINIMUM_ROWS = 5
  * accessible label need them, and two components deriving "more than one" from
  * `events.length` is two places for the rule to live.
  *
- * THE THREE STATES, because `events` is no longer guaranteed non-empty and that
- * is the whole point of the change.
+ * THE THREE STATES, because `events` is NOT guaranteed non-empty and that is the
+ * whole point of having them.
  *
  *   1. A day with events on it: `events` holds them, `count` is their number,
  *      `continues` is false. It gets a radio, a panel and a clickable cell.
@@ -156,10 +156,10 @@ const MINIMUM_ROWS = 5
  *   3. A day with nothing on it at all: not a day here. `monthGridFor` renders a
  *      cell with `day: null`, and there is no `EventDay` to describe it.
  *
- * State 2 is the defect this shape was widened for. Before it, `eventDays`
- * keyed only on `dayKey(startsAt)`, so early voting - `2026-10-19` to
- * `2026-10-31` - was marked on 19 October and the other twelve days rendered as
- * ordinary empty squares. The panel and the list both said "19 - 31 October
+ * State 2 is the defect this shape exists for. If `eventDays`
+ * keyed only on `dayKey(startsAt)`, early voting - `2026-10-19` to
+ * `2026-10-31` - would be marked on 19 October and the other twelve days would
+ * render as ordinary empty squares. The panel and the list both say "19 - 31 October
  * 2026", so the DEFAULT view of the page (the calendar; the list is behind a
  * toggle) asserted that voter access existed on one day out of thirteen. A
  * confidently wrong answer, and the pessimistic one, on a page publishing real
@@ -262,9 +262,8 @@ export interface MonthGrid {
 /**
  * `2026-11-14` from a year, a ONE-BASED month and a day.
  *
- * Both helpers are named for what they take, so the 0-based / 1-based split that
- * used to live in the difference between `monthKeyPart` and a local `twoDigits`
- * is now carried by the call rather than by remembering which function is which.
+ * Both helpers are named for what they take, so the 0-based / 1-based split is
+ * carried by the call rather than by remembering which function is which.
  */
 function makeDayKey(year: number, month: number, day: number): string {
   return `${year}-${monthKeyPart(month)}-${twoDigits(day)}`
@@ -541,11 +540,11 @@ function daysInMonth(year: number, month: number): number {
  * input and must not inflate the count of the month being rendered. A day that is
  * only COVERED by a span adds nothing to it, because it holds no event of its own -
  * which is what keeps "the grids together account for every event exactly once"
- * true now that covered days are in the list.
+ * true with covered days in the list.
  *
  * A covered day DOES get a cell, with `day` set, because that cell is how the
- * reader is told the event runs on the date. So `day` being non-null no longer
- * means "selectable": a cell whose day is only covered renders an inert `<span>`,
+ * reader is told the event runs on the date. So `day` being non-null does not
+ * mean "selectable": a cell whose day is only covered renders an inert `<span>`,
  * not a `<label>`.
  *
  * Returns null for a month key that is not `YYYY-MM` naming a real month. Null
@@ -613,19 +612,18 @@ export function monthGridFor(monthKey: string, days: readonly EventDay[]): Month
  * month, so test/calendar.test.mjs exercises this with a fixture rather than
  * hoping the real data grows one.
  *
- * NEVER THROWS, like every other export in this file. This one used to be the
- * exception: it threw when `monthGridFor` returned null for a key that had come
- * out of a day's own key. The reasoning was that such a key "cannot" happen - and
- * it can, because `day.key` is a plain string on a plain object. Anyone can call
- * `monthGrids([{ key: '2026-13-01', ... }])`, and it did: the regex below admits
- * `2026-13`, which `parseWallClock` then rejects. events.astro calls this at
- * MODULE SCOPE, so the throw took the whole build down rather than one cell.
+ * NEVER THROWS, like every other export in this file. A month key can be
+ * malformed without any caller misbehaving, because `day.key` is a plain string
+ * on a plain object: anyone can call `monthGrids([{ key: '2026-13-01', ... }])`,
+ * and the regex below admits `2026-13`, which `parseWallClock` then rejects.
+ * events.astro calls this at MODULE SCOPE, so a throw here takes the whole build
+ * down rather than one cell.
  *
  * The philosophy is stated once, at `asList`: a missing list is an empty list, a
  * bad key is a null grid, and no input makes a page fail to render. So the
- * consistency check that was the throw is now a filter: a month key that does not
- * round-trip through `parseWallClock` yields NO grid, exactly as `monthGridFor`
- * already returned null for it. A day whose key is not a real date is dropped
+ * consistency check is a filter: a month key that does not round-trip through
+ * `parseWallClock` yields NO grid, exactly as `monthGridFor` returns null for
+ * it. A day whose key is not a real date is dropped
  * rather than crashing the build - and `npm run events:check`, which validates
  * the whole file with the same parser, is where a bad date in the DATA is
  * reported properly. This function is not that tool and must not become it.

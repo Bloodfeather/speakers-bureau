@@ -175,7 +175,7 @@ blockquote {
  * Layout primitives
  * ------------------------------------------------------------------------ */
 .container {
-  /* Centre-first, because every page in Phase 3 is a single centred column and
+  /* Centre-first, because every page is a single centred column and
    * a 46rem inline width was already going to be replaced by --container. */
   width: 100%;
   max-width: var(--container);

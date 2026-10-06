@@ -20,10 +20,10 @@
 // ---------------------------------------------------------------------------
 //
 // Early voting runs 19 to 31 October 2026. The panel and the list both print that
-// range. The grid used to mark the 19th and render the following twelve dates as
-// ordinary empty squares - so the DEFAULT view of the page said voter access
-// existed on one day of thirteen, while its own prose said otherwise two hundred
-// pixels away. `eventDays` never consulted `endsAt` on the grid path.
+// range. Marking only the 19th and rendering the following twelve dates as
+// ordinary empty squares would say, in the DEFAULT view of the page, that voter
+// access existed on one day of thirteen - while the page's own prose, two hundred
+// pixels away, said otherwise. `eventDays` consults `endsAt` on the grid path.
 //
 // Three states render here, and which one it is decides everything else:
 //
@@ -54,9 +54,9 @@
 // Rendering every month would require either a second selection group or URL state
 // to remember which month the reader was on, and it would buy browsing months that
 // contain nothing. A speakers bureau has no events in an empty month, so an empty
-// grid is not information. Decided with the client, 2026-10-05.
+// grid is not information. Decided with the client.
 //
-// ONE QUALIFICATION, added when covered days arrived. "A month that has nothing in
+// ONE QUALIFICATION. "A month that has nothing in
 // it" now has to mean "a month in which no event runs and no event runs THROUGH",
 // not "a month with no event START date in it". A span crossing a month boundary
 // puts covered days in the second month, and those dates have to be visible
@@ -91,10 +91,10 @@ interface Props {
   pastKeys?: readonly string[]
 }
 
-// NO `selectedKey` PROP, and there was one. See the note on aria-current below:
-// the only thing it fed was an attribute whose value was fixed at build time, so
-// passing it in was passing a constant to a component that had no way to keep it
-// true. The selected cell is marked by the page's generated per-day selectors,
+// NO `selectedKey` PROP. See the note on aria-current below:
+// the only thing it would feed is an attribute whose value is fixed at build time,
+// so passing it in would be passing a constant to a component that has no way to
+// keep it true. The selected cell is marked by the page's generated per-day selectors,
 // which move with the radio's real `:checked` state.
 
 const { months, pastKeys = [] } = Astro.props
@@ -164,8 +164,8 @@ function toWeeks(cells: MonthGrid['cells']): MonthGrid['cells'][] {
                         THIS IS AN INERT SPAN, NOT A LABEL, and it is the single most
                         load-bearing decision in this component.
 
-                        It was a `<label>` once, pointing at a `#day-<key>` radio that
-                        did not exist. The alternative - giving every covered day its
+                        A `<label>` here would point at a `#day-<key>` radio that does
+                        not exist. The alternative - giving every covered day its
                         own radio, its own panel and its own generated
                         `html:has(#day-...)` rule - was rejected on purpose: the
                         event is listed ONCE, on the day it starts, with its full
@@ -333,22 +333,22 @@ function toWeeks(cells: MonthGrid['cells']): MonthGrid['cells'][] {
    * WHY A MARKER, AND WHY IT IS DRAWN WITH A BORDER
    * --------------------------------------------------------------------- *
    *
-   * A date that carries events used to be distinguishable from an empty date by
-   * ONE thing: the numeral's text colour, muted to full contrast. That is a hue
-   * difference, and a hue is exactly what disappears in forced-colours mode, in
-   * greyscale print, and for any reader with a colour vision deficiency. The
-   * event NAME in the cell is text and therefore survives, but it is clamped to
-   * two lines, so on a long name a reader scanning for "which dates are worth
-   * selecting" can be left with a clipped fragment and no marker at all.
+   * The cell carries a SHAPE as well as the numeral's text colour, muted to full
+   * contrast, because colour alone is a hue difference, and a hue is exactly what
+   * disappears in forced-colours mode, in greyscale print, and for any reader with
+   * a colour vision deficiency. The event NAME in the cell is text and therefore
+   * survives, but it is clamped to two lines, so on a long name a reader scanning
+   * for "which dates are worth selecting" can be left with a clipped fragment and
+   * no marker at all.
    *
-   * So the cell now carries a SHAPE as well, and the shape is what the selection
-   * state is not: it cannot be turned off by a palette.
+   * The shape is what the selection state is not: it cannot be turned off by a
+   * palette.
    *
    * DRAWN WITH A BORDER RATHER THAN A BACKGROUND, and that is the part that
    * matters. In forced-colours mode the user agent overrides background-color to
    * the canvas colour, so a dot painted with `background: currentColor` becomes
    * invisible - a cue that exists in the stylesheet and is absent exactly where it
-   * was added to help. Border-width and border-style are NOT overridden, so a
+   * is needed most. Border-width and border-style are NOT overridden, so a
    * ring drawn with a border keeps its shape and its size.
    *
    * Subtle on purpose: 5px, no fill, hairline-adjacent weight. It has to read as
@@ -393,7 +393,7 @@ function toWeeks(cells: MonthGrid['cells']): MonthGrid['cells'][] {
    *
    * DRAWN WITH A BORDER, for the same reason as `.cal__mark` and stated there:
    * forced-colours mode overrides `background-color` to the canvas colour, so a
-   * bar painted that way vanishes in exactly the mode it was added for.
+   * bar painted that way vanishes in exactly the mode it exists for.
    * `border-block-end` is not overridden, so the bar keeps its weight and length.
    *
    * `height: 0` with a border is not a mistake and not a hack: an element with no
@@ -443,8 +443,8 @@ function toWeeks(cells: MonthGrid['cells']): MonthGrid['cells'][] {
    *   - This component renders no prose. Every other string in this file is a day
    *     number or an event name that came from the data.
    *   - A rule in a page's scoped block CANNOT match an element another component
-   *     renders. It fails SILENTLY, which is how this page once shipped with no
-   *     focus ring. See the note on the per-day selectors in events.astro.
+   *     renders. It fails SILENTLY, which is how a page ships with no focus ring and
+   *     nothing in the suite goes red. See the note on the per-day selectors in events.astro.
    *
    * What must live HERE is the marker itself, because these cells are rendered
    * here and nowhere else. That split is the whole lesson of the two files. */
@@ -493,9 +493,8 @@ function toWeeks(cells: MonthGrid['cells']): MonthGrid['cells'][] {
      background is `var(--chip-bg)`. So the shape of the selection - a ruled bar
      down the inline-start edge - survives forced colours, where the fill does not.
      The contrast change on the day number below is a second, weaker cue and is
-     deliberately NOT relied on: this comment used to call it one of "the two
-     non-colour signals", which was wrong, because a change in text colour is a
-     colour signal.
+     deliberately NOT relied on: calling it one of "the two non-colour signals"
+     would be wrong, because a change in text colour is a colour signal.
 
      `data-day` is on the event-day label only, so `:has()` here is a second route
      to the same cells the marker reaches. */

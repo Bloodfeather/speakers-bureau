@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config'
 
 // `site` is a PLACEHOLDER. Astro needs it to build absolute URLs (sitemap,
-// canonical, RSS). Replace it with the real domain before Phase 5 handover.
+// canonical, RSS). Replace it with the real domain before the site goes live.
 //
 // NOTE for GitHub Pages: a project site (https://<user>.github.io/<repo>/)
 // is served from a subpath. If that subpath is hardcoded here, local `astro dev`

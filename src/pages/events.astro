@@ -9,11 +9,11 @@
 // info PANEL on the right for whatever is selected in it. On a phone they stack -
 // calendar first, panel UNDER it.
 //
-// THE PANEL IS UNDER THE CALENDAR ON A PHONE, not above it. The first version of
-// this page pinned the panel to the top of the viewport, and the result was a
-// 594px banner occupying 71% of an 844px screen - the banner was "too big to be
-// sticking to the top". Pinning it was the mistake, not the size, and putting it
-// under the calendar removes the problem structurally instead of shrinking a
+// THE PANEL IS UNDER THE CALENDAR ON A PHONE, not above it. Pinning it to the top
+// of the viewport produces a 594px banner occupying 71% of an 844px screen - the
+// banner reads as "too big to be sticking to the top". Pinning it is the mistake,
+// not the size, and putting it under the calendar removes the problem structurally
+// instead of shrinking a
 // decoration until it is no longer worth showing. The banner is ALSO capped
 // (see EventDetail.astro), because a cap is right on both sides of the
 // breakpoint.
@@ -178,12 +178,11 @@ const selectedKey =
 // THE PER-DAY SELECTORS, GENERATED
 // ---------------------------------------------------------------------------
 //
-// WHY THIS IS NOW A STRING BUILT IN CODE. It used to be three hand-written blocks
-// of one line per date, and a test enforced that every date in the data appeared
-// in all three. That test did its job - it is the reason this was caught - but
-// the design underneath was wrong, and adding a seventh event proved it.
+// WHY THIS IS A STRING BUILT IN CODE. A test that enforces every date in the data
+// appears in the CSS cannot go off until after the build is already broken, and it
+// guards a coupling that does not need to exist.
 //
-// The contract asked whoever edits the data to ALSO hand-edit CSS in an .astro
+// The contract it used to impose asked whoever edits the data to ALSO hand-edit CSS in an .astro
 // file. That is a manual step with no compiler behind it, guarded only by a test
 // that fires after the build already broke. A page whose interactivity is derived
 // from its own data cannot go stale, so the coupling is removed rather than
@@ -224,8 +223,8 @@ const perDayCss = [
   `/* 3. The focus ring, on the same targets. The radio is clip-path: inset(50%), so\n     it cannot paint a ring on itself; the reader must SEE the label in the other\n     component highlighted. Absence of this rule cost the page its focus ring once. */\n  ${selectorFor('day', 'focus-visible')} {\n    outline: var(--focus-width) solid var(--focus);\n    outline-offset: calc(-1 * var(--focus-width));\n  }`,
 ].join('\n\n  ')
 
-// The list view keeps the month grouping it had before, reusing the same helper
-// the reading room uses so both pages order dates identically.
+// The list view groups by month with the same helper the reading room uses, so both
+// pages order dates identically.
 const upcomingGroups = groupByMonth(ordered.filter((event) => !isPast(event, reviewedOn)))
 const pastEvents = ordered.filter((event) => isPast(event, reviewedOn))
 
@@ -241,17 +240,16 @@ const lastDate = lastEvent
   ? formatEventDateSpan(lastEvent.startsAt, lastEvent.endsAt)
   : ''
 
-// EVERY CLAIM IN HERE IS DERIVED FROM THE DATA, including this description. An
-// earlier version said "Each row carries a thumbnail" and three of seven rows had
-// none, so a sentence asserting a property of the rows is not safe to write by
-// hand here; a count is only trustworthy if it is computed.
+// EVERY CLAIM IN HERE IS DERIVED FROM THE DATA, including this description. A
+// sentence such as "Each row carries a thumbnail" is not safe to write by hand here:
+// three of seven rows had none. A count is only trustworthy if it is computed.
 //
 // `selectableDays.length`, NOT `days.length`, and the difference is thirteen
 // against six on the shipped data. `days` also holds the twelve dates inside the
 // early voting window, and "across 18 dates" would tell a reader there are eighteen
 // things to choose from when there are six - an over-count that runs in the
-// optimistic direction, which is exactly as much of a lie as the defect this change
-// fixed, and no easier to spot.
+// optimistic direction, which is exactly as much of a lie as an under-count, and
+// no easier to spot.
 const description =
   `The events calendar: ${eventCount} dated events` +
   (firstDate && lastDate ? ` between ${firstDate} and ${lastDate}` : '') +
@@ -276,19 +274,14 @@ const rowFlags = (event: (typeof ordered)[number]) => {
     {/*
       THIS HEADER BAR CARRIES THE REVIEW DATE AND NOTHING ELSE.
 
-      Two other sentences used to sit here and were cut.
-
-      The first described the view switch sitting directly below it: that the
-      calendar and the list are two views of the same dates and either one selects
-      them. The switch is labelled "List view", it is a real switch, and it is one
-      tab stop away. A reader does not need a sentence explaining that a switch
-      switches.
-
-      The second was a provenance paragraph asking the reader to check our sources.
-      It asserted a property that is now visible instead: every event row links to
-      the notice it came from, and a reader can check that by looking. A page that
-      says "check our sources" while not obviously having them is worse than one
-      that simply has them.
+      NOTHING ELSE BELONGS HERE, and the two obvious candidates are excluded on
+      purpose. A sentence explaining that the calendar and the list are two views of
+      the same dates explains a switch to a reader: the switch is labelled "List
+      view", it is a real switch, and it is one tab stop away. A provenance
+      paragraph asking the reader to check our sources asserts a property that is
+      visible instead: every event row links to the notice it came from, and a
+      reader can check that by looking. A page that says "check our sources" while
+      not obviously having them is worse than one that simply has them.
 
       The review date stays because it is the only thing on the page telling a
       reader when these dates were last checked against a source, and published
@@ -329,34 +322,30 @@ const rowFlags = (event: (typeof ordered)[number]) => {
       NO TAG NAME IS SPELLED IN THIS COMMENT, and that is not fussiness. The suite
       that reads this page's style block finds it with a non-greedy tag pattern, so
       a literal style tag inside an earlier comment captures the block from the
-      wrong place and mis-pairs its comment delimiters - which is exactly what this
-      comment did: it made the page appear to name a class it does not style, and
-      turned a 200-character aside into a red build. Prose about a tag refers to
-      the block, not to its punctuation.
+      wrong place and mis-pairs its comment delimiters - which makes the page appear
+      to name a class it does not style, and turns a 200-character aside into a red
+      build. Prose about a tag refers to the block, not to its punctuation.
 
       THE BRACE AFTER THIS COMMENT IS LOAD-BEARING, and it is worth naming because it
       looks like a typo. An Astro JSX comment is an EXPRESSION container holding a
       comment, not a self-closing comment: drop the closing brace and the container
       simply continues into whatever expression follows, so the block after it stops
-      being a sibling and the build dies with "Expected } but found .". An earlier
-      version of this comment lost exactly that brace, and the error pointed 30 lines
-      away from the cause.
+      being a sibling and the build dies with "Expected } but found ." - an error
+      that points 30 lines away from the cause.
 
-      AND THIS COMMENT IS THE SECOND, WORSE VERSION OF THAT MISTAKE, which is why the
-      delimiters are now described in words instead of written out. This paragraph
-      used to spell the opening and closing delimiter literally, to explain them.
-      Writing them literally CLOSED THE COMMENT AT THAT POINT, and everything from
-      there to the real terminator was rendered as visible page text on the live
-      events page - about 500 words of a note about braces, printed where a reader
-      would see it. It survived because every test asserted on structure and nobody
-      read the page's prose for content that was supposed to be absent. The rule:
-      never spell a comment delimiter inside a comment. Say "the opening brace and
-      slash-star" and move on. test/no-comment-leak.test.mjs now fails the build if
-      a delimiter appears inside comment prose anywhere in src/.
+      THE DELIMITERS ARE DESCRIBED IN WORDS, NEVER WRITTEN OUT, and the reason is
+      concrete: spelling them literally CLOSES THE COMMENT AT THAT POINT, and
+      everything from there to the real terminator is rendered as visible page text -
+      about 500 words of a note about braces, printed where a reader would see it.
+      That survives because every test asserts on structure and nobody reads the page's
+      prose for content that was supposed to be absent. The rule: never spell a comment
+      delimiter inside a comment. Say "the opening brace and slash-star" and move on.
+      test/no-comment-leak.test.mjs fails the build if a delimiter appears inside
+      comment prose anywhere in src/.
 
-      It was three sentences once. It is one now, because the extra sentences were
-      teaching the reader how to use the calendar when the thing they describe - the
-      mark - is right there. The test asserts this element exists and says what the
+      One sentence, not a paragraph of instructions: the mark is right there on the
+      page, so explaining how to use it in prose would be teaching the reader
+      something they can see. The test asserts this element exists and says what the
       mark means, so the assertion is about the mark being explained, not about how
       many sentences it takes.
     */}
@@ -370,24 +359,21 @@ const rowFlags = (event: (typeof ordered)[number]) => {
     }
 
     {/*
-      A PROVENANCE PARAGRAPH USED TO SIT HERE, and the reason it was removed is the
-      general rule worth keeping.
+      NO PROVENANCE PARAGRAPH, and the rule behind that is worth keeping.
 
-      It asked the reader to check our sources: "Every listing links to the notice
-      it was taken from, so you can check it rather than take our word for it."
-      That reasoning was sound - a page of real election dates should say where
-      they came from - but by then every event carried a `url`, so the paragraph
-      was describing a property the page DEMONSTRATES. Every row has an outbound
-      link to scvotes.gov, to the organiser, or to the party notice. A reader can
-      see the sourcing rather than take the site's word that sourcing exists, and
-      prose asserting "check our sources" is worth less than sources a reader can
-      actually click.
+      "Every listing links to the notice it was taken from, so you can check it
+      rather than take our word for it" is sound reasoning - a page of real election
+      dates should say where they came from - but every event carries a `url`, so
+      the paragraph describes a property the page DEMONSTRATES. Every row has an
+      outbound link to scvotes.gov, to the organiser, or to the party notice. A
+      reader can see the sourcing rather than take the site's word that sourcing
+      exists, and prose asserting "check our sources" is worth less than sources a
+      reader can actually click.
 
       What that costs, and it is a real cost: the explicit warning that a schedule
-      may have moved since the date above. That remains true and is no longer
-      stated in the header. It is recorded in data/events.schema.md, which is where
-      a rule about the data belongs. If this page ever needs that caveat back, this
-      is where it goes, and it should be one clause rather than a paragraph.
+      may have moved since the date above. That remains true and is not stated in
+      the header. It is recorded in data/events.schema.md, which is where a rule
+      about the data belongs.
 
       There is deliberately still no claim here about who curates or reviewed the
       list. The footer credits the curator, so that attribution exists once, in one
@@ -613,10 +599,9 @@ const rowFlags = (event: (typeof ordered)[number]) => {
     font-size: var(--size-3xl);
   }
 
-  /* The review date, now the ONLY text in this header bar.
+  /* The review date, the ONLY text in this header bar.
 
-     It was a `span` nested inside a larger note with `display: block`, and it is a
-     top-level `p` in its own right now, so the display and the top margin both go:
+     It is a top-level `p`, so the display and the top margin both go:
      a block-level paragraph already sits on its own line, and `display: block` on a
      `p` is a no-op. Muted and small, because it is metadata about the page rather
      than content ON the page. */
@@ -752,7 +737,7 @@ const rowFlags = (event: (typeof ordered)[number]) => {
    * ONE COLUMN BY DEFAULT, panel UNDER the calendar. Above 64rem they become
    * side by side, with the panel sticky in its column.
    *
-   * `grid-row: 1` on BOTH items is load-bearing and was a bug once already: with
+   * `grid-row: 1` on BOTH items is load-bearing: with
    * only `grid-column` set, auto-placement put the two items in DIFFERENT rows,
    * leaving them diagonal with a large empty block. Measured, not guessed.
    * --------------------------------------------------------------------- */
@@ -811,14 +796,12 @@ const rowFlags = (event: (typeof ordered)[number]) => {
   /* ------------------------------------------------------------------------
    * THE PER-DAY SELECTORS ARE NOT HERE, AND THAT IS THE POINT
    *
-   * They used to be. Three hand-written blocks, one line per date, with a test
-   * failing the build if a date in data/events.json was missing from any of them.
-   * The test was doing its job - it is how the seventh event was caught - but the
-   * design under it was wrong: it asked whoever edits the data to also hand-edit
-   * CSS in this file, which is a manual step with no compiler behind it.
-   *
-   * They are now generated from the same `days` array the markup renders, into an
-   * `is:inline` block below. A new event needs no CSS edit and cannot go stale.
+   * They are generated from the same `days` array the markup renders, into an
+   * `is:inline` block below. Hand-written blocks, one line per date, guarded by a
+   * test that fails the build when a date in data/events.json is missing from one
+   * of them, ask whoever edits the data to also hand-edit CSS in this file: a
+   * manual step with no compiler behind it. A new event needs no CSS edit and
+   * cannot go stale.
    *
    * WHY THEY EXIST AT ALL, since this remains the least obvious thing about the
    * page. A calendar cell and a list row are rendered by DIFFERENT components from
@@ -829,9 +812,9 @@ const rowFlags = (event: (typeof ordered)[number]) => {
    * Note the `:global()` that is NOT used in the generated block: an `is:inline`
    * style is not scoped at all, so `:global()` is neither needed nor meaningful
    * there. The hand-written rules that remain in this block are scoped and do use
-   * it. The earlier bug here was `:global(.events__item ...) .row`, where only the
-   * LEFT of the selector was unscoped and Astro still appended the page's scope id
-   * to `.row`, matching nothing - which cost the page its focus ring. The rule:
+   * it. The trap is `:global(.events__item ...) .row`, where only the
+   * LEFT of the selector is unscoped and Astro still appends the page's scope id
+   * to `.row`, matching nothing - which costs the page its focus ring. The rule:
    * scope the WHOLE trailing compound, or emit the selector unscoped on purpose.
    * --------------------------------------------------------------------- */
 

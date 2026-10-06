@@ -72,17 +72,12 @@
 // legal TypeScript here as well as legal ESM. Being loadable by a plain node
 // process is the entire reason this module exists in src/ rather than inline in a
 // page, so the specifier pays the small convention cost.
-//
-// Worth recording: this proved that the comment in src/lib/articles.ts claiming
-// "node --test can import it directly" was never actually exercised - no test in
-// the repo imports that module. The claim was plausible and untested. Test the
-// claim next time, do not inherit it.
 import { MONTHS, monthKeyPart, twoDigits } from './months.ts'
 
-// `twoDigits` and `monthKeyPart` used to be three inline `String(x).padStart(2,
-// '0')` calls here plus a private copy in calendar.ts, and the two copies
-// disagreed about whether the value they took was 0-based or 1-based. One
-// implementation now, and both names say which. See months.ts.
+// `twoDigits` and `monthKeyPart` live in months.ts rather than being inlined here,
+// because a private copy in calendar.ts and inline calls here disagreed about
+// whether the value they took was 0-based or 1-based. One implementation, and both
+// names say which. See months.ts.
 
 // ---------------------------------------------------------------------------
 // Vocabulary
@@ -94,18 +89,15 @@ import { MONTHS, monthKeyPart, twoDigits } from './months.ts'
  * All are singular, including `Lecture`. That is a deliberate normalisation of
  * the client's list, which was given as "Lectures": six of the seven entries
  * were singular, and a chip reading "Lectures" in a filter row is a grammar
- * error that a reader sees. It is a one-word revert if that was not the intent,
- * and it is recorded in build-log.md rather than made silently.
+ * error that a reader sees. It is a one-word revert if that was not the intent.
  *
- * `Meeting` WAS ADDED when the placeholder events were replaced with the real
- * ones, and the reason is worth keeping: the Greenville County Republican Party
+ * `Meeting` exists for a specific reason: the Greenville County Republican Party
  * Quarterly Meeting is a scheduled gathering, not a forum. Nobody is moderating
  * questions from the floor, and the type chip is the first thing a reader scans to
  * decide whether a listing is worth their evening. Filing a party business meeting
  * under `Forum` would have made a filter lie about what it contained. The
- * vocabulary was always designed to be extendable - `isEventType` rejects anything
- * outside this array, so adding one here is the whole mechanism - and this is the
- * first time it was used for that.
+ * vocabulary is designed to be extendable: `isEventType` rejects anything outside
+ * this array, so adding one entry here is the whole mechanism.
  *
  * ORDER IS SIGNIFICANT. `eventTypesPresent` returns present types in this order,
  * so it is the order a filter row renders in. New entries go where a reader would
@@ -305,12 +297,12 @@ export const EVENT_FIELDS: readonly FieldSpec[] = [
     // characters, and this table is what data/events.schema.md is generated from
     // and what an AI assistant filling the file in reads - so a number smaller
     // than a valid value is a lie told to exactly the reader least able to check
-    // it. It read 16 while HH:MM:SS was accepted, which a review flagged.
+    // it.
     //
     // It is also NOT ENFORCED, deliberately. Timestamps are exempt from the
     // length check (see LENGTH_LIMITED) because their format regex is the
-    // stricter check and gives the better message: raising the limit instead
-    // masked `timestamp-has-offset`, the far more valuable diagnostic. The
+    // stricter check and gives the better message: raising the limit masks
+    // `timestamp-has-offset`, the far more valuable diagnostic. The
     // number is kept TRUE rather than deleted, so the documentation has
     // something accurate to state.
     maxLength: 19,
@@ -419,11 +411,11 @@ const WALL_CLOCK_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/
 const ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 // SEGMENT BY SEGMENT, and that is the whole point.
 //
-// The first version of this was `/^\/img\/[A-Za-z0-9._\-/]+$/`, which reads
-// correct and is not: the character class includes a literal `.`, so `/img/../secret`
-// matched. The path is joined onto public/ and stat'ed by scripts/check-events.mjs,
-// so a hand-edited data file could point the checker anywhere on the disk. A test
-// caught it; the test is in test/events.test.mjs and is titled for exactly this.
+// A single character class such as `/^\/img\/[A-Za-z0-9._\-/]+$/` reads correct
+// and is not: it includes a literal `.`, so `/img/../secret` matches. The path is
+// joined onto public/ and stat'ed by scripts/check-events.mjs, so a hand-edited
+// data file could point the checker anywhere on the disk. test/events.test.mjs
+// carries a test titled for exactly this.
 //
 // Each segment must therefore START with a letter, digit, underscore or hyphen,
 // which makes ".." unrepresentable rather than merely unlikely, and a segment may
@@ -537,14 +529,13 @@ function levenshtein(a: string, b: string): number {
  * distinction is deliberate and tested: "loction" and "startAt" get a suggestion,
  * "zzzz" does not, because a confident wrong suggestion is worse than none.
  *
- * `legalKeys` IS A PARAMETER, and it used to be hardcoded to the event-field list.
- * That was wrong at the top level, where the legal keys are `events` and
- * `reviewedOn`: `reviewedAon` got NO suggestion despite being one edit away,
- * because the comparator was searching a list that did not contain the answer,
- * while `event` - a perfectly good EVENT field, and not a legal ROOT key - got the
- * confident suggestion `Did you mean "event"?`. A review caught both. The fix is
- * to pass in the vocabulary that is actually legal for the level being checked,
- * so this function has no opinion about where it is being used.
+ * `legalKeys` IS A PARAMETER so the caller passes the vocabulary that is actually
+ * legal for the level being checked. The two levels differ: the root keys are
+ * `events` and `reviewedOn`, while the event fields are a different list
+ * entirely. Hardcoding one list would mean `reviewedAon` gets NO suggestion
+ * despite being one edit away, while `event` - a perfectly good EVENT field, and
+ * not a legal ROOT key - gets the confident suggestion `Did you mean "event"?`.
+ * Passing the list in means this function has no opinion about where it is used.
  */
 function suggestKey(typo: string, legalKeys: readonly string[]): string {
   const lowered = typo.toLowerCase();
@@ -563,8 +554,9 @@ function suggestKey(typo: string, legalKeys: readonly string[]): string {
 /**
  * The only keys the top level of the file may carry.
  *
- * `pageNote` joined these two when the placeholder events were replaced with real
- * ones. The client supplied a block of prose - "Ongoing Campaign Activity in the
+ * `pageNote` is a third root key with its own shape and its own validation,
+ * including the same unknown-key typo suggester the events get. It exists for a
+ * block of prose the client supplied - "Ongoing Campaign Activity in the
  * Upstate" - that is emphatically NOT a dated event, and the two obvious homes for
  * it were both bad:
  *
@@ -575,9 +567,8 @@ function suggestKey(typo: string, legalKeys: readonly string[]): string {
  *     calendar of real election dates, and a reader would reasonably believe the
  *     campaign activity has a date it does not have.
  *
- * So it is a third root key with its own shape and its own validation, including the
- * same unknown-key typo suggester the events get. An assistant filling in this file
- * edits one document, and a misspelled `paragraph` inside it is still caught.
+ * An assistant filling in this file therefore edits one document, and a
+ * misspelled `paragraph` inside it is still caught.
  */
 const ROOT_KEYS = ['events', 'reviewedOn', 'pageNote'] as const;
 
@@ -627,20 +618,18 @@ function validateField(
   }
 
   // maxLength is enforced HERE, once, for the kinds where an over-long value is a
-  // real authoring error - rather than inside the text/longtext branch where it
-  // originally lived.
+  // real authoring error - rather than inside the text/longtext branch.
   //
-  // It was only checked in that one branch, so `id`, `thumbnail`, `banner` and
-  // `url` were unbounded: a 4000-character URL validated clean, which is how a
+  // Checking it only in that one branch leaves `id`, `thumbnail`, `banner` and
+  // `url` unbounded, and a 4000-character URL validates clean, which is how a
   // whole paragraph of prose ends up pasted into a link field. One check here
   // cannot be forgotten by a new field kind, which is the point.
   //
-  // TIMESTAMPS ARE DELIBERATELY EXCLUDED, and the first attempt at this check got
-  // that wrong in a way worth recording. Applying it to `startsAt` rejected the
-  // perfectly legal "2026-11-14T18:30:00" (19 characters against a 16 limit) AND
-  // masked the far more valuable diagnostic: "2026-11-14T18:30:00-05:00" reported
-  // "too long" instead of `timestamp-has-offset`, sending an author to shorten a
-  // value whose actual problem is that it carries a UTC offset. A field whose
+  // TIMESTAMPS ARE DELIBERATELY EXCLUDED, because applying this check to `startsAt`
+  // rejects the perfectly legal "2026-11-14T18:30:00" (19 characters against a 16
+  // limit) AND masks the far more valuable diagnostic: "2026-11-14T18:30:00-05:00"
+  // reports "too long" instead of `timestamp-has-offset`, sending an author to
+  // shorten a value whose actual problem is that it carries a UTC offset. A field whose
   // format is fully determined by a regular expression does not need a length
   // limit as well - the format check is the stricter one and gives the better
   // message.
@@ -1102,13 +1091,11 @@ export function validateEvents(raw: unknown): ValidationResult {
     // Cross-field rule: an end before the start is a data error, not a rendering
     // preference, and it is exactly the kind of thing a transcription gets wrong.
     //
-    // COMPARED AS SORTABLE INTEGERS, NOT DATES. The first version built an ISO
-    // string and called Date.parse, which was correct for a timed event and
-    // SILENTLY INERT for every all-day one: a date-only value produced
-    // "2026-11-03:00Z", Date.parse returned NaN for it, and `NaN < NaN` is false.
-    // So `startsAt: 2026-11-03, endsAt: 2026-10-01` validated clean. A review
-    // caught it; the test for it now covers the all-day case, which the original
-    // test did not.
+    // COMPARED AS SORTABLE INTEGERS, NOT DATES. Building an ISO string and calling
+    // Date.parse would be correct for a timed event and SILENTLY INERT for every
+    // all-day one: a date-only value produces "2026-11-03:00Z", Date.parse returns
+    // NaN for it, and `NaN < NaN` is false, so `startsAt: 2026-11-03, endsAt:
+    // 2026-10-01` would validate clean. The test for this covers the all-day case.
     const startsAt = checked.startsAt;
     const endsAt = checked.endsAt;
     if (typeof startsAt === 'string' && typeof endsAt === 'string') {
@@ -1251,8 +1238,8 @@ function formatClockTime(hour: number, minute: number): string {
  * dropped, in the one place a reader would look to find out how long they have.
  *
  * The schema was right and the renderer was incomplete. That is the ordinary shape
- * of a gap, and it is only a gap because no sample data had ever exercised it -
- * which is why the span case is asserted directly rather than inferred.
+ * of a gap, and it is only a gap because no sample data exercises it - which is
+ * why the span case is asserted directly rather than inferred.
  *
  * A SPAN IS ONLY MEANINGFUL BETWEEN TWO ALL-DAY DATES, so a timed pair falls back to
  * the start date. `formatEventTime` already prints `6:30 pm - 8:00 pm` for those, and
@@ -1277,11 +1264,11 @@ type WallClockParts = NonNullable<ReturnType<typeof parseWallClock>>;
  * dates, on different dates. Everything else falls back to the start date alone.
  *
  * Exported as `isDateSpan` for callers that hold strings, and shared with
- * `formatEventDateSpan` above as `spansDates`, because there are now two callers
+ * `formatEventDateSpan` above as `spansDates`, because there are two callers
  * and the failure mode of two implementations is a page that says two different
  * things about the same event: the panel printing "19 - 31 October 2026" while
  * the calendar grid marks only the 19th. That contradiction is the defect this
- * rule was extracted to prevent, and it was a contradiction BEFORE it was a bug.
+ * rule prevents, and it would be a contradiction BEFORE it became a visible bug.
  *
  * WHY ALL-DAY ONLY. A timed pair is a clock range inside one date - 6:30 pm to
  * 8:30 pm is two hours, not two days - and `formatEventTime` already prints it.
@@ -1438,13 +1425,11 @@ export function wallClockToSortable(value: string): number {
   if (typeof value !== 'string') return 0;
   const [datePart, timePart = ''] = value.split('T');
   const [hour = '00', minute = '00', second = '00'] = timePart.split(':');
-  // FIXED WIDTH, ALWAYS. The first version appended timePart with its colons
-  // stripped and nothing else, which produced 4 digits for "18:30" and 6 for
-  // "18:30:00". Those are not comparable numbers: 20261114183000 (18:30:00)
+  // FIXED WIDTH, ALWAYS. Appending timePart with its colons stripped and nothing
+  // else would produce 4 digits for "18:30" and 6 for "18:30:00", and those are
+  // not comparable numbers: 20261114183000 (18:30:00)
   // is numerically GREATER than 202611142000 (20:00), so an event running
-  // 18:30:00 to 20:00 was reported as ending before it started. It surfaced only
-  // after the ends-before-starts rule was rewritten to use this function - which
-  // is the ordinary way a latent bug gets found, by giving it a second caller.
+  // 18:30:00 to 20:00 would be reported as ending before it started.
   const timeDigits = `${twoDigits(hour)}${twoDigits(minute)}${twoDigits(second)}`;
   const digits = `${datePart.replace(/-/g, '')}${timeDigits}`;
   const sortable = Number(digits);

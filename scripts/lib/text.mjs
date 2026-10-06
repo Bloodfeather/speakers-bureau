@@ -59,9 +59,9 @@ export function decodeEntities(input) {
   });
 
   // Named-entity pass. ANY_ENTITY has NO capturing group, so the callback's
-  // second argument would be the match OFFSET, not a name. An earlier draft
-  // read it as a name and called .toLowerCase() on a number, which threw a
-  // TypeError on every string containing &amp;. Slice the name out of the
+  // second argument would be the match OFFSET, not a name, and reading it as a name
+  // and calling .toLowerCase() on a number throws a TypeError on every string
+  // containing &amp;. Slice the name out of the
   // match instead of trusting a capture group that does not exist.
   out = out.replace(ANY_ENTITY, (match) => {
     // Skip anything the numeric pass already handled.

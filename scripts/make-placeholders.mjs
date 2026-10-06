@@ -285,8 +285,7 @@ const DEFAULT_ADVANCE = 0.62;
  * that a serif is traditionally said to have: the widest family in the stack puts
  * its cap top at 1.05em, because Palatino Linotype is a large-on-the-body face.
  * Budgeting 0.70 is how a block of type ends up with its descenders lying on top
- * of the date line beneath it, which is exactly what the first version of this
- * file did - verified in a browser, not guessed at.
+ * of the date line beneath it. Measured in a browser, not guessed at.
  *
  * DESC_EM is the depth of a descender below the baseline: worst measured case
  * 0.299em, rounded up.
@@ -793,8 +792,7 @@ function eventProblem(event) {
 // path followed it, while this file's own HELP text advertised exactly that
 // form (`-d, --data <path>`). The sibling script scripts/check-events.mjs parsed
 // the same flag correctly, so two CLIs in one project disagreed about one flag
-// and the one that disagreed was the one documented as working. See
-// build-log.md, 2026-10-05.
+// and the one that disagreed was the one documented as working.
 export function parseArgs(argv) {
   const opts = { force: false, data: DEFAULT_DATA_PATH, help: false };
   for (let i = 0; i < argv.length; i += 1) {

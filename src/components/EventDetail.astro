@@ -10,9 +10,8 @@
 // its own banner - rather than one being picked arbitrarily and the rest hidden.
 //
 // So the panel needs to render the same block N times, once per event on the
-// selected day. That block was inline in the panel when selection was per-event;
-// extracting it here is what makes "stack them" a two-line change instead of a
-// duplicated template that drifts.
+// selected day. Extracting it into this component is what makes "stack them" a
+// two-line change instead of a duplicated template that drifts.
 //
 // Everything about an event's presentation lives in this file: the banner and its
 // absent-state, the type and time line, the description, the location, the notes

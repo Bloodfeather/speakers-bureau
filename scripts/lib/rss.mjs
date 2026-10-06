@@ -275,9 +275,8 @@ export function parseFeed(xmlText) {
     title: asProse(channel.title),
     link: asText(channel.link && typeof channel.link === 'object' ? channel.link['@_href'] : channel.link),
     description: asProse(channel.description),
-    // subtitle is OPTIONAL. Verified live 2026-10-05: neither thefp nor
-    // grayzone has a <subtitle> element. It is read if present and null if
-    // not; it is never required.
+    // subtitle is OPTIONAL: the live feeds carry no <subtitle> element. It is
+    // read if present and null if not; it is never required.
     subtitle: asProse(channel.subtitle ?? channel.tagline)
   };
 
@@ -291,7 +290,7 @@ export function parseFeed(xmlText) {
 /**
  * Normalize one parsed item into the dataset shape.
  *
- * Shape (exact field set, names matter - Phase 3 renders these):
+ * Shape (exact field set, names matter - the site renders these):
  *   { id, sourceId, sourceName, title, dek, author, url, image, publishedAt,
  *     excerpt, categories }
  *

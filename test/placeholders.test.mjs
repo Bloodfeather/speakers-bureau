@@ -210,12 +210,10 @@ test('every image path the data declares exists on disk and is not empty', async
     `every event must declare a thumbnail and a banner (${REAL_EVENTS.length} events x 2), got ${declared.length}`
   );
 
-  // EXACT equality, not `>=`. This was `>=` on the stated grounds that orphans from
-  // removed events were "deliberately left in place" - which meant the check could
-  // never fail for the reason it exists. It survived deleting eleven real orphan
-  // placeholders (the invented events county-budget-debate, harvest-dinner and
-  // the rest, removed 2026-10-05) without noticing, because 14 declared against
-  // 25 on disk still satisfies `>=`.
+  // EXACT equality, not `>=`. A `>=` comparison, justified on the grounds that
+  // orphans from removed events were "deliberately left in place", cannot fail for
+  // the reason this check exists: 14 declared against 25 on disk still satisfies it,
+  // so real orphan placeholders pass unnoticed.
   //
   // Equality now, so an orphan is a failure with a filename in the message. The
   // generator is deliberately NOT the thing that deletes them: it refuses to
@@ -816,19 +814,19 @@ test('the longest event name fits in three lines with no overflow, and a multi-d
   // range. This is an assertion about the REAL span in the data, and it is
   // correct for that span.
   //
-  // It was previously the ONLY shape the function was allowed to produce, which
-  // meant it also forbade the correct output for a span crossing a month or year
-  // boundary - a test enforcing a bug. Those shapes are asserted separately below
+  // Asserting only this shape would also forbid the correct output for a span
+  // crossing a month or year boundary. Those shapes are asserted separately below
   // against synthetic events, so the real-data assertion stays narrow and the
-  // boundary cases stop being untested.
+  // boundary cases are not left untested.
   assert.ok(
     /^[0-9]{1,2} - [0-9]{1,2} [A-Z]+ [0-9]{4}$/.test(dateLine),
     `a same-month span must read "D - D MONTH YEAR", month printed once. Got "${dateLine}".`
   );
 
   // The boundaries the committed data happens not to exercise. Synthetic on
-  // purpose: no real event spans these, and the previous test let that gap hide a
-  // bug that rendered `28 - 4 OCTOBER 2026` for a window ending in November.
+  // purpose: no real event spans these, so leaving them to the real-data assertion
+  // alone would hide a bug that rendered `28 - 4 OCTOBER 2026` for a window ending
+  // in November.
   const boundaryCases = [
     { id: 'month', startsAt: '2026-10-28', endsAt: '2026-11-04', expect: '28 OCTOBER - 4 NOVEMBER 2026' },
     { id: 'year', startsAt: '2026-12-28', endsAt: '2027-01-04', expect: '28 DECEMBER 2026 - 4 JANUARY 2027' },
@@ -902,9 +900,8 @@ test('resolveInside refuses a path that would escape public/', () => {
     '/img/events/foo.svg',
     '/img/events/2026/foo-bar-thumb.svg',
     '/img/foo.svg',
-    // A ".." that climbs but does NOT escape is ALLOWED. Two of these were
-    // asserted as escapes in the first version of this test, and in both cases the
-    // TEST was wrong rather than the code:
+    // A ".." that climbs but does NOT escape is ALLOWED. Asserting these as escapes
+    // would make the TEST wrong rather than the code:
     //
     //   /img/./../secrets.svg  ->  public/secrets.svg     (inside)
     //   /img/events/..         ->  public/img             (inside)

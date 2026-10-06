@@ -125,14 +125,13 @@ test('the committed dataset produces days and grids that are populated', async (
   t.diagnostic(`grid cells per month: ${grids.map((g) => `${g.key}=${g.cells.length}`).join(', ')}`);
 
   assert.ok(days.length > 0, 'positive control: the committed dataset must yield at least one EventDay');
-  // EVERY DAY EITHER HOLDS AN EVENT OR IS COVERED BY ONE. This assertion used to be
-  // `count === events.length && count >= 1` - "every day must hold at least one
-  // event" - and it was not a neutral invariant. It encoded the defect: `eventDays`
-  // consulted only `startsAt`, so the twelve days inside the early voting window
-  // were not in the list at all, and this "positive control" was in part proving
-  // that the calendar under-reported voter access by twelve days.
+  // EVERY DAY EITHER HOLDS AN EVENT OR IS COVERED BY ONE. The weaker invariant
+  // "every day must hold at least one event" is not neutral: it encoded a defect,
+  // because `eventDays` consulted only `startsAt`, so the days inside a span such
+  // as the early voting window were not in the list at all and the assertion was in
+  // part proving that the calendar under-reported voter access.
   //
-  // The correct invariant is that no day is ever inert: if it exists, something
+  // The invariant is that no day is ever inert: if it exists, something
   // happens on it, whether that something starts there or merely runs through.
   assert.ok(
     days.every((day) => day.count === day.events.length),
@@ -311,26 +310,15 @@ test('two events on the same date produce ONE day, not two', () => {
 });
 
 test('the shipped data doubles up on 3 November, so the page exercises the stacking path', (t) => {
-  // THIS TEST HAS BEEN THROUGH THREE STATES, and the middle one is the interesting
-  // one.
+  // THE STACKING PATH IS ASSERTED AGAINST THE REAL DATA, NOT ONLY A FIXTURE, and the
+  // assertion is deliberately worded to go red on a data change so that anyone who
+  // removes one of the colliding events has to render the panel in a browser and
+  // confirm it still stacks, then change this assertion on purpose.
   //
-  // 1. It was named "the real dataset has a date carrying more than one event", and
-  //    it passed a hand-built FIXTURE to `eventDays`, then asserted
-  //    `multiples.every(...)` - which is trivially true of an empty array. The name
-  //    claimed something false about the shipped data, and the assertion could not
-  //    fail for any input. A test that lies is worse than no test.
-  //
-  // 2. Rewritten to state the actual gap: seven placeholder events on seven distinct
-  //    dates, so the stacking path was fixture-covered and page-unverified. Its
-  //    assertion was `multiples.length === 0`, worded so that adding a doubled date
-  //    would turn it RED and force this file to be revisited on purpose.
-  //
-  // 3. The real events arrived, and two of them fall on 3 November 2026. The
-  //    assertion went red exactly as designed, the panel was rendered and checked in
-  //    a browser, and this became a positive assertion.
-  //
-  // That sequence is the reason this comment exists: the test did its job, which
-  // was not to pass but to notice.
+  // The obvious weaker form of this test passes a hand-built FIXTURE to `eventDays`
+  // and asserts `multiples.every(...)`, which is trivially true of an empty array:
+  // the name would claim something about the shipped data while the assertion could
+  // not fail for any input. A test that lies is worse than no test.
   const days = eventDays(realEvents('real-data doubling'));
   const multiples = days.filter((day) => day.multiple);
 
@@ -341,11 +329,7 @@ test('the shipped data doubles up on 3 November, so the page exercises the stack
   // state and federal general election, and Greenwood's municipal election - which
   // is exactly the collision the day-based selection unit exists to handle.
   //
-  // So the assertion below is now a POSITIVE one. It was deliberately worded to go
-  // red on a data change ("this is the moment to render it in a browser and confirm
-  // the panel stacks, then change this assertion deliberately - not silently"), and
-  // that is the order things happened in: the data changed, this failed, and the
-  // panel was rendered and checked before this line was rewritten.
+  // So the assertion below is a POSITIVE one.
   assert.ok(
     multiples.length >= 1,
     'the shipped data is expected to carry at least one doubled date - the two elections on 3 November 2026 - so ' +
@@ -477,11 +461,10 @@ test('a multi-day span marks every day it runs on, not only the day it starts', 
   assert.equal(owner.covering.length, 0, 'positive control: it covers nothing - it starts here');
 
   // THE ASSERTION. The 19th to the 31st INCLUSIVE is thirteen dates, and all
-  // thirteen must be in the list: the start date plus the twelve after it. A first
-  // draft of this line said eighteen, having counted the span's thirteen dates and
-  // then added the twelve covered ones as if the start date were not already among
-  // them - which is a useful reminder that the number a reader cares about is
-  // thirteen days of access, not eighteen.
+  // thirteen must be in the list: the start date plus the twelve after it. Count
+  // them as the span's dates PLUS the covered ones and you get eighteen, which is
+  // wrong: the start date is already among them. The number a reader cares about
+  // is thirteen days of access.
   assert.equal(days.length, 13, 'a 13-day span must produce 13 days: the start date plus the twelve after it');
 
   const covered = days.filter((day) => day.continues);
@@ -525,8 +508,8 @@ test('a multi-day span marks every day it runs on, not only the day it starts', 
 
 test('the real early-voting window produces exactly twelve covered days', (t) => {
   // THE SHIPPED DATA, not a fixture. This is the case the page actually renders, and
-  // a fixture-only test would leave the real page unverified - which is exactly how
-  // this defect reached a build.
+  // a fixture-only test would leave the real page unverified, which is how a defect
+  // like this reaches a build.
   const events = realEvents('real span');
   const early = events.find((event) => event.id === 'early-voting');
   assert.ok(early !== undefined, 'positive control: the committed dataset must contain early-voting');
@@ -1559,11 +1542,10 @@ test('src/lib/calendar.ts is pure ASCII and imports its siblings with .ts', asyn
   // named outright, which is the stronger form - a new sibling import makes this
   // go red, and the fix is to add its extension, not to widen the check.
   //
-  // Two, since the zero-padding helper moved into src/lib/months.ts: `twoDigits`
-  // and `monthKeyPart` used to be one private function here and three inline
-  // padStart calls in events-schema.ts, and the two copies disagreed about whether
-  // the value was 0-based or 1-based. One implementation, in the module that can
-  // be imported without dragging a dataset along.
+  // Two, and the zero-padding helpers live in src/lib/months.ts: `twoDigits` and
+  // `monthKeyPart` are one implementation in the module that can be imported
+  // without dragging a dataset along, so nothing here can disagree with
+  // events-schema.ts about whether the value was 0-based or 1-based.
   const relativeImports = source.match(/from '(\.\/[^']+)'/g) ?? [];
   assert.deepEqual(
     relativeImports.map((line) => line.replace(/^from '/, '').replace(/'$/, '')),

@@ -14,9 +14,8 @@
 // without pulling anything else along.
 //
 // ONE TABLE FOR THE WHOLE SITE. articles.ts imports MONTHS from here rather than
-// declaring its own, so there is no second copy to drift. The duplication used to
-// be guarded by a test that compared the two tables; the guard went with the
-// duplication, because a test comparing a thing to itself cannot fail for a
+// declaring its own, so there is no second copy to drift, and nothing needs
+// guarding: a test comparing a table to a copy of itself cannot fail for a
 // reason anyone can act on.
 //
 // WHY A TABLE AND NOT Intl.DateTimeFormat: see the long note above the table in
@@ -53,13 +52,11 @@ export const MONTHS = [
 // Zero-padding, ONE implementation
 // ---------------------------------------------------------------------------
 //
-// THE 0-BASED / 1-BASED SPLIT THIS REPLACES WAS A LIVE TRAP. There were four
-// copies of "pad to two digits" and two of them disagreed about what they took:
-// monthKeyPart() took a ZERO-based month index and added 1, while calendar.ts's
-// twoDigits() and three inline `String(x).padStart(2, '0')` calls took the value
-// as given. Both were correct at their call sites and the difference was carried
-// entirely by the name, so an off-by-one month renders as a plausible date rather
-// than as an error.
+// A 0-BASED / 1-BASED SPLIT IN A PADDING HELPER IS A LIVE TRAP, and the trap is
+// that it is invisible. A helper that takes a ZERO-based month index and adds 1
+// and a helper that takes the value as given are both correct at their own call
+// sites, so the difference is carried entirely by the name, and an off-by-one
+// month renders as a plausible date rather than as an error.
 //
 // So: ONE function, it takes the value EXACTLY as given, and it does no index
 // arithmetic. There is no zero-based variant to reach for the wrong one of.

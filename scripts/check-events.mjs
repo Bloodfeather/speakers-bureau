@@ -168,12 +168,11 @@ export async function checkImages(events) {
 /**
  * The problem lines, as an array to be PUSHED INTO THE REPORT.
  *
- * It collects rather than writes, and that is a bug fix rather than a style
- * choice. The first version wrote straight to stdout, so the problems appeared
- * ABOVE the "events: <path>" header that says which file they belong to - the
- * report opened with its findings and buried its subject. Found by running the
- * tool on a deliberately broken file, which is the only way to see it: the tests
- * assert behaviour, not the order a human reads.
+ * It collects rather than writes, because writing straight to stdout puts the
+ * problems ABOVE the "events: <path>" header that says which file they belong to -
+ * the report opens with its findings and buries its subject. Only running the tool
+ * on a deliberately broken file shows that: the tests assert behaviour, not the
+ * order a human reads.
  */
 function problemLines(problems) {
   return problems.map((item) => `  [${item.reason}] ${item.detail}`);

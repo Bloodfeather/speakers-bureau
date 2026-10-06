@@ -192,12 +192,12 @@
 /* ---------------------------------------------------------------------------
  * 2. SYSTEM - the OS follows, the civic palette does not change.
  *
- * THE `:has()` SELECTOR WAS MISSING HERE AND WAS ADDED 2026-10-05.
+ * SYSTEM NEEDS THE `:has()` SELECTOR TOO, for the same reason as the other three.
  *
  * The three other themes pair `[data-theme=...]` with `:has(#theme-X:checked)`,
  * because a checked radio is the no-JS path and the attribute is the with-JS path.
- * System had only the attribute, which looked fine in every manual check and was
- * not: the attribute is baked at BUILD time as "system", so the other three worked
+ * With only the attribute, system looks fine in every manual check and is not: the
+ * attribute is baked at BUILD time as "system", so the other three worked
  * with scripting off while SYSTEM could not be re-selected by keyboard. A reader
  * who picked ledger and then wanted their OS theme back had no way to get it
  * without JavaScript. That is the exact failure this project forbids, and it was

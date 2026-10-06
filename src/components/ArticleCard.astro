@@ -5,16 +5,16 @@
 // DESIGNED AROUND THE REAL DATA, NOT AN IMAGINED FEED
 // ---------------------------------------------------------------------------
 //
-// Measured on the 23 articles in data/articles.json (2026-10-05):
+// Measured on data/articles.json:
 //
-//   dek       EMPTY ON 23 OF 23. Substack RSS carries no subtitle field.
+//   dek       EMPTY ON EVERY ARTICLE. Substack RSS carries no subtitle field.
 //             So this card NEVER renders a dek unconditionally and never
 //             reserves space for one. There is no conditional dek with a CSS
 //             fallback, because "CSS hides it gracefully" is not a thing - an
 //             empty paragraph still occupies a margin block, and reserving a
 //             blank line above the excerpt is a visible hole in every card.
 //
-//   excerpt   Present on all 23, but 3 are UNDER 40 CHARACTERS and one is 12
+//   excerpt   Present on all of them, but a few are UNDER 40 CHARACTERS and one is 12
 //             characters: "Dear Reader," plus the title. Those are real
 //             excerpts and they are rendered as-is. There is no
 //             min-height on the excerpt, no fixed line count and no
@@ -23,12 +23,12 @@
 //             card is allowed to be shorter than its neighbours. Cards in a
 //             grid align at the top; that is what alignment is for.
 //
-//   author    A REAL PERSON on 21 of 23 ("Alaina Stone", "Evan Mulch"). On the
-//             other 2 the feed reports the publication's own name with the
-//             word "News" missing. `bylineFor()` decides, and it is the only
-//             implementation of that decision in the project.
+//   author    A REAL PERSON on the great majority ("Alaina Stone", "Evan
+//             Mulch"). On a small number the feed reports the publication's own
+//             name with the word "News" missing. `bylineFor()` decides, and it is
+//             the only implementation of that decision in the project.
 //
-//   image     Present on 23 of 23, but typed `string | null` and rendered
+//   image     Present on every article, but typed `string | null` and rendered
 //             conditionally anyway. A card whose image fails to load (hosting
 //             removed it, CDN 404, network) must still be a complete card, so
 //             the image is decorative-adjacent and the title never depends on
@@ -59,8 +59,7 @@
 // every import and every line of TypeScript below it is silently reinterpreted
 // as page content. The build then fails with `Expected "}" but found ":"`,
 // pointing at a line inside the comments with no apparent connection to the
-// cause. This file had exactly that bug, and it cost a bisect of every
-// construct in the component to find. Comment separators here use `// ---`
+// cause. Comment separators here use `// ---`
 // with a leading `//`, which is not a fence.
 import type { Article } from '../lib/articles'
 import { bylineFor, formatUtcDate, imageUrl, machineDate } from '../lib/articles'
@@ -94,8 +93,7 @@ const datetime = machineDate(article.publishedAt)
 // renderComponent() call inside the template literal the compiler emits. In this
 // file that produced an unbalanced interpolation, and esbuild then failed with
 // 'Expected "}" but found ":"' pointing at a comment line thirty lines away from
-// the actual cause. Recorded so the next person does not spend the afternoon I
-// did bisecting an innocent-looking comment.
+// the actual cause.
 const destinationHost = (() => {
   try {
     return new URL(article.url).hostname.replace(/^www\./, '')

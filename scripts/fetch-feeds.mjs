@@ -7,7 +7,7 @@
 // FAIL LOUD BY DEFAULT (design rule 3). If any feed fails, this exits non-zero
 // and no dataset is written. A green build on stale data is the one failure
 // mode that looks like success, so `--allow-partial` must be passed explicitly
-// to write a partial dataset. The scheduled Action in Phase 4 does NOT pass it.
+// to write a partial dataset. The scheduled Action does NOT pass it.
 //
 // THE OUTPUT PATH IS A PARAMETER, and the production default is set here and
 // nowhere else. This is load-bearing, not tidiness: it is the only way rule 7
