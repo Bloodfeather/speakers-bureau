@@ -1,10 +1,11 @@
-# Publishing this site to GitHub Pages
+# Publishing this site to Cloudflare Pages
 
 This document takes you from "the site works on my computer" to "the site
-updates itself every four hours, on its own, forever."
+updates itself every four hours, on its own, forever," published at
+**scspeakersbureau.org**.
 
-Everything here is a click in the GitHub website, except where it says
-otherwise. You do not need a command line.
+Almost everything here is a click in a website. You should not need a command
+line.
 
 Read section 0 first. It tells you which parts are finished and which parts have
 never been tried.
@@ -18,23 +19,59 @@ never been tried.
 | The site builds on your computer | Works. Verified. |
 | The feed fetcher writes `data/articles.json` | Works. Verified against live feeds. |
 | `data/articles.json` is saved into the project's history | Yes, deliberately. |
-| The automated publish file `.github/workflows/refresh.yml` | Written. **Never run.** |
+| The domain is set in `astro.config.mjs` | Done. `scspeakersbureau.org`. |
+| The publish file `.github/workflows/refresh.yml` | Written for Cloudflare. **Never run.** |
 | A GitHub repository for this project | **Not created. Section 1.** |
-| A token so the automation can save its work | **Not created. Section 4.** |
-| Automatic publishing switched on | Not yet. Section 5. |
+| A GitHub token, so the automation can save its work | **Not created. Section 4.** |
+| A Cloudflare account and Pages project | **Not created. Section 5.** |
+| Cloudflare tokens for the automation | **Not created. Sections 6 and 7.** |
+| Automatic publishing switched on | Not yet. Section 8. |
 
 **The honest part, stated plainly:** the automated publishing has never been
-executed. It could not be - at the time it was written there was no GitHub
-repository for it to run in, and no secret for it to use. It has been checked
-to be valid and to contain the right steps, but "the file looks right" and "it
-runs" are different things.
+executed. It could not be - when it was first written there was no GitHub
+repository for it to run in and no Cloudflare account to publish to. It has been
+checked to be valid YAML, its structure has been verified, and every setting it
+needs is named in it so that a missing one fails with a message saying which
+one. But "the file looks right" and "it runs" are different things.
 
-**The step most likely to fail first is the save-and-upload step in section 4's
-token.** That is the piece nobody can check without a real repository. If
-something goes wrong, look there first. The publish setting in section 5 is the
-second most likely.
+**The step most likely to fail first is a token in section 4 or section 7.**
+Those are the pieces nobody can check without real accounts. If something goes
+wrong, look there first.
 
-Section 8 is where you find out. Do not skip it.
+Section 11 is where you find out. Do not skip it.
+
+---
+
+## How the two systems fit together
+
+This is the part that is genuinely unusual, so read it before anything else.
+
+Your site is **built on GitHub** and **hosted at Cloudflare**. Both are needed:
+
+- **GitHub** runs the timer and saves your work. Every four hours it fetches the
+  feeds, and if anything changed it saves a commit. That commit is why you can
+  always answer "why is this article on my site?"
+- **Cloudflare** stores the website itself and serves it to visitors.
+
+So there is no single company holding everything. That is normal for this kind
+of setup and costs nothing - both have generous free tiers.
+
+### The four settings the automation needs
+
+You will create these across sections 4, 6, 7 and 8. Write them down. The
+automation looks for each one **by exact name**, and a name that is nearly right
+is treated as missing.
+
+| Name | Kind | What it is |
+| --- | --- | --- |
+| `PAT_TOKEN` | Secret | Lets the automation save the fetched articles back to GitHub. Section 4. |
+| `CLOUDFLARE_API_TOKEN` | Secret | Lets the automation publish the built site to Cloudflare. Section 7. |
+| `CLOUDFLARE_ACCOUNT_ID` | Secret | Tells Cloudflare which account is yours. Section 6. |
+| `CLOUDFLARE_PAGES_PROJECT` | Variable | The name of your Pages project. Section 5. |
+
+The first three are **secrets** and the fourth is a **variable**. That difference
+matters: secrets are for credentials, variables are for settings. The automation
+fails with a clear message naming whichever one is missing.
 
 ---
 
@@ -55,9 +92,8 @@ repository and links your local folder to it in one go.
    `main` branch, it appears in the list on the left straight away.
 5. Click **Publish branch** in the top toolbar.
 6. Fill in the form:
-   - **Name**: choose the repository name now and write it down. You need it in
-     sections 5 and 6. Use lowercase and hyphens, no spaces. For example
-     `speakers-bureau`.
+   - **Name**: choose the repository name now and write it down. Use lowercase
+     and hyphens, no spaces. For example `speakers-bureau`.
    - **Organization**: your own account is fine.
    - **Keep this code private**: your choice. Read section 2 before deciding.
 7. Click **Publish repository**.
@@ -72,26 +108,22 @@ repository created on the website does not appear in GitHub Desktop's list
 automatically. If you ever create one on the website, add it by hand with
 **File > Add Existing Repository...** and paste the web address.
 
-Publishing from GitHub Desktop is the shortest route here because your local
-history is already intact.
-
 ---
 
 ## 2. Public or private: decide now
 
-Decide this before section 5. Changing it later breaks the site address.
+Decide this before section 8. Changing it later breaks the automation.
 
-- **Public** - automatic publishing works on GitHub's free plan. This is the
-  simple option, and the content is public anyway, since all of it is public
-  writing by other people.
-- **Private** - automatic publishing needs a paid GitHub plan. Your source code
-  would be private, but the published website would still be public.
+- **Public** - scheduled jobs work on GitHub's free plan. This is the simple
+  option, and the content is public anyway, since all of it is public writing by
+  other people.
+- **Private** - scheduled jobs need a paid GitHub plan.
 
 If you are not paying for a plan, the answer is **public**.
 
 ---
 
-## 3. Check what actually got uploaded
+## 3. Check what got uploaded
 
 Look at the repository on github.com in your browser. You should see:
 
@@ -102,13 +134,13 @@ Look at the repository on github.com in your browser. You should see:
 - `data/sources.yml` - the list of publications
 - `README.md` and `docs/DEPLOY.md`
 
-If `refresh.yml` is missing, the `.github` folder was never uploaded. That is
-the single most common cause of the problem described in section 9, so check it
-now rather than later.
+If `refresh.yml` is missing, the `.github` folder was never uploaded. That is the
+single most common cause of the problem described in section 12, so check it now
+rather than later.
 
 ---
 
-## 4. Create the token, and save it in the repository
+## 4. Create the GitHub token, so the automation can save its work
 
 ### What a token is, in one sentence
 
@@ -121,9 +153,8 @@ laptop and has no access to your GitHub Desktop session. It has no memory of
 your login. Without a token it has nothing to log in with, so it cannot save its
 work back to your repository.
 
-You create the token once. It does not expire quickly if you set a long
-expiry, and nothing you do in GitHub Desktop needs it - it is only for the
-automated job.
+You create the token once. Nothing you do in GitHub Desktop needs it - it is
+only for the automated job.
 
 ### Step 4a - generate the token
 
@@ -133,9 +164,9 @@ automated job.
    https://github.com/settings/personal-access-tokens/new
    ```
 
-   (The same page by clicking through: your profile picture > **Settings** >
-   **Developer settings** > **Personal access tokens** > **Fine-grained
-   tokens** > **Generate new token**.)
+   (Or: your profile picture > **Settings** > **Developer settings** >
+   **Personal access tokens** > **Fine-grained tokens** > **Generate new
+   token**.)
 
 2. **Token name**: `SpeakersBureau CI`
 3. **Expiration**: 1 year, or the longest your account allows.
@@ -144,29 +175,24 @@ automated job.
    not find out until you happen to look at the Actions tab weeks later.
 5. **Resource owner**: your own account.
 6. **Repository access**: choose **Only select repositories**, then pick this
-   project. Do **not** choose **All repositories**. This token only needs to
-   work on this one repository.
+   project. Do **not** choose **All repositories**.
 7. **Repository permissions**. Turn on exactly one:
 
    **Contents: Read and write**
 
-   That is the only permission needed. It is the minimum required to save a
-   commit. Leave every other permission at **No access**. In particular, leave
-   **Workflows** at No access - this automation never edits its own definition,
-   so it does not need it, and turning it on would hand out more access than
-   required for no benefit.
-8. Click **Generate token**, then copy the token. **It is shown once only.**
-   If you lose it, delete it and make a new one. It takes a minute.
+   That is the only permission needed. Leave every other permission at **No
+   access**. In particular leave **Workflows** at No access - this automation
+   never edits its own definition, so it does not need it.
+8. Click **Generate token**, then copy the token. **It is shown once only.** If
+   you lose it, delete it and make a new one.
 
 ### Step 4b - save the token in the repository
 
 1. Go to:
 
    ```
-   https://github.com/<your-username>/speakers-bureau/settings/secrets/actions
+   https://github.com/<your-username>/<your-repository>/settings/secrets/actions
    ```
-
-   Swap `speakers-bureau` for whatever you named the repository in section 1.
 
 2. Click **New repository secret**.
 3. **Name**: type exactly
@@ -175,152 +201,245 @@ automated job.
    PAT_TOKEN
    ```
 
-   **This exact name, character for character.** The automation looks for
-   `PAT_TOKEN` by name. If you call it `PAT` or `GITHUB_TOKEN` or
-   `PAT-TOKEN`, the automation will not find it. It will fail at the moment it
-   tries to save its work, several steps into the run, which looks like a
-   mysterious failure rather than a typo.
+   **This exact name, character for character.** If you call it `PAT` or
+   `GITHUB_TOKEN`, the automation will not find it, and it will fail several
+   steps into the run, which looks like a mysterious failure rather than a typo.
 4. **Secret**: paste the token you copied.
 5. Click **Add secret**.
 
-The token value is never shown again and never appears in any log. If you ever
-need to replace it, delete the secret and add a new one.
+The token value is never shown again and never appears in any log.
 
 ---
 
-## 5. Turn on automatic publishing, and point it at the automation
+## 5. Create the Cloudflare Pages project, and see the site live
 
-Two separate settings. Both are needed.
+**This is the part that gets you a working website today, before any automation
+exists.** Do this section even if you intend to read the rest.
 
-### 5a - Actions must be allowed to run
+You will drag the already-built `dist` folder onto Cloudflare. You do not need
+to build anything first - the folder is ready.
 
-1. Go to:
+### Step 5a - create the project
 
-   ```
-   https://github.com/<your-username>/speakers-bureau/settings/actions
-   ```
-
-2. Under **Actions permissions**, select **Allow all actions and reusable
-   workflows**.
-3. Save.
-
-### 5b - The website must be published by the automation, not from a branch
-
-1. Go to:
+1. Go to <https://dash.cloudflare.com> and sign in.
+2. In the left menu click **Workers & Pages**.
+3. Click **Create application**, then **Get started**, then **Drag and drop your
+   files**.
+4. Type your project name. This name matters and you will need it in section 8,
+   so choose it carefully and write it down. Use lowercase letters, hyphens and
+   nothing else. For example:
 
    ```
-   https://github.com/<your-username>/speakers-bureau/settings/pages
+   scspeakersbureau
    ```
 
-2. Find **Build and deployment**, then **Source**.
-3. Choose **GitHub Actions**.
-4. Save.
+5. Drag the whole `dist` folder onto the upload box, or click it and pick the
+   folder. Either works.
+6. Click **Deploy site**.
 
-**Do not choose "Deploy from a branch".** That option publishes whatever is
-sitting in `main` and ignores the finished website the automation uploads. If
-it is set to branch, the site can look like it is working while actually serving
-an old version, which is exactly the kind of quiet failure this project is
-built to avoid.
+Wait a minute or two, then visit:
 
-5. GitHub reserves your address at the same time. It will look like:
+```
+https://scspeakersbureau.pages.dev
+```
 
-   ```
-   https://<your-username>.github.io/speakers-bureau/
-   ```
+That is your site, live, on the internet.
+
+**Write down the project name you chose.** It is the value of
+`CLOUDFLARE_PAGES_PROJECT` in section 8. If Cloudflare tells you the name was
+taken and it added characters, use the name it actually gave you.
+
+### Why dragging the folder in is the right first step
+
+You are creating the project as a "Direct Upload" project. That is exactly what
+the automatic publishing in section 8 needs, and the two work together: you can
+drag a folder in by hand today, and the automation can replace it every four
+hours tomorrow, into the same project, at the same address.
+
+**One thing to know, so it does not surprise you later:** you cannot connect a
+Direct Upload project to Cloudflare's own Git-based building later. You do not
+want to. The automation in section 8 builds the site on GitHub and uploads the
+finished result, which is what gives you the "a failed feed must not publish"
+guarantee described in section 13. Connecting Cloudflare directly to GitHub
+would take that control away.
+
+### Step 5b - attach your domain
+
+You can do this now or later. Doing it now means you never have to think about
+`pages.dev` addresses again.
+
+1. In **Workers & Pages**, click your project.
+2. Find **Custom domains** and use **Set up a custom domain**.
+3. Enter `scspeakersbureau.org`.
+4. Follow the instructions Cloudflare shows.
+
+**If you already use Cloudflare for your domain** - that is, if you have already
+pointed your domain's nameservers at Cloudflare - this is a single click and
+Cloudflare handles the certificate for you.
+
+**If your domain is registered somewhere else**, Cloudflare will give you a
+nameserver to set at your registrar. That is a bigger change than it looks and
+it affects your email and every other service using that domain, so it is worth
+doing deliberately rather than in a hurry.
+
+**Do not do this section yet if you are unsure.** The site is already fully live
+at the `pages.dev` address from step 5a. The domain is a convenience, and there
+is no rush. This document will still be here.
+
+Once the domain works, nothing else in this project changes. The site is served
+from the root of the domain, which is the one arrangement that needs no extra
+configuration - section 10 explains why there is nothing to set.
+
+---
+
+## 6. Find your Cloudflare Account ID
+
+1. Go to <https://dash.cloudflare.com>.
+2. Click **Workers & Pages**, then your project.
+3. Look for the **Account ID**. Depending on the dashboard layout it is shown in
+   the project overview, or on the **Zone Overview** page for your domain, in
+   the right-hand **API** section.
+4. Copy it. It is a long string of digits and letters.
+
+Save it now, you need it in section 8. If you cannot find it, section 12 has
+where else to look.
+
+---
+
+## 7. Create the Cloudflare API token
+
+### What this token is, and why it is not your password
+
+This is a password **for Cloudflare's API**, scoped to exactly one job:
+publishing your website. It is not your Cloudflare login, it cannot read your
+email, and it cannot change your DNS.
+
+Two things about it are deliberate:
+
+- It has **one permission**: publish Pages sites. It cannot read billing, cannot
+  read your DNS records, and cannot touch Workers, storage or databases.
+- It is **restricted to your one account**, so it cannot publish anywhere else
+  even if it leaked.
+
+### Step 7a - generate it
+
+1. Go to the **API Tokens** page in the Cloudflare dashboard:
+   <https://dash.cloudflare.com/?to=/:account/api-tokens>
+2. Click **Create Token**.
+3. Under **Custom Token**, click **Get started**.
+4. **Token name**: `SpeakersBureau Pages Publisher`
+5. **Permissions**. Add exactly one row:
+
+   | Account | Permission | Access |
+   | --- | --- | --- |
+   | Account | Cloudflare Pages | Edit |
+
+6. **Account Resources**: restrict it to the account that owns your project.
+7. Click **Continue to summary**, then **Create Token**.
+8. **Copy the token now. It is shown once only.** If you lose it, delete it and
+   make another.
+
+### If the publish step fails with a permissions error
+
+Cloudflare occasionally requires **Account > Account Settings > Read** in
+addition to the Pages permission above. Add that second permission, save the
+secret again in section 8, and run it again. This is a known quirk rather than
+something you did wrong, and section 12 has the exact wording to look for.
+
+---
+
+## 8. Add the remaining three settings to the repository
+
+Two secrets and one variable. Go to:
+
+```
+https://github.com/<your-username>/<your-repository>/settings
+```
+
+### Two secrets
+
+Click **Secrets and variables > Actions**. Make sure you are on the **Secrets**
+tab. Click **New repository secret** twice, once for each:
+
+| Name | Value |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | The token you copied in section 7 |
+| `CLOUDFLARE_ACCOUNT_ID` | The ID you copied in section 6 |
+
+Both names must be exact. `CLOUDFLARE_TOKEN` will not be found.
+
+### One variable
+
+On the same page, switch to the **Variables** tab. Click **New repository
+variable`:
+
+| Name | Value |
+| --- | --- |
+| `CLOUDFLARE_PAGES_PROJECT` | The project name from section 5 |
+
+This one is a setting rather than a credential, which is why it is a variable.
+That means if you ever rename your Pages project you change it here and nowhere
+else - no code changes, no file edits.
+
+### Do NOT create a `BASE_PATH` variable
+
+On the previous hosting platform this project needed a `BASE_PATH` setting that
+told it which folder the site lived in. **Cloudflare serves from the root of the
+domain, so there is no folder and nothing to set.**
+
+The automation checks for this and **stops with an error** if it finds one,
+because a leftover value would make every style and script load from a path that
+does not exist, and the site would appear completely unstyled. If you ever see
+that error, you are looking at a `BASE_PATH` variable that should be deleted,
+not created.
+
+### Finally, allow the automation to run
+
+Go to:
+
+```
+https://github.com/<your-username>/<your-repository>/settings/actions
+```
+
+Under **Actions permissions**, select **Allow all actions and reusable
+workflows**, and save.
 
 ### A GitHub habit worth knowing about
 
-GitHub switches scheduled jobs off on a public repository after **60 days with
-no activity at all**. Because the automation saves a commit whenever anything
+GitHub switches scheduled jobs off on a public repository after **60 days with no
+activity at all**. Because the automation saves a commit whenever anything
 changed, your repository stays active and this will not bite you. But if the
-repository ever goes completely idle for two months, the schedule quietly stops
-and the automation shows as switched off. You can switch it back on from the
-Actions tab.
+repository ever goes completely idle for two months, the schedule quietly stops.
+You can switch it back on from the Actions tab.
 
 ---
 
-## 6. The base path: telling the site where it lives
+## 9. Nothing to configure: the site is already at the root
 
-This is the part people get wrong, and it has one visible symptom: **the site
-loads but looks completely unstyled**, because the style file cannot be found.
+On the old platform there was one setting people got wrong, and its symptom was
+a site that loaded with no colours and no formatting at all. That is gone.
 
-Here is the reason. There are two kinds of GitHub website address:
+Cloudflare serves your site from the root of your domain. There is no folder to
+tell the build about, so there is nothing to configure. Every internal link and
+every style file already points at the right place.
 
-| Kind | Address | Extra path? |
-| --- | --- | --- |
-| **Project repository** - a normal repository | `https://alice.github.io/speakers-bureau/` | **Yes**, the site lives in a folder called `speakers-bureau` |
-| **User or organisation repository** - the repository name IS `alice.github.io` | `https://alice.github.io/` | No, the site is at the root |
-
-Almost certainly you have a **project repository**, because that is what
-section 1 created. So the site lives one folder down, and the build has to be
-told that folder name.
-
-**The base path is the repository name only.** For `alice.github.io/speakers-bureau/`
-the base path is `/speakers-bureau`. Not the username. Not the full web address.
-No trailing slash. Just the folder name, with a slash in front.
-
-### How to set it
-
-The build reads it from an environment variable called `BASE_PATH`, and falls
-back to `/` (the root) when that variable is empty. `/` is correct for local
-work on your own machine, and wrong for a project repository. So you tell
-GitHub about it:
-
-1. Go to:
-
-   ```
-   https://github.com/<your-username>/speakers-bureau/settings/variables/actions
-   ```
-
-2. Click **New repository variable**.
-3. **Name**: `BASE_PATH`
-4. **Value**: `/speakers-bureau` - your repository name from section 1, with a
-   slash in front and nothing else.
-5. Save.
-
-You can also do this by hand, by setting `base` in `astro.config.mjs`. **If you
-do it that way, there is exactly one place to change it: the `base` line of that
-file.** Do not also type the folder name anywhere else in the project, and do
-not add it to links in the page files. Two copies of the same path is two
-chances to disagree.
-
-You will know if you got it wrong the moment you visit the site: it appears, but
-with no colours and no formatting at all. The automation also prints a warning
-in the log when `BASE_PATH` is empty, which is the intended signal.
+You do not need to do anything in this section. It is here so that you do not go
+looking for a setting that does not exist, and do not create one.
 
 ---
 
-## 7. A real domain (optional, do it later)
+## 10. Turn on the automatic publishing
 
-**You do not need this to get the site live.** Do it only after section 8 has
-worked, so you know the site works before you add domain records to your
-registrar.
+There is no switch to flip. The automation is already written and is already
+looking at your repository. Once the four settings from section 8 exist, the next
+scheduled run will publish.
 
-1. Go to `https://github.com/<your-username>/speakers-bureau/settings/pages`
-2. In **Custom domain**, type your domain, for example `www.example.org`.
-3. Save. Turn on **Enforce HTTPS** once GitHub has issued the certificate.
-
-GitHub then shows you the DNS records to add at whoever sells your domain. For a
-subdomain such as `www.example.org`, that is one record:
-
-| Type | Name | Points to |
-| --- | --- | --- |
-| CNAME | `www` | `<your-username>.github.io` |
-
-DNS changes take from a few minutes to 24 hours. GitHub shows the certificate
-status on the same settings page and only turns green when it can serve the
-site.
-
-For a bare domain with no `www`, GitHub's DNS setup is different and their
-instructions change over time. Follow what the Pages settings page currently
-says rather than any written-down list.
-
-**Once your own domain works, set `BASE_PATH` to `/`** (section 6), because the
-site is then at the root of your domain rather than in a folder.
+The schedule runs roughly every four hours, at about 17 minutes past the hour:
+00:17, 04:17, 08:17, 12:17, 16:17 and 20:17 UTC.
 
 ---
 
-## 8. Run it once by hand: the actual test
+## 11. Run it once by hand: the actual test
 
 Everything above makes the automation *possible*. This step is what proves it
 *works*.
@@ -328,7 +447,7 @@ Everything above makes the automation *possible*. This step is what proves it
 1. Go to:
 
    ```
-   https://github.com/<your-username>/speakers-bureau/actions
+   https://github.com/<your-username>/<your-repository>/actions
    ```
 
 2. Click **refresh** in the list on the left.
@@ -341,12 +460,21 @@ Expect about three to five minutes.
 ### What each outcome means
 
 **Green, and it saved a commit** - the normal case. You are looking for a commit
-on `main` whose message starts `data: refresh dataset (+N added...`, followed by
-a step called **deploy to pages** with a link. Open that link.
+on `main` whose message starts `data: refresh dataset (+N added`, followed by a
+step called **deploy to cloudflare pages** with a link to the deployment. Open
+that link, then open your site and refresh it. The **Last updated** time in the
+footer should move.
 
 **Green, but no new commit** - also normal. Nothing new was published by any
-publication since last time, so there was nothing to save. The website is
-still rebuilt and republished.
+publication since last time, so there was nothing to save. The website is still
+rebuilt and republished.
+
+**Red at "require the cloudflare credentials"** - a setting from section 8 is
+missing or misspelled. The message names which one. This is the automation
+working: it tells you exactly what is wrong instead of failing obscurely later.
+
+**Red at "refuse to build with a subpath"** - a `BASE_PATH` variable exists and
+should be deleted. See section 8.
 
 **Red at "fetch feeds (fail loud)"** - a publication feed failed its checks. The
 log names each publication, its status, and the exact reason. Nothing was saved
@@ -354,76 +482,104 @@ and **nothing was published**, so the site you had stays up, which is the
 intended behaviour. Fix the entry in `data/sources.yml`, save it in GitHub
 Desktop, and run again.
 
-**Red at "commit and push the dataset"** - the token is the problem, almost
-certainly. See section 9.
+**Red at "commit and push the dataset"** - the GitHub token is the problem, almost
+certainly. See section 12.
 
-**Red at "deploy to pages"** - the publishing setting in section 5b is wrong, or
-the site could not be built.
+**Red at "deploy to cloudflare pages"** - the Cloudflare token is the problem, or
+the project name is wrong, or the site could not be built. See section 12.
 
 ### About the schedule
 
-Timed jobs on GitHub are not precise. The first automatic run can be up to
-about 15 minutes later than its nominal time. It runs roughly every four hours:
-around 00:17, 04:17, 08:17, 12:17, 16:17 and 20:17 UTC.
+Timed jobs on GitHub are not precise. The first automatic run can be up to about
+15 minutes later than its nominal time.
 
 ---
 
-## 9. When something does not work
+## 12. When something does not work
 
 ### The automation does not appear under the Actions tab at all
 
 **Symptom:** you open the Actions tab and there is no `refresh` in the list.
-Often the tab is completely empty.
 
-**Why:** GitHub has not been told that this repository uses Actions. This is
-also the symptom when the `.github` folder was never uploaded, because a missing
-file means there is no automation to show.
+**Why:** GitHub has not been told that this repository uses Actions. This is also
+the symptom when the `.github` folder was never uploaded, because a missing file
+means there is no automation to show.
 
 **Fix:**
 1. Check `refresh.yml` exists at
-   `https://github.com/<your-username>/speakers-bureau/blob/main/.github/workflows/refresh.yml`.
-   If the page 404s, the folder was not uploaded: open GitHub Desktop, and make
+   `https://github.com/<your-username>/<your-repository>/blob/main/.github/workflows/refresh.yml`.
+   If the page 404s, the folder was not uploaded: open GitHub Desktop and make
    sure `.github` is included in the next publish.
 2. Go to `.../settings/actions` and set **Allow all actions and reusable
    workflows**.
 
-### The run went red and the publish step is greyed out
+### The run went red and the publish step was skipped
 
 **Symptom:** a red job called `fetch and commit dataset`, and below it
-`build and deploy to pages` shown as **skipped** or greyed.
+`build and deploy to cloudflare pages` shown as **skipped** or greyed.
 
-**Why, and this is deliberate:** the two steps are tied together on purpose. If
-the fetch fails, the site is **not** republished, and GitHub keeps serving the
-version that was published last. Publishing anyway would put a fresh-looking
-timestamp on content that is days out of date, which would be a lie with a
-success badge on it. A greyed publish step next to a red fetch step is the
-system working correctly, not a second problem.
+**Why, and this is deliberate:** the two steps are tied together on purpose. If the
+fetch fails, the site is **not** republished, and Cloudflare keeps serving the
+version that was published last. Publishing anyway would put a fresh timestamp on
+content that is days out of date, which would be a lie with a success badge on
+it. A greyed publish step next to a red fetch step is the system working
+correctly, not a second problem.
 
-**Fix:** the answer is in the red step's log. Scroll to
-**fetch feeds (fail loud)** and read the report. Each failing publication is
-listed with the reason, for example a feed that returned an HTML page instead of
-RSS. Correct that entry in `data/sources.yml`, publish it from GitHub Desktop,
-then run the automation again by hand.
+**Fix:** the answer is in the red step's log. Scroll to **fetch feeds (fail
+loud)** and read the report. Each failing publication is listed with the reason.
+Correct that entry in `data/sources.yml`, publish it from GitHub Desktop, then
+run the automation again by hand.
 
 **What you must not do:** do not "fix" it by making the fetch step ignore
 failures. There is no switch for this, and that is on purpose.
 
+### An error about cloudflare credentials or the project name
+
+**Symptom:** red step called **require the cloudflare credentials**.
+
+**Why, in order of likelihood:**
+1. One of the three Cloudflare settings is missing. The message names which.
+2. A name is misspelled. `CLOUDFLARE_TOKEN`, `CLOUDFLARE_PROJECT_NAME` and
+   `ACCOUNT_ID` are all wrong and none of them will be found.
+3. `CLOUDFLARE_PAGES_PROJECT` was added as a **secret** when it should be a
+   **variable**. It works either way in practice, but it belongs on the
+   Variables tab next to the project name.
+
+**Fix:** open
+`https://github.com/<your-username>/<your-repository>/settings/secrets/actions`
+and compare the names character by character with the table in section 0.
+
 ### The site gives a 404, or loads with no styling
 
 **Symptom, two forms.** Either the address 404s entirely, or the page appears
-with no colours and no formatting - plain unstyled text.
+with no colours and no formatting.
 
-**Why:** two different causes, one symptom each.
+**Why, in order of likelihood:**
+1. **Unstyled, everything else fine:** a `BASE_PATH` variable exists. Delete it.
+   See section 8.
+2. **404 on the `pages.dev` address:** the project name is not what you think it
+   is, or the project was never created. Check **Workers & Pages** in the
+   Cloudflare dashboard for the real name.
+3. **404 on your own domain only:** DNS has not finished propagating, or the
+   custom domain was never attached. DNS changes can take from a few minutes to
+   24 hours.
 
-- **404 on the whole address:** the Pages source in section 5b is not set to
-  **GitHub Actions**. Check `.../settings/pages`.
-- **Page loads, no styling:** the base path in section 6 is wrong or not set.
-  Every style and script file is requested from the wrong folder, so none of
-  them are found. Set `BASE_PATH` to `/your-repository-name` exactly.
+### A permission or sign-in error when it tries to publish
 
-**Quick check:** the site's own log page is in the same place whether or not it
-is styled. If the address works but the page is unstyled, it is the base path,
-every time.
+**Symptom:** the red step is `deploy to cloudflare pages` and the log mentions
+authentication, a 403, or permission denied.
+
+**Why, in order of likelihood:**
+1. The Cloudflare token has expired. Cloudflare API tokens do not expire by
+   default, but they can be revoked.
+2. The token is missing the **Cloudflare Pages > Edit** permission, or was
+   created against a different account than the one owning the project.
+3. The token needs the extra **Account Settings > Read** permission. See
+   section 7.
+4. `CLOUDFLARE_ACCOUNT_ID` belongs to a different account than the token.
+
+**Fix:** open **API Tokens** in the Cloudflare dashboard. If the token is gone,
+create a new one as in section 7 and replace the secret in section 8.
 
 ### A permission or sign-in error when it tries to save the commit
 
@@ -433,15 +589,12 @@ something about authentication, a rejected push, or permission denied.
 **Why, in order of likelihood:**
 1. The secret is not named exactly `PAT_TOKEN`. A near-miss name is not found.
 2. The token expired.
-3. The token was deleted or revoked.
-4. The token has the wrong permission, or is not restricted to this repository.
-5. Branch protection rules were added later and block the push (see below).
+3. The token has the wrong permission, or is not restricted to this repository.
+4. Branch protection rules were added later and block the push.
 
 **Fix:** open
-`https://github.com/<your-username>/speakers-bureau/settings/secrets/actions`.
-You should see a secret named `PAT_TOKEN` and no others. If it is missing, or
-if the token has expired, create a new token in section 4a and update the
-secret in 4b. Confirm it has exactly one permission on: **Contents: Read and
+`https://github.com/<your-username>/<your-repository>/settings/secrets/actions`.
+You should see `PAT_TOKEN` with exactly one permission on: **Contents: Read and
 write**.
 
 **If you ever add branch protection to `main`:** rules that require review, or
@@ -455,9 +608,8 @@ so this only matters if you add them later.
 **Why:** GitHub switches scheduled jobs off after 60 days of no repository
 activity, and queued timed jobs can be delayed when GitHub is busy.
 
-**Fix:** open the Actions tab and run it by hand (section 8). If the schedule
-still does not appear, re-enable it there. As long as the automation is saving
-commits, the repository is never idle.
+**Fix:** open the Actions tab and run it by hand (section 11). If the schedule
+still does not appear, re-enable it there.
 
 ### The build fails on the events file
 
@@ -478,7 +630,7 @@ contract for the file.
 
 ---
 
-## 10. Confirming it is genuinely updating
+## 13. Confirming it is genuinely updating
 
 After the first automatic run:
 
@@ -487,48 +639,49 @@ After the first automatic run:
 - The Actions tab shows a run about every four hours. **A run is not proof of
   success.** Open it and read the steps. A run that saved nothing because
   nothing changed is still a healthy run.
+- Visit your site and look at the **Feeds last checked** line in the footer. It
+  should move forward on each successful run.
+
+That footer line is the reader-facing proof, and it is the fastest way to tell a
+working automation from one that has quietly stopped.
 
 ---
 
-## 11. Known loose ends
+## 14. Known loose ends
 
-### The site address in the configuration file is a placeholder
+### The site has never been viewed in a browser during the build
 
-`astro.config.mjs` currently has:
+The site is built and its tests pass, but no one has yet opened it on a real
+screen to check how it looks. The first time you visit it after deploying, look
+at it properly: click through the pages, try the events calendar, and check it
+on a phone. If anything looks wrong, that is worth reporting.
 
-```js
-site: 'https://example.org',
-```
+### Cloudflare now recommends a newer product for new static sites
 
-This must become your real address before the site is finished. It is not
-cosmetic. The build uses it to write the absolute addresses that go into the
-"this is the canonical page" tags on every page, the sitemap, and the social
-preview links. Left as it is, every one of those points at a domain that is not
-yours - bad for search engines, and invisible in a browser.
+Cloudflare's own current guidance suggests that brand-new static sites would
+normally start on **Workers with Static Assets** rather than Pages. Pages is
+fully supported and this site is a good fit for it - most importantly, Pages
+lets you drag a folder in by hand, which is what section 5 relies on and which a
+non-technical owner can repeat without a command line.
 
-Set it to the final address with no trailing slash:
-
-- your own domain, including `www` if you use it:
-  `https://www.example.org`
-- or, with no domain of your own, `https://<your-username>.github.io`
-
-It has been left as a marked placeholder on purpose. Guessing a domain into a
-config file would be worse than an obvious blank.
+There is a documented migration path if this ever changes. Nothing about the
+site itself would need to change: it is a folder of plain files either way.
 
 ### Third-party actions are referenced by version, not pinned
 
 `refresh.yml` uses version tags such as `actions/checkout@v4` rather than pinned
 commit hashes. That is the usual practice and it keeps the file readable, but it
-does mean a future release from that project could change behaviour. If exact
-reproducibility ever matters, pinning to commit hashes is the fix.
+does mean a future release from that project could change behaviour. The
+publishing tool itself, by contrast, **is** pinned to an exact version, because a
+scheduled deployment is the thing you least want silently changing behaviour.
 
 ### The dependency audit reports known problems
 
 `npm audit` reports problems in the Astro dependency tree that predate this
 project and have not been triaged. They do not stop the site from publishing.
 
-**Do not run `npm audit fix --force`.** It upgrades across major versions and
-can break the build.
+**Do not run `npm audit fix --force`.** It upgrades across major versions and can
+break the build.
 
 ---
 
@@ -547,5 +700,5 @@ can break the build.
 
 ---
 
-**Before you start:** section 8 is the real test. Everything before it only
+**Before you start:** section 11 is the real test. Everything before it only
 makes the automation possible. Nothing before it proves it works.

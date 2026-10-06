@@ -16,7 +16,9 @@ holding a second copy of this project, that is the bug - read
 
 An Astro static site that aggregates articles from independent Substack
 publications and publishes a civic events calendar for the Upstate of South
-Carolina. Built to a schedule and deployed to GitHub Pages.
+Carolina. Built to a schedule and deployed to Cloudflare Pages at
+`scspeakersbureau.org`. The schedule and the dataset commit run on GitHub
+Actions; only the publish step is Cloudflare.
 
 ## THE FOUR NON-NEGOTIABLES
 

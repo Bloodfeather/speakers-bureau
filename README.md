@@ -267,19 +267,21 @@ completely with JavaScript turned off.
 
 ---
 
-## Publishing to GitHub Pages
+## Publishing to Cloudflare Pages
 
 A scheduled GitHub Action refreshes the dataset roughly every four hours,
-commits it if anything changed, builds the site, and publishes it to GitHub
-Pages.
+commits it if anything changed, builds the site, and publishes it to Cloudflare
+Pages at `scspeakersbureau.org`.
 
-That involves a GitHub personal access token and a handful of one-time settings
-in the GitHub web interface. The click-by-click instructions, and what to do when
-each step fails, are in **[`docs/DEPLOY.md`](docs/DEPLOY.md)**.
+The schedule and the dataset commit stay on GitHub Actions; only the publish
+step is Cloudflare. That means three secrets (`PAT_TOKEN`,
+`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) and one variable
+(`CLOUDFLARE_PAGES_PROJECT`). The click-by-click instructions, and what to do
+when each step fails, are in **[`docs/DEPLOY.md`](docs/DEPLOY.md)**.
 
 **The workflow has never been run.** It has been checked for valid YAML and for
-its structure, but no run has happened, because that needs a repository and a
-token first. Treat the first manual run as a real test.
+its structure, but no run has happened, because that needs a repository, a
+Cloudflare account, and tokens first. Treat the first manual run as a real test.
 
 ---
 

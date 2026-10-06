@@ -7,9 +7,10 @@ themed as a public education / speaking organization.
 
 A Node script reads a curated list of Substack RSS feeds, validates each one
 strictly, normalizes them into a single JSON dataset, and an Astro static site
-renders that dataset as a searchable, filterable card index. A scheduled GitHub
-Action runs the fetch, commits any change, and deploys to GitHub Pages. Our own
-posts are markdown files that can link out to any article in the aggregate.
+renders that dataset as a readable card index. A scheduled GitHub Action runs
+the fetch, commits any change, and a second job in the same workflow deploys to
+Cloudflare Pages. Our own posts are markdown files that can link out to any
+article in the aggregate.
 
 ## Non-negotiable design rules
 

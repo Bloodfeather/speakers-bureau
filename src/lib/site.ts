@@ -2,26 +2,36 @@
 // deployment base path.
 //
 // ---------------------------------------------------------------------------
-// WHAT IS STILL UNRESOLVED, and it is not a string in this file
+// EVERY STRING HERE IS FINAL
 // ---------------------------------------------------------------------------
 //
 // Every string in this file is either supplied by the client or stated from the
-// dataset. Nothing here is a stand-in waiting to be replaced: a reader cannot tell
-// a placeholder from a real claim, so a placeholder that ships is a lie with a
-// disclaimer attached.
+// dataset. Nothing here is a stand-in waiting to be replaced: a reader cannot
+// tell a placeholder from a real claim, so a placeholder that ships is a lie
+// with a disclaimer attached.
 //
-// The `site` value in astro.config.mjs is still https://example.org. That must be
-// set to the real domain before publication, or canonical and social URLs point at
-// example.org.
+// The domain was the last one outstanding. `site` in astro.config.mjs is now
+// https://scspeakersbureau.org, the real domain, chosen by the client. There is
+// no remaining shipping blocker in the configuration.
 //
 // ---------------------------------------------------------------------------
-// THE BASE PATH IS NOT A CONSTANT
+// THE BASE PATH IS NOT A CONSTANT, EVEN THOUGH IT CURRENTLY ALWAYS IS "/"
 // ---------------------------------------------------------------------------
 //
-// astro.config.mjs reads `base` from process.env.BASE_PATH, because a GitHub
-// Pages project site is served from a subpath (https://<user>.github.io/<repo>/).
-// A hardcoded leading-slash href is correct on localhost and 404s in CI, so
-// every internal link in this project goes through `withBase()`.
+// astro.config.mjs reads `base` from process.env.BASE_PATH. On Cloudflare Pages,
+// which is where this site is published, the site is always served from the root
+// of the domain, so BASE_PATH is unset and the value is always "/". A
+// hardcoded leading-slash href is therefore correct here, and every internal
+// link in this project STILL goes through `withBase()` rather than being
+// hardcoded.
+//
+// That is not leftover caution about the old platform. A hardcoded href is
+// correct on the platform we are on and silently wrong the moment the site is
+// served from anywhere else, and `withBase()` is the single choke point that
+// makes that one-line fix possible. It also gives the deploy workflow something
+// to assert: it fails loudly if BASE_PATH is ever set to a value this platform
+// cannot serve, which is a mistake that would otherwise show up as an unstyled
+// site rather than as a red action.
 //
 // This file reads import.meta.env, which only exists inside the Astro/Vite
 // build. That is deliberate: it keeps this module out of the node --test run

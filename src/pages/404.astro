@@ -13,11 +13,16 @@
 // here with no edit to this file - which is the point of deriving the list
 // instead of typing it.
 //
-// Astro serves this for any unmatched path under the deployed base, and
-// (importantly) this project does NOT configure a 404.html rewrite, because a
-// project-site GitHub Pages deployment cannot serve one from a subpath. The
-// GitHub Pages native 404 will be served instead, which is a known limitation
-// recorded here rather than left for someone to discover.
+// Astro emits this as dist/404.html, and Cloudflare Pages serves that file for
+// any unmatched path automatically. No rewrite, no configuration and no
+// Cloudflare-side setting are needed, because the platform looks for 404.html by
+// convention.
+//
+// Worth recording because the OPPOSITE was true on the previous platform: a
+// GitHub Pages PROJECT site is served from a subpath and cannot serve a 404.html
+// from one, so this file was written when it would not have been used and the
+// platform's own bare-bones 404 would have been shown instead. That limitation
+// is gone with the move, and this page is now live rather than aspirational.
 //
 
 import PageShell from '../components/PageShell.astro'

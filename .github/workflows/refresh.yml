@@ -1,5 +1,13 @@
 # .github/workflows/refresh.yml - SpeakersBureau scheduled dataset refresh and
-# GitHub Pages deploy.
+# Cloudflare Pages deploy.
+#
+# THE SPLIT OF RESPONSIBILITIES, because it is not the obvious one.
+#
+# The SCHEDULE and the DATASET COMMIT still live on GitHub Actions, because that
+# is what cron and `git push` are, and because a token pushing a commit back to
+# the repository is what makes the deployed site auditable. Only the PUBLISH step
+# moved to Cloudflare. So this is a GitHub workflow that deploys somewhere other
+# than GitHub, which reads oddly and is deliberate.
 #
 # ONE WORKFLOW, TWO JOBS, AND THAT IS THE DESIGN DECISION MOST WORTH DEFENDING
 # ---------------------------------------------------------------------------
@@ -11,18 +19,19 @@
 #
 # The tempting alternative is two independent workflows: publish on every
 # schedule regardless, keep the red one visible. Rejected, for one decisive
-# reason: GitHub Pages RETAINS the last successful deployment. A fetch failure
-# does not take the site down, it merely fails to refresh it, so blocking the
-# deploy costs exactly zero availability while buying a coherent signal. If the
-# Pages artifact is never published at all (first run, and the first fetch
-# fails), run the workflow manually and read the failure - that is the only
-# case where a failure blocks the first publish, and a red action is the correct
-# answer to it anyway.
+# reason: Cloudflare Pages RETAINS the last successful deployment, exactly as
+# GitHub Pages did. A failed deploy leaves the previously published site live and
+# serving. So a fetch failure does not take the site down, it merely fails to
+# refresh it, and blocking the deploy costs exactly zero availability while
+# buying a coherent signal. If the site has never been published at all (first
+# run, and the first fetch fails), run the workflow manually and read the failure
+# - that is the only case where a failure blocks the first publish, and a red
+# action is the correct answer to it anyway.
 #
 # A second reason: after a failed refresh the dataset on disk is UNCHANGED, so a
-# deploy would republish byte-identical content under a fresh "deployed" timestamp
-# that implies freshness which does not exist. That is the same lie design rule
-# 3 exists to prevent, wearing a success badge.
+# deploy would republish byte-identical content under a fresh deployment id and a
+# fresh timestamp, implying a freshness that does not exist. That is the same lie
+# design rule 3 exists to prevent, wearing a success badge.
 #
 # WHAT THE FETCH STEP IS, AND WHY NOTHING SUPPRESSES ITS EXIT CODE
 # ------------------------------------------------------------------
@@ -56,6 +65,31 @@
 # secret is ever passed on a command line or printed in the log.
 # If branch rulesets are ever enabled, they must allow Actions to bypass, or the
 # push is rejected - see docs/DEPLOY.md.
+#
+# CREDENTIALS FOR CLOUDFLARE: TWO SECRETS, NEITHER OF THEM A LOGIN
+# --------------------------------------------------------
+# Publishing needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Both are
+# passed to the deploy job as environment variables, which is the interface
+# wrangler reads them through. Neither is ever echoed, and neither appears on a
+# command line where it would land in the log.
+#
+# The token is a scoped API token from the Cloudflare dashboard - not an account
+# password, and not a Global API Key. It carries ONE permission, Account >
+# Cloudflare Pages > Edit, restricted to the one account that owns the Pages
+# project. That is the minimum that can create a deployment, and it cannot read
+# DNS records, cannot read billing, and cannot reach Workers, KV or R2.
+#
+# WHY A TOKEN AND NOT THE OAUTH LOGIN. Wrangler can be logged in interactively
+# with `wrangler login`, which is the right tool for a developer on a laptop. It
+# stores a token in a config file on one machine, and a fresh ephemeral runner
+# six times a day has no such file and cannot be handed one. An API token is the
+# only credential a stateless runner can be given, and the only one that can be
+# scoped down to a single permission.
+#
+# `CLOUDFLARE_ACCOUNT_ID` is not sensitive in the way the token is - it is an
+# identifier, visible in the dashboard sidebar - but it is stored as a secret
+# rather than a variable so that both halves of the credential live in one place
+# and there is a single list to check when rotating.
 
 name: refresh
 
@@ -228,19 +262,20 @@ jobs:
           git push origin "HEAD:${{ github.ref_name }}"
 
   deploy:
-    name: build and deploy to pages
+    name: build and deploy to cloudflare pages
     # needs, not always(). A failed refresh skips this job, which is the whole
     # point of the decision documented at the top of this file.
     needs: refresh
     runs-on: ubuntu-latest
     permissions:
-      # Reading the source for checkout.
+      # Reading the source for checkout. That is now the ONLY permission this job
+      # needs, and the reduction is the point: publishing to GitHub Pages wanted
+      # `pages: write` and `id-token: write`, because deploy-pages mints an OIDC
+      # token that proves to GitHub that this workflow is the thing deploying.
+      # Cloudflare does not use GitHub's OIDC at all, so both scopes are gone.
+      # This job now holds strictly less authority than it did, and publishes to
+      # a third party's infrastructure.
       contents: read
-      # Publishing the Pages deployment.
-      pages: write
-      # Required by deploy-pages to mint the OIDC token that proves to GitHub
-      # that this workflow, not a stranger, is the one deploying.
-      id-token: write
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -263,39 +298,127 @@ jobs:
       - name: install dependencies
         run: npm ci
 
-      - name: warn if BASE_PATH is unset
-        # astro.config.mjs reads BASE_PATH and falls back to "/" when it is
-        # empty. "/" is CORRECT for a user or organization Pages site and WRONG
-        # for a project site, where it must be "/<repo-name>". The workflow
-        # cannot tell those two cases apart, so it refuses to guess silently:
-        # set the repository variable BASE_PATH (Settings > Secrets and
-        # variables > Actions > Variables) and this is a one-line no-op.
+      - name: require the cloudflare credentials
+        # Same reasoning as the PAT_TOKEN guard in the refresh job, and for the
+        # same reason: fail loudly and specifically here, rather than letting
+        # wrangler fail three steps later with a message about a token it could
+        # not find. A missing secret should read as a missing secret.
         run: |
-          echo "BASE_PATH=[${{ vars.BASE_PATH }}] repository=[${{ github.event.repository.name }}] owner_type_is_user_site=${{ contains(github.event.repository.name, '.') }}"
-          if [ -z "${{ vars.BASE_PATH }}" ]; then
-            echo "::warning::Repository variable BASE_PATH is not set. If this is a PROJECT repo (github.com/OWNER/REPO), set BASE_PATH=/${{ github.event.repository.name }} or every asset URL will 404 and the site will render unstyled."
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN repository secret is not set, so the site cannot be published. See docs/DEPLOY.md."
+            exit 1
           fi
+          if [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID repository secret is not set. It is shown in the Cloudflare dashboard sidebar. See docs/DEPLOY.md."
+            exit 1
+          fi
+          # The project name is the third thing that must be present, and it is a
+          # VARIABLE rather than a secret. Checked here anyway, because an unset
+          # variable expands to an empty string, and `--project-name=""` fails
+          # inside wrangler with a message about the Pages API rather than about
+          # a missing setting on this repository.
+          if [ -z "${{ vars.CLOUDFLARE_PAGES_PROJECT }}" ]; then
+            echo "::error::CLOUDFLARE_PAGES_PROJECT repository variable is not set. It is the name of the Pages project in the Cloudflare dashboard, lower case and hyphenated. See docs/DEPLOY.md."
+            exit 1
+          fi
+          echo "Cloudflare credentials and project name are present. Project: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}"
+
+      - name: install wrangler (pinned)
+        # PINNED, not `@latest` and not a floating range, for the same reason the
+        # project uses `npm ci` rather than `npm install`: a scheduled build that
+        # silently resolves a new version is a build that cannot be reproduced or
+        # rolled back. When this is upgraded, upgrade it here on purpose.
+        # 4.148.0 was the current release when the publish target moved to
+        # Cloudflare; it requires Node >= 22, and this job runs 24.
+        run: npm install -g wrangler@4.148.0
+
+      - name: refuse to build with a subpath
+        # Cloudflare Pages serves from the root of the domain. There is no
+        # project-subpath deployment on this platform the way there was on GitHub
+        # Pages, so the correct value of BASE_PATH is ALWAYS empty, and a non-empty
+        # value is a mistake that produces a site which loads unstyled with every
+        # asset 404ing.
+        #
+        # This used to be a `::warning::` because on GitHub Pages the workflow
+        # genuinely could not tell a user site from a project site and refused to
+        # guess. That ambiguity is gone: there is one correct answer here, so this
+        # is now a hard failure rather than advice in a log nobody reads.
+        run: |
+          if [ -n "${{ vars.BASE_PATH }}" ]; then
+            echo "::error::Repository variable BASE_PATH is set to '${{ vars.BASE_PATH }}', but this site is deployed to Cloudflare Pages, which serves from the domain root. Every asset URL would be prefixed with a path that does not exist and the site would render unstyled. Delete the BASE_PATH repository variable (Settings > Secrets and variables > Actions > Variables)."
+            exit 1
+          fi
+          echo "BASE_PATH is unset, so astro.config.mjs uses the root. Correct for Cloudflare Pages."
 
       - name: build
-        env:
-          BASE_PATH: ${{ vars.BASE_PATH }}
+        # BASE_PATH is deliberately NOT passed here. The step above has already
+        # proved it is empty, and passing an empty variable is indistinguishable
+        # at this point from not passing one. The build therefore takes astro's
+        # own fallback, which is the same "/" - but now only because we checked.
         run: npm run build
         # astro build writes dist/. Its own non-zero exit fails the job; nothing
         # here needs to swallow it.
 
-      - name: upload pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
+      - name: deploy to cloudflare pages
+        env:
+          # Secrets arrive as environment variables, never interpolated into the
+          # command line. `echo ${{ secrets.X }}` would print the token into the
+          # workflow log; an `env:` block does not.
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          wrangler pages deploy dist \
+            --project-name="${{ vars.CLOUDFLARE_PAGES_PROJECT }}" \
+            --commit-dirty=true
+        # --project-name comes from a repository VARIABLE, not a secret: it is a
+        # project name, not a credential, and it is the one piece of Cloudflare
+        # configuration you are most likely to change. It is read into the command
+        # from a variable so that renaming the project is a one-line edit in the
+        # dashboard plus one variable change, with no code edit at all.
+        #
+        # THERE IS DELIBERATELY NO --branch FLAG HERE, and this is the single most
+        # dangerous flag on this command.
+        #
+        # `wrangler pages deploy` with no --branch deploys to PRODUCTION. Add
+        # --branch=<name> and you are asking for a PREVIEW deployment, published
+        # at <name>.<project>.pages.dev instead of <project>.pages.dev. The two
+        # are only the same when <name> happens to equal the project's configured
+        # production branch.
+        #
+        # An earlier version of this file passed `--branch=main`. That was wrong,
+        # and wrong in the worst possible direction: for a Direct Upload project
+        # Cloudflare does not expose the production branch in the dashboard at
+        # all, so nobody can check that it is `main`, and if it is anything else
+        # then every scheduled run would have published a fresh preview URL
+        # while production sat frozen on whatever the last manual upload left
+        # there. The automation would report success on every run and the site
+        # would never update again. Omitting the flag removes the dependency on a
+        # setting that is invisible and unchangeable from the dashboard.
+        #
+        # Verified against `wrangler pages deploy --help` for the pinned version:
+        # --branch is documented as "The name of the branch you want to deploy to",
+        # and Cloudflare's own CI guide deploys to production without it.
+        #
+        # --commit-dirty=true because the working tree IS dirty by design in this
+        # job: the refresh job committed the dataset on the branch, and
+        # `data/articles.json` carries a `generatedAt` that moves on every fetch.
+        # Wrangler's default refuses to deploy a dirty tree, which here would mean
+        # refusing to deploy for a reason that is the system working correctly.
 
-      - name: deploy to pages
-        id: deployment
-        uses: actions/deploy-pages@v4
 # ---------------------------------------------------------------------------
 # END. The single most important line in this file is `run: npm run fetch`
 # with nothing added to it. If you ever find yourself tempted to add `|| true`,
 # a continue-on-error, or --allow-partial to make a red action go green, read
 # ROADMAP design rule 3 first. The green build on stale data is the failure mode
 # this project was built to make impossible.
-# Setup steps, PAT permissions and the open astro.config.mjs items: docs/DEPLOY.md
+#
+# THE THREE THINGS THIS FILE NOW NEEDS FROM A REPOSITORY, all in docs/DEPLOY.md:
+#   secret   PAT_TOKEN                  - pushes the refreshed dataset back to git
+#   secret   CLOUDFLARE_API_TOKEN       - creates the Pages deployment
+#   secret   CLOUDFLARE_ACCOUNT_ID      - says which Cloudflare account
+#   variable CLOUDFLARE_PAGES_PROJECT   - which Pages project to deploy into
+#
+# All four are checked by name in this file and all four fail with a message that
+# names the missing setting, because a workflow that fails obscurely on a
+# schedule six times a day is a workflow that stays broken for weeks.
 # ---------------------------------------------------------------------------

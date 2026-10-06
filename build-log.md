@@ -128,6 +128,114 @@ check would otherwise pass trivially on an empty corpus.
 
 ---
 
+## 2026-10-06 - The publishing target moves from GitHub Pages to Cloudflare Pages
+
+The client chose Cloudflare and supplied the domain, `scspeakersbureau.org`.
+Only the publish step moved. The schedule and the dataset commit stay on GitHub
+Actions, because that is what cron and `git push` are, and because a token
+committing the fetched articles back to the repository is what makes the
+deployed site auditable. So this is now a GitHub workflow that deploys to a
+third party's infrastructure, which reads oddly and is deliberate.
+
+**Verified after every step:** `npm run build` exit 0, 7 pages. `npm test` 213
+passing / 0 failing. `npm run events:check` exit 0, 7 events, 0 images missing.
+`refresh.yml` re-parsed as YAML after every edit and its permissions checked
+against the PARSED document rather than against the text. Every file touched is
+pure ASCII and ends in a newline, checked on the bytes.
+
+### The bug worth reading, because I wrote it and the docs caught it
+
+The first version of the deploy step was:
+
+```
+wrangler pages deploy dist --project-name=... --branch=main --commit-dirty=true
+```
+
+`--branch=main` was wrong, and wrong in the worst available direction. Cloudflare
+deploys to PRODUCTION when `--branch` is absent; adding `--branch=<name>` asks
+for a PREVIEW deployment at `<name>.<project>.pages.dev`. The two coincide only
+if `<name>` happens to equal the project's configured production branch - and for
+a Direct Upload project **Cloudflare does not expose the production branch in the
+dashboard at all**, so nobody can check that it is `main` and the dashboard cannot
+change it.
+
+So if it were not `main`, every scheduled run would have published a fresh
+preview URL, production would have stayed frozen on whatever the last manual
+upload left there, and every run would have reported success. That is the
+"deploy looks like it is working while serving an old version" failure this
+project exists to prevent, introduced by the change meant to remove it.
+
+The flag is gone. Cloudflare's own CI guide deploys to production without it, and
+`wrangler pages deploy --help` for the pinned version confirms `--branch` is
+documented as "The name of the branch you want to deploy to" with no production
+override.
+
+**What caught it was fetching the documentation rather than writing the command
+from memory.** `--commit-dirty` survived the same check and is genuinely valid for
+`pages deploy`; had it not been, the deploy step would have failed on an unknown
+flag.
+
+### What else changed
+
+- `astro.config.mjs`: `site` is now `https://scspeakersbureau.org`. The
+  `BASE_PATH` override is KEPT, deliberately, even though Cloudflare never needs a
+  subpath: the deploy workflow now fails loudly when `BASE_PATH` is set, and that
+  guard is only meaningful if the config still reads the variable. Deleting the
+  override would have turned the guard into dead code.
+- The "warn if BASE_PATH is unset" step became **"refuse to build with a
+  subpath"**, a hard failure. On GitHub Pages the workflow genuinely could not
+  tell a user site from a project site and would not guess. On Cloudflare there is
+  one correct answer, so advice in a log nobody reads became a red action.
+- The deploy job's permissions went DOWN, not sideways: `pages: write` and
+  `id-token: write` are both gone, because Cloudflare does not use GitHub's OIDC
+  at all. That job now holds `contents: read` and nothing else while publishing
+  to someone else's infrastructure.
+- Wrangler is installed with an **exact version** (`wrangler@4.148.0`), for the
+  same reason the project uses `npm ci`: a scheduled deployment is the thing you
+  least want to silently change behaviour under you.
+- Four settings are now named in the workflow and each is checked by name, failing
+  with a message that names the missing one: `PAT_TOKEN`,
+  `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_PAGES_PROJECT`.
+- `scripts/lib/http.mjs` advertised itself to every feed host as
+  `+https://example.org/speakers-bureau`. That is the fetcher identifying itself
+  with a domain that was never ours. Now the real domain.
+- `src/pages/404.astro` carried a comment explaining that the file could NOT be
+  served, because a GitHub Pages project site cannot serve a `404.html` from a
+  subpath. Cloudflare serves `404.html` by convention with no configuration, so
+  the page went from aspirational to live and the comment from true to false.
+- `docs/DEPLOY.md` rewritten. The old one was 551 lines of accurate GitHub Pages
+  instructions that were now wrong in their load-bearing steps: setting the Pages
+  source, choosing a base path, pointing a CNAME at `github.io`. Section 5 is now
+  the drag-and-drop upload, which is both what the client wants to do next and the
+  supported way to create a Direct Upload project that the automation can then
+  deploy into.
+- `README.md`, `ROADMAP.md` and `AGENTS.md` corrected. `ROADMAP.md` also described
+  the site as "a searchable, filterable card index", which stopped being true when
+  the search box was deliberately removed.
+
+### Still open
+
+- **Not deployed, and not deployable from here.** There is no Cloudflare account
+  access on this machine and no authenticated CLI, so the site has not been
+  published. Section 11 of `docs/DEPLOY.md` is the real test and it has not been
+  run.
+- Setting `site:` changed **zero bytes** of built output, because no page in this
+  project emits a canonical URL, a sitemap or RSS. That is why `example.org` was
+  absent from the built HTML before and `scspeakersbureau.org` is absent now. The
+  forbidden-phrase entry for `example.org` in `test/no-process-notes.test.mjs`
+  stays armed for the page that does emit one.
+- Cloudflare's current guidance recommends **Workers with Static Assets** for new
+  static sites and frames Pages as "maintain an existing Pages deployment". Pages
+  was kept because the client needs drag-and-drop, which is what makes section 5
+  repeatable without a command line. Recorded in `docs/DEPLOY.md` section 14 with
+  the migration path, so the choice is a documented decision rather than an
+  accident.
+- No desktop browser has been available all session, so focus rings, computed
+  theme values and horizontal overflow remain argued from compiled CSS rather than
+  measured on screen.
+
+---
+
 ## 2026-10-05 - Eight defects in the events feature, found by review
 
 A review pass over the events work. No data file changed: `data/events.json`,

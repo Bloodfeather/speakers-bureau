@@ -14,7 +14,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 // or absent User-Agent outright, so this is load-bearing, and the contact URL
 // is what lets an operator get in touch instead of just guessing why.
 export const USER_AGENT =
-  'SpeakersBureauFeedFetcher/1.0 (+https://example.org/speakers-bureau; feed aggregator; contact via site)';
+  'SpeakersBureauFeedFetcher/1.0 (+https://scspeakersbureau.org; feed aggregator; contact via site)';
 
 // Per-call timeout. JUDGMENT CALL: 15s. A Substack feed is a few hundred KB
 // from a CDN and normally lands in under 2s. 15s is generous enough to absorb
