@@ -16,12 +16,11 @@
 // it is not stated here.
 
 import PageShell from '../components/PageShell.astro'
-import { articles, formatUtcDate, publicationNames, summarise, topics } from '../lib/articles'
+import { articles, formatUtcDate, summarise, topics } from '../lib/articles'
 import { SITE_NAME, SITE_WINDOW_NOTE } from '../lib/site'
 
 const feed = articles
 const stats = summarise(feed)
-const publications = publicationNames(feed)
 const topicList = topics(feed)
 
 const description =
@@ -108,19 +107,26 @@ const description =
     <hr />
 
     <section aria-labelledby="about-sources">
-      <h2 id="about-sources">Where the writing comes from</h2>
+      <h2 id="about-sources">About the writing</h2>
       <p>
-        These publications are independent and are not affiliated with the SC
-        Speakers Bureau or with this site. They are linked to, not reproduced.
+        Everything collected here is written and published by someone else, on
+        their own site. Those publications are independent: they are not
+        affiliated with the SC Speakers Bureau or with this site, and nothing here
+        should be read as their endorsement of it or of the Bureau.
       </p>
-      <ul>
-        {publications.map((name) => <li>{name}</li>)}
-      </ul>
+      <p>
+        We quote a title and a short excerpt so you can tell what a piece is
+        about, and then link out to where it actually lives. The full article is
+        on the publication's site, not here.
+      </p>
       {
         topicList.length > 0 && (
           <p>
-            {topicList.length === 1 ? 'One topic tag is' : `${topicList.length} topic tags are`} in
-            use: {topicList.map((topic) => topic.label.toLowerCase()).join(', ')}.
+            Topics are assigned to each publication we follow rather than carried
+            in the feeds themselves, so a topic appears while some publication is
+            filed under it and disappears when none is. The {topicList.length}{' '}
+            {topicList.length === 1 ? 'topic' : 'topics'} currently in use:{' '}
+            {topicList.map((topic) => topic.label.toLowerCase()).join(', ')}.
           </p>
         )
       }

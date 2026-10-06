@@ -128,6 +128,91 @@ check would otherwise pass trivially on an empty corpus.
 
 ---
 
+## 2026-10-06 - A fourth source, and the publication roster removed
+
+Two client requests. The first was mechanical. The second was an editorial
+decision with a real trade-off in it, and it is recorded here because the reason
+matters more than the diff.
+
+**Verified:** `npm run fetch` exit 0, 4 sources, 49 items, 0 failed. `npm run
+build` exit 0, 7 pages. `npm test` 227 passing / 0 failing (was 224). `npm run
+events:check` exit 0. Deployed to `bold-unit-b37a` and re-verified against the
+live origin.
+
+### A fourth publication: melthevcl
+
+Probed before adding, because a feed that fails validation takes the WHOLE fetch
+down rather than degrading - that is the fail-loud rule doing its job, and it
+means "add a source" is not a safe thing to do optimistically. All three
+assertions passed and the response carries `x-sub: melthevcl`, so this is the
+publication itself rather than a redirect to another host, which is the identity
+check that caught `malone` resolving to a different domain.
+
+Actively publishing: newest item at add time is 2026-10-06, the same day. No
+`dc:creator` and no subtitle on any of the 6 items, the same structural gap as
+two existing sources, so it is the normal case here and not an edge case. All 6
+carry real `image/jpeg` enclosures, unlike the podcast posts.
+
+`name` is "Mel" because that is the channel's own title. It is one line in
+`data/sources.yml` and nothing else in the project hardcodes a publication name -
+which was the fact that decided the second request.
+
+### The roster came off; per-card attribution stayed
+
+The home page carried a "Where this writing comes from" section listing every
+publication by name, and About carried the same roster. The client asked for the
+explicit advert of who the site pulls articles for to come off, partly because a
+roster reads as a showcase and partly because sources get added and swapped
+regularly. Four options were offered; the client chose: remove the ROSTERS, keep
+PER-CARD ATTRIBUTION.
+
+The reasoning, because it is what the choice turns on. Each card shows a title
+and a short excerpt, and that excerpt is someone else's writing, quoted.
+Attribution on a card is not advertising - it is what makes quoting someone
+honest. A page that reproduces a paragraph of a publication's work while removing
+every indication of whose work it is reads as though the site wrote it. So the
+name stays where the text is.
+
+The roster went because it adds nothing a reader needs: the home page lede
+already says the site does not host the articles and links straight out to where
+the writing lives, and the footer already says every link leaves in a new tab.
+
+**What was preserved rather than swept away with it.** About's "These publications
+are independent and are not affiliated with the SC Speakers Bureau" was not an
+advert, it was a disclaimer, and removing it alongside the roster would have left
+the impression that these publications are associated with the Bureau. It was
+rewritten to say the same thing without naming anyone, plus the claim that
+matters most precisely BECAUSE the names are gone: everything collected here is
+"written and published by someone else".
+
+### The guard, and the false alarm it caused first
+
+`test/no-publication-roster.test.mjs`, 3 tests, asserting both halves: no page
+renders a roster, AND the non-ownership disclosures are still present. Without
+the second half the guard would push toward a site that is tidier and less
+honest, and a future sweep could delete a real disclosure and pass.
+
+The roster is detected by CLASS NAME, not by searching for publication names,
+because the names are still legitimately on every card. A test that searched for
+"Malone News" would fail the moment a source was added and pass vacuously if the
+roster returned without that source.
+
+The first version of the disclosure test FAILED, reporting a disclosure missing
+while it was plainly on the page. The cause: Astro preserves the template's line
+breaks, so a sentence written across two source lines is emitted with a newline
+and indentation in the middle of it, and a raw substring search finds nothing.
+The fix is to collapse whitespace and strip tags before searching - searching
+RENDERED prose means searching rendered prose. It is the same trap as
+"Georgia and North Carolina" earlier in the project: a phrase that exists,
+wrapped.
+
+The roster detector was then proved against a real failure rather than assumed:
+a roster was planted into `dist/index.html`, the guard failed with the intended
+message, the file was restored from the original bytes, and the guard passed
+again. A guard that has only ever been seen passing has not been tested.
+
+---
+
 ## 2026-10-06 - First successful deploy, verified against the live site
 
 The site is published to `https://bold-unit-b37a.mstricklandtech.workers.dev`.

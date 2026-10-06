@@ -210,24 +210,6 @@ const description =
     </section>
   )
 }
-
-<section class="publications" aria-labelledby="publications-heading">
-    <h2 class="label publications__heading" id="publications-heading">
-      Where this writing comes from
-    </h2>
-    <ul class="publications__list">
-      {
-        publicationList.map((name) => (
-          <li class="publications__item">{name}</li>
-        ))
-      }
-    </ul>
-    <p class="publications__note">
-      These are independent publications. We read them, we do not own them, and each
-      item below links out to where the writing actually lives. Read more
-      <a href={withBase('/about/')}>about how this site works</a>.
-    </p>
-  </section>
 </PageShell>
 
 <style>
@@ -326,38 +308,6 @@ const description =
   }
 
   .next-event__note {
-    max-width: var(--measure);
-    margin-block-end: 0;
-    font-size: var(--size-sm);
-    color: var(--text-muted);
-  }
-
-  .publications {
-    margin-block-start: var(--space-7);
-    padding-block-start: var(--space-5);
-    border-block-start: var(--rule-width-strong) solid var(--rule-strong);
-  }
-
-  .publications__heading {
-    margin-block-end: var(--space-3);
-  }
-
-  .publications__list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3) var(--space-6);
-    margin-block-end: var(--space-4);
-    padding-inline-start: 0;
-    list-style: none;
-  }
-
-  .publications__item {
-    font-family: var(--font-display);
-    font-size: var(--size-md);
-    font-weight: var(--weight-bold);
-  }
-
-  .publications__note {
     max-width: var(--measure);
     margin-block-end: 0;
     font-size: var(--size-sm);
