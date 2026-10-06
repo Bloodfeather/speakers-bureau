@@ -210,15 +210,35 @@ test('every image path the data declares exists on disk and is not empty', async
     `every event must declare a thumbnail and a banner (${REAL_EVENTS.length} events x 2), got ${declared.length}`
   );
 
-  // The written files are the ONLY .svg files this script is responsible for. The
-  // directory also holds older placeholders for events that have since been
-  // removed from the data, and they are deliberately left in place: the orphan
-  // cleanup belongs to whoever owns the data, not to a generator.
+  // EXACT equality, not `>=`. This was `>=` on the stated grounds that orphans from
+  // removed events were "deliberately left in place" - which meant the check could
+  // never fail for the reason it exists. It survived deleting eleven real orphan
+  // placeholders (the invented events county-budget-debate, harvest-dinner and
+  // the rest, removed 2026-10-05) without noticing, because 14 declared against
+  // 25 on disk still satisfies `>=`.
+  //
+  // Equality now, so an orphan is a failure with a filename in the message. The
+  // generator is deliberately NOT the thing that deletes them: it refuses to
+  // overwrite real artwork, and a filename it invented is not evidence about a
+  // file a person may have replaced with a photograph.
   const onDisk = await readdir(join(PUBLIC_DIR, 'img', 'events'));
-  const svgCount = onDisk.filter((name) => name.endsWith('.svg')).length;
-  assert.ok(
-    svgCount >= declared.length,
-    `positive control: public/img/events must hold at least the ${declared.length} declared images, got ${svgCount}`
+  const svgNames = onDisk.filter((name) => name.endsWith('.svg')).sort();
+  const declaredNames = declared.map((row) => row.declared.split('/').pop()).sort();
+
+  const orphans = svgNames.filter((name) => !declaredNames.includes(name));
+  const missingFromDisk = declaredNames.filter((name) => !svgNames.includes(name));
+
+  assert.deepEqual(
+    orphans,
+    [],
+    `public/img/events holds .svg files no event references. These are leftovers from removed events, and their ` +
+      `filenames describe events that no longer exist: ${orphans.join(', ')}. Delete them by hand if they are still ` +
+      `generated placeholders; if one has been replaced with real artwork, delete it from data/events.json instead.`
+  );
+  assert.deepEqual(
+    missingFromDisk,
+    [],
+    `these images are declared in the data but absent from public/img/events: ${missingFromDisk.join(', ')}. Run \`npm run events:placeholders\`.`
   );
 });
 

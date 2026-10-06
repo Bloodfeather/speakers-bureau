@@ -1261,17 +1261,76 @@ function formatClockTime(hour: number, minute: number): string {
  * The separator is an ASCII hyphen with spaces, for the same reason as the clock
  * range above: every character authored into this project is ASCII.
  */
+
+/**
+ * The components `parseWallClock` returns, narrowed to a success.
+ *
+ * Named rather than written as `NonNullable<ReturnType<typeof parseWallClock>>` at
+ * every use, so the shape is stated once.
+ */
+type WallClockParts = NonNullable<ReturnType<typeof parseWallClock>>;
+
+/**
+ * Do these two parsed moments describe MORE THAN ONE DATE?
+ *
+ * THE RULE, AND IT IS THE WHOLE OF IT: a span exists only between two ALL-DAY
+ * dates, on different dates. Everything else falls back to the start date alone.
+ *
+ * Exported as `isDateSpan` for callers that hold strings, and shared with
+ * `formatEventDateSpan` above as `spansDates`, because there are now two callers
+ * and the failure mode of two implementations is a page that says two different
+ * things about the same event: the panel printing "19 - 31 October 2026" while
+ * the calendar grid marks only the 19th. That contradiction is the defect this
+ * rule was extracted to prevent, and it was a contradiction BEFORE it was a bug.
+ *
+ * WHY ALL-DAY ONLY. A timed pair is a clock range inside one date - 6:30 pm to
+ * 8:30 pm is two hours, not two days - and `formatEventTime` already prints it.
+ * Reading `endsAt` as a DATE for a timed event would render "18:30 - 31 October
+ * 2026", which is not a date at all. So `gop-quarterly-meeting` (18:30 to 20:30
+ * on 5 October) has NO span, and a two-day timed conference is printed as its
+ * start date on every view of this site. That is a limitation and it is stated
+ * in data/events.schema.md rather than quietly handled: a timed event that really
+ * does run for more than one date needs an all-day entry per date, or a schema
+ * that can say so, and neither exists yet.
+ *
+ * WHY AN END BEFORE THE START IS NOT A SPAN. Upstream, `ends-before-starts` is a
+ * hard validation error, so this cannot reach a rendered page from data. But
+ * `isDateSpan` is public API, and "strictly greater" is the comparison that says
+ * so in one place instead of relying on a caller never passing one.
+ */
+function spansDates(start: WallClockParts, end: WallClockParts): boolean {
+  // A clock range is not a date range.
+  if (!start.allDay || !end.allDay) return false;
+  const startKey = `${start.year}${twoDigits(start.month)}${twoDigits(start.day)}`;
+  const endKey = `${end.year}${twoDigits(end.month)}${twoDigits(end.day)}`;
+  // The SAME date twice is a range within one date, and an end before the start is
+  // the data error above. Neither covers a second day, so neither is a span.
+  return endKey > startKey;
+}
+
+/**
+ * Does this `startsAt`/`endsAt` pair describe more than one calendar date?
+ *
+ * The string-level form of `spansDates`, for callers that hold raw values: the
+ * month grid in src/lib/calendar.ts walks from a start date to an end date and
+ * needs to know whether that walk is one step or several.
+ *
+ * False for `null`, for anything unparseable, for a timed pair, for a same-day
+ * pair, and for a reversed pair. Never throws.
+ */
+export function isDateSpan(startsAt: string, endsAt: string | null): boolean {
+  if (typeof startsAt !== 'string' || typeof endsAt !== 'string') return false;
+  const start = parseWallClock(startsAt);
+  const end = parseWallClock(endsAt);
+  if (start === null || end === null) return false;
+  return spansDates(start, end);
+}
+
 export function formatEventDateSpan(startsAt: string, endsAt: string | null): string {
   const start = parseWallClock(startsAt);
   if (start === null) return '';
-  if (endsAt === null) return formatEventDate(startsAt);
-
-  const end = parseWallClock(endsAt);
-  if (end === null) return formatEventDate(startsAt);
-
-  const sameDay = start.year === end.year && start.month === end.month && start.day === end.day;
-  if (sameDay) return formatEventDate(startsAt);
-  if (!start.allDay || !end.allDay) return formatEventDate(startsAt);
+  const end = endsAt === null ? null : parseWallClock(endsAt);
+  if (end === null || !spansDates(start, end)) return formatEventDate(startsAt);
 
   const sameMonth = start.year === end.year && start.month === end.month;
   if (sameMonth) return `${start.day} - ${end.day} ${MONTHS[start.month - 1]} ${start.year}`;

@@ -36,13 +36,15 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   WEEKDAY_FULL,
   WEEKDAY_LABELS,
+  continuationLabel,
   dayKey,
   dayRadioLabel,
   eventDays,
+  isSelectableDay,
   monthGridFor,
   monthGrids
 } from '../src/lib/calendar.ts';
-import { validateEvents } from '../src/lib/events-schema.ts';
+import { isDateSpan, isPast, validateEvents } from '../src/lib/events-schema.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(HERE, '..');
@@ -123,9 +125,40 @@ test('the committed dataset produces days and grids that are populated', async (
   t.diagnostic(`grid cells per month: ${grids.map((g) => `${g.key}=${g.cells.length}`).join(', ')}`);
 
   assert.ok(days.length > 0, 'positive control: the committed dataset must yield at least one EventDay');
+  // EVERY DAY EITHER HOLDS AN EVENT OR IS COVERED BY ONE. This assertion used to be
+  // `count === events.length && count >= 1` - "every day must hold at least one
+  // event" - and it was not a neutral invariant. It encoded the defect: `eventDays`
+  // consulted only `startsAt`, so the twelve days inside the early voting window
+  // were not in the list at all, and this "positive control" was in part proving
+  // that the calendar under-reported voter access by twelve days.
+  //
+  // The correct invariant is that no day is ever inert: if it exists, something
+  // happens on it, whether that something starts there or merely runs through.
   assert.ok(
-    days.every((day) => day.count === day.events.length && day.count >= 1),
-    'positive control: every day must hold at least one event and its count must agree with its list'
+    days.every((day) => day.count === day.events.length),
+    'positive control: a day\'s count must always agree with its own event list'
+  );
+  assert.ok(
+    days.every((day) => day.count > 0 || day.continues),
+    'positive control: every day must either hold an event of its own or be covered by a span. A day with neither is ' +
+      'rendered as an ordinary empty square, which is the defect this suite was changed to prevent.'
+  );
+  assert.ok(
+    days.every((day) => day.continues === day.covering.length > 0),
+    'positive control: `continues` must be exactly `covering.length > 0`, or the flag and the list can disagree'
+  );
+  // And the two lists must never overlap: `events` is what STARTS here, `covering`
+  // is what runs THROUGH here, and a day holding the same event in both would
+  // double-count it in the month totals.
+  assert.ok(
+    days.every((day) => day.events.every((event) => !day.covering.includes(event))),
+    'positive control: an event must never appear both in a day\'s own events and in its covering events'
+  );
+  assert.ok(
+    days.some((day) => day.continues),
+    'positive control: the committed dataset must exercise the covered-day path. Early voting runs 19 to 31 October ' +
+      '2026, so twelve covered days exist. If it does not, the real page no longer covers this path and the fixtures ' +
+      'below are the only thing testing it - say so here rather than letting the suite pass quietly.'
   );
   assert.ok(grids.length > 0, 'positive control: the committed dataset must yield at least one MonthGrid');
   assert.equal(
@@ -399,6 +432,374 @@ test('days come out ascending, and events within a day come out chronological', 
     ['all-day', 'timed'],
     'an all-day event must sort before a timed event on the same date'
   );
+});
+
+// ---------------------------------------------------------------------------
+// MULTI-DAY SPANS: the covered days, and the days that must NOT be covered
+// ---------------------------------------------------------------------------
+//
+// THE DEFECT THIS BLOCK EXISTS FOR. `eventDays` keyed every event on
+// `dayKey(startsAt)` and `endsAt` was never consulted on the grid path. Early
+// voting runs 19 to 31 October 2026 and was marked on the calendar on 19 October
+// alone; the other twelve dates rendered as ordinary empty squares while the panel
+// and the list both printed "19 - 31 October 2026". The calendar is the page's
+// DEFAULT view, so on a page of real voter-access information the default view
+// under-reported voter access on twelve of the thirteen days it runs - confidently,
+// and in the pessimistic direction.
+// ---------------------------------------------------------------------------
+
+/** An all-day multi-day event, which is the only shape that makes a span. */
+function spanEvent(overrides = {}) {
+  return goodEvent({
+    id: 'a-span',
+    name: 'A Window',
+    allDay: true,
+    startsAt: '2026-10-19',
+    endsAt: '2026-10-31',
+    timezone: null,
+    ...overrides
+  });
+}
+
+test('a multi-day span marks every day it runs on, not only the day it starts', (t) => {
+  const days = eventDays([spanEvent()]);
+
+  t.diagnostic(`days produced: ${days.length}`);
+
+  // POSITIVE CONTROL, and it comes first: the owner day is a day with the event ON
+  // it. If that were false, "the twelve covered days" below could be satisfied by
+  // any implementation that simply listed every date of the span as an event day.
+  const owner = days.find((day) => day.key === '2026-10-19');
+  assert.ok(owner !== undefined, 'positive control: the span\'s start date must be a day');
+  assert.equal(owner.count, 1, 'positive control: the start date holds the event itself');
+  assert.equal(owner.events.length, 1, 'positive control: and it is in `events`, not only in `covering`');
+  assert.equal(owner.continues, false, 'positive control: the FIRST day of a span is not itself a covered day');
+  assert.equal(owner.covering.length, 0, 'positive control: it covers nothing - it starts here');
+
+  // THE ASSERTION. The 19th to the 31st INCLUSIVE is thirteen dates, and all
+  // thirteen must be in the list: the start date plus the twelve after it. A first
+  // draft of this line said eighteen, having counted the span's thirteen dates and
+  // then added the twelve covered ones as if the start date were not already among
+  // them - which is a useful reminder that the number a reader cares about is
+  // thirteen days of access, not eighteen.
+  assert.equal(days.length, 13, 'a 13-day span must produce 13 days: the start date plus the twelve after it');
+
+  const covered = days.filter((day) => day.continues);
+  assert.equal(covered.length, 12, 'exactly the twelve dates after the start must be covered days');
+
+  // The dates themselves, named out. A count of twelve is satisfied by any twelve
+  // days; the reader is going to be told these are the 20th to the 31st, so the
+  // test has to say so.
+  assert.deepEqual(
+    covered.map((day) => day.key),
+    Array.from({ length: 12 }, (_, i) => `2026-10-${20 + i}`),
+    'the covered dates must be 20 to 31 October, with no gap and no repeat'
+  );
+
+  // A covered day carries NO events of its own. That is what makes it distinct from
+  // an event day, and it is why `isSelectableDay` exists and why a covered day must
+  // not be given a radio.
+  for (const day of covered) {
+    assert.equal(day.events.length, 0, `a covered day must hold no events of its own (${day.key})`);
+    assert.equal(day.count, 0, `a covered day counts zero events of its own (${day.key})`);
+    assert.equal(day.multiple, false, `a covered day is never "multiple" (${day.key})`);
+    assert.equal(isSelectableDay(day), false, `a covered day must NOT be selectable (${day.key})`);
+    assert.equal(day.covering.length, 1, `and it must name the one event covering it (${day.key})`);
+    assert.equal(day.covering[0].id, 'a-span', `the covering event is named on the day (${day.key})`);
+  }
+
+  // The owner IS selectable, and its label says so. A day with events on it is a
+  // control; a day with none is not.
+  assert.equal(isSelectableDay(owner), true, 'a day with an event on it must be selectable');
+  assert.deepEqual(
+    days.filter((day) => isSelectableDay(day)).map((day) => day.key),
+    ['2026-10-19'],
+    'the ONLY selectable day in this fixture is the span\'s first day'
+  );
+
+  // The covered day still carries its own formatted label and machine value, so a
+  // cell renderer can print the date without a second lookup.
+  assert.equal(covered[0].label, '20 October 2026', 'a covered day must still know what date it is');
+  assert.equal(covered[0].machine, '2026-10-20', 'and its machine-readable form, for <time datetime>');
+});
+
+test('the real early-voting window produces exactly twelve covered days', (t) => {
+  // THE SHIPPED DATA, not a fixture. This is the case the page actually renders, and
+  // a fixture-only test would leave the real page unverified - which is exactly how
+  // this defect reached a build.
+  const events = realEvents('real span');
+  const early = events.find((event) => event.id === 'early-voting');
+  assert.ok(early !== undefined, 'positive control: the committed dataset must contain early-voting');
+  assert.equal(early.allDay, true, 'positive control: early voting is an all-day event, which is what makes it a span');
+
+  const startKey = dayKey(early.startsAt);
+  const endKey = dayKey(early.endsAt);
+  const days = eventDays(events);
+  const covered = days.filter((day) => day.continues);
+
+  t.diagnostic(`early voting ${startKey} to ${endKey}; ${covered.length} covered days in the real data`);
+  t.diagnostic(`covered: ${covered.map((day) => day.key).join(', ')}`);
+
+  // DERIVED FROM THE DATA, not written out, so correcting a real date does not
+  // fail an unrelated arithmetic test. The count is derived too: every day strictly
+  // between the two ends.
+  const expected = (() => {
+    const out = [];
+    for (let n = Number(startKey.slice(8, 10)) + 1; n <= Number(endKey.slice(8, 10)); n += 1) {
+      out.push(`2026-10-${String(n).padStart(2, '0')}`);
+    }
+    return out;
+  })();
+
+  assert.deepEqual(
+    covered.map((day) => day.key),
+    expected,
+    'the real early-voting window must cover every date after its start, to its end'
+  );
+  assert.equal(covered.length, 12, 'the real window covers twelve days after its start');
+
+  // And the shipped dataset must not be marked as past on the day it is reviewed,
+  // which is what the inherited pastness in events.astro depends on.
+  assert.equal(isPast(early, '2026-10-05'), false, 'positive control: early voting is upcoming on the review date');
+});
+
+test('a TIMED span is a time range, not a date range, and covers nothing', (t) => {
+  // THE CASE THAT BIT THE SUITE ONCE. `gop-quarterly-meeting` runs 18:30 to 20:30 on
+  // 5 October 2026. Read as DATES, that is 5 October to 5 October - which is not
+  // two dates, so it is not a span. An implementation that ignored the times would
+  // mark 5 and 6 October for a two-hour meeting, on a calendar of real election
+  // dates.
+  const timed = goodEvent({
+    id: 'gop-quarterly-meeting',
+    startsAt: '2026-10-05T18:30',
+    endsAt: '2026-10-05T20:30'
+  });
+
+  // POSITIVE CONTROL: the same day twice with a LATER TIME is really the shape under
+  // test. A fixture with no `endsAt` at all would pass the "zero covered days"
+  // assertions below for the wrong reason - there would be no end to read.
+  assert.equal(
+    new Date(dayKey(timed.startsAt)).toString(),
+    new Date(dayKey(timed.endsAt)).toString(),
+    'positive control: the two timestamps really are on the same calendar date'
+  );
+  assert.equal(timed.startsAt < timed.endsAt, true, 'positive control: and the end really is later in the day');
+
+  assert.equal(isDateSpan(timed.startsAt, timed.endsAt), false, 'a same-day timed pair is not a date span');
+
+  const days = eventDays([timed]);
+  assert.equal(days.length, 1, 'a two-hour meeting must produce ONE day, not two');
+  assert.equal(days[0].key, '2026-10-05', 'and it is the day it starts on');
+  assert.equal(days[0].continues, false, 'a same-day timed pair covers no other day');
+  assert.equal(days.filter((day) => day.continues).length, 0, 'and produces ZERO covered days');
+
+  // And the real event, which is the one the calendar would actually render wrong.
+  const real = realEvents('timed span').find((event) => event.id === 'gop-quarterly-meeting');
+  assert.ok(real !== undefined, 'positive control: the committed dataset must contain gop-quarterly-meeting');
+  assert.equal(
+    eventDays([real]).filter((day) => day.continues).length,
+    0,
+    'the real quarterly meeting must not mark a second day on the calendar'
+  );
+});
+
+test('a one-day event, and an event with no endsAt, cover nothing at all', () => {
+  // POSITIVE CONTROL: the span fixture DOES cover days, so "zero covered days"
+  // below means the guard works rather than that the module does nothing.
+  assert.equal(eventDays([spanEvent()]).filter((day) => day.continues).length, 12, 'positive control: a span covers days');
+
+  // No end. The common case, and it must be exactly as it was before this change.
+  const noEnd = eventDays([goodEvent({ id: 'open-ended', startsAt: '2026-11-14T18:30', endsAt: null })]);
+  assert.equal(noEnd.length, 1, 'an event with endsAt: null yields one day');
+  assert.equal(noEnd[0].continues, false, 'and it covers nothing');
+  assert.equal(noEnd[0].covering.length, 0, 'and names no covering event');
+  assert.equal(isDateSpan('2026-11-14T18:30', null), false, 'isDateSpan is false for a null end');
+
+  // An all-day start with an all-day end ON THE SAME DAY. Same shape as the timed
+  // case, different reason, and it is the one a hand-edited file produces by
+  // forgetting to change the end date.
+  const oneDay = eventDays([
+    goodEvent({ id: 'single', allDay: true, startsAt: '2026-11-03', endsAt: '2026-11-03', timezone: null })
+  ]);
+  assert.equal(oneDay.length, 1, 'an all-day event whose endsAt is its own start is one day');
+  assert.equal(oneDay[0].continues, false, 'and covers nothing, because it runs on no second date');
+
+  // A two-day span is the smallest real one: exactly one covered day.
+  const twoDay = eventDays([
+    goodEvent({ id: 'pair', allDay: true, startsAt: '2026-11-03', endsAt: '2026-11-04', timezone: null })
+  ]);
+  assert.equal(twoDay.length, 2, 'a two-date span produces the start date plus one covered date');
+  assert.equal(twoDay[1].key, '2026-11-04', 'the covered date is the day after the start');
+  assert.equal(twoDay[1].continues, true, 'and it is covered');
+});
+
+test('a span crossing a month or a year boundary covers the days on the far side', () => {
+  // MONTH BOUNDARY. The shipped early-voting window does not cross one, so this is
+  // the only thing exercising the case - and the case matters because the second
+  // month must still be RENDERED. `monthGrids` derives its months from the days,
+  // and if covered days were left out of the list, 1 to 2 November would exist in
+  // the data and nowhere on the page.
+  const acrossMonth = eventDays([
+    goodEvent({ id: 'crossing', allDay: true, startsAt: '2026-10-30', endsAt: '2026-11-02', timezone: null })
+  ]);
+  assert.deepEqual(
+    acrossMonth.map((day) => day.key),
+    ['2026-10-30', '2026-10-31', '2026-11-01', '2026-11-02'],
+    'a span crossing a month boundary must produce a day on each side of it'
+  );
+  assert.deepEqual(
+    acrossMonth.filter((day) => day.continues).map((day) => day.key),
+    ['2026-10-31', '2026-11-01', '2026-11-02'],
+    'and every date after the start is covered, whichever month it is in'
+  );
+
+  // ...and the second month IS rendered, with its covered days in it.
+  const grids = monthGrids(acrossMonth);
+  assert.deepEqual(
+    grids.map((g) => g.key),
+    ['2026-10', '2026-11'],
+    'a span crossing a month boundary must produce BOTH month grids'
+  );
+  const november = grids.find((g) => g.key === '2026-11');
+  assert.equal(november.eventCount, 0, 'November holds no event that STARTS in it');
+  assert.equal(
+    november.cells.filter((cell) => cell.day !== null).length,
+    2,
+    'but it does hold the two covered dates, or the reader is not told the event runs then'
+  );
+  assert.equal(
+    november.cells.filter((cell) => cell.day !== null && isSelectableDay(cell.day)).length,
+    0,
+    'and none of them is selectable - there is no radio and no panel for a covered day'
+  );
+
+  // YEAR BOUNDARY, where the arithmetic has to roll the year as well as the month.
+  // A December-to-January span is the case where a zero-padding slip in the day
+  // roll would produce a key that matches no cell.
+  const acrossYear = eventDays([
+    goodEvent({ id: 'new-year', allDay: true, startsAt: '2026-12-28', endsAt: '2027-01-03', timezone: null })
+  ]);
+  assert.deepEqual(
+    acrossYear.map((day) => day.key),
+    ['2026-12-28', '2026-12-29', '2026-12-30', '2026-12-31', '2027-01-01', '2027-01-02', '2027-01-03'],
+    'a span crossing a year boundary must roll the year and re-pad the day'
+  );
+  assert.equal(acrossYear.filter((day) => day.continues).length, 6, 'six covered dates across the year boundary');
+  assert.equal(acrossYear[4].key, '2027-01-01', 'the first of January must be spelled 2027-01-01, not 2026-01-01');
+
+  // Both months rendered, and the grids together still account for one event: the
+  // covered days add nothing, so the "every event exactly once" invariant survives.
+  const yearGrids = monthGrids(acrossYear);
+  assert.deepEqual(
+    yearGrids.map((g) => g.key),
+    ['2026-12', '2027-01'],
+    'both months must render'
+  );
+  assert.equal(
+    yearGrids.reduce((total, g) => total + g.eventCount, 0),
+    1,
+    'the two grids together count the one event exactly once, and the covered days add none'
+  );
+
+  // A leap day inside a span, because that is where a naive day roll breaks.
+  const leap = eventDays([
+    goodEvent({ id: 'leap-span', allDay: true, startsAt: '2024-02-28', endsAt: '2024-03-01', timezone: null })
+  ]);
+  assert.deepEqual(
+    leap.map((day) => day.key),
+    ['2024-02-28', '2024-02-29', '2024-03-01'],
+    'a span crossing 29 February must include the leap day'
+  );
+});
+
+test('a day with its own events AND covered by a span carries both, and stays selectable', () => {
+  // THE COMBINED CASE, which is the one the grid's three branches are built for: a
+  // debate on the 22nd, inside a fortnight of early voting. `events` holds the
+  // debate, `covering` holds the voting window, and the day is selectable because
+  // the reader can genuinely choose it - there is something to show them.
+  const days = eventDays([
+    spanEvent(),
+    goodEvent({ id: 'mid-window-debate', startsAt: '2026-10-22T19:00', endsAt: '2026-10-22T20:00' })
+  ]);
+
+  const both = days.find((day) => day.key === '2026-10-22');
+  assert.ok(both !== undefined, 'positive control: the debate date must be in the day list');
+  assert.deepEqual(
+    both.events.map((e) => e.id),
+    ['mid-window-debate'],
+    'its own event is in `events`'
+  );
+  assert.deepEqual(
+    both.covering.map((e) => e.id),
+    ['a-span'],
+    'the event it runs through is in `covering`'
+  );
+  assert.equal(both.count, 1, 'it counts one event of its own');
+  assert.equal(both.continues, true, 'and it is still flagged as covered');
+  assert.equal(isSelectableDay(both), true, 'so it IS selectable - there is a panel with something in it');
+  assert.equal(dayRadioLabel(both), '22 October 2026, 1 event', 'and its radio label counts only its own event');
+
+  // The month grid places it once, and the month's total counts each event once.
+  const october = monthGridFor('2026-10', days);
+  assert.equal(october.eventCount, 2, 'October holds two events that START in it, not nineteen');
+  const placed = october.cells.filter((cell) => cell.day !== null);
+  assert.equal(placed.length, 13, 'and thirteen dates carry something - the debate plus the twelve covered days');
+
+  // Two events covering ONE date: both are named, and neither is lost. This is the
+  // case that makes `covering` a list rather than a single event.
+  const doubled = eventDays([
+    spanEvent({ id: 'first-window' }),
+    spanEvent({ id: 'second-window', startsAt: '2026-10-24', endsAt: '2026-10-31' })
+  ]);
+  const coveredTwice = doubled.find((day) => day.key === '2026-10-25');
+  assert.ok(coveredTwice !== undefined, 'positive control: a date inside both windows must exist');
+  assert.deepEqual(
+    coveredTwice.covering.map((e) => e.id),
+    ['first-window', 'second-window'],
+    'both covering events are named, ascending by their own start'
+  );
+  // The range is spelled by `formatEventDateSpan`, so a same-month span reads
+    // "19 - 31 October 2026" with ONE month name. That is the point of asserting on
+    // the string rather than on a shape: if the wording changes, this fails loudly
+    // instead of quietly accepting a looser pattern.
+    assert.equal(
+      continuationLabel(coveredTwice),
+      'Covered by 2 events, one of which runs 19 - 31 October 2026. It is listed on 19 October 2026.',
+      'the hidden text says there are two events running through it rather than naming one and hiding the other'
+    );
+});
+
+test('continuationLabel says what is covered, how long, and where it is listed', (t) => {
+  const days = eventDays([
+    spanEvent({ id: 'early-voting', name: 'Early Voting (in person)', startsAt: '2026-10-19', endsAt: '2026-10-31' })
+  ]);
+  const covered = days.find((day) => day.key === '2026-10-25');
+
+  // A day that is not covered must yield the empty string, so a renderer can emit
+  // the element unconditionally. A function that returned text for everything would
+  // put a false sentence in every empty cell.
+  assert.notEqual(continuationLabel(covered), '', 'positive control: a covered day yields real text');
+  assert.equal(continuationLabel(days.find((day) => day.key === '2026-10-19')), '', 'the span\'s own day is not covered');
+  assert.equal(continuationLabel(null), '', 'a missing day yields an empty string, not a throw');
+  assert.equal(continuationLabel(undefined), '', 'an undefined day must not throw');
+
+  const label = continuationLabel(covered);
+  t.diagnostic(`continuationLabel: ${label}`);
+
+  // THREE facts, and all three are needed. Name the event and the reader does not
+  // know what is running; give the range and they still cannot find it in the list;
+  // give the start date and they can. This is the difference between marking a day
+  // and telling a reader what to do about it.
+  assert.match(label, /Covered by Early Voting \(in person\)/, 'it names the event that runs on the date');
+  assert.match(label, /runs 19 - 31 October 2026/, 'and the range it runs, using the same formatter as the panel');
+  assert.match(label, /listed on 19 October 2026/, 'and the date it is listed on, which is the only way to reach it');
+  assert.equal(label.includes('25 October'), false, 'and it does not describe the covered day as if it were the event day');
+
+  // ASCII only, because this string is written into a built page on a machine that
+  // corrupts non-ASCII source (ROADMAP design rule 9).
+  for (let i = 0; i < label.length; i += 1) {
+    assert.ok(label.charCodeAt(i) <= 127, `continuationLabel must be ASCII, found U+${label.charCodeAt(i).toString(16)} at ${i}`);
+  }
 });
 
 test('eventDays never throws on a missing or malformed list', () => {
@@ -729,6 +1130,30 @@ test('the grids are byte-identical under UTC, Los Angeles and Kathmandu', async 
     goodEvent({ id: 'election-day', allDay: true, startsAt: '2026-11-03', endsAt: null, timezone: null }),
     goodEvent({ id: 'riverside-debate', startsAt: '2026-11-03T18:30', endsAt: '2026-11-03T20:00' }),
     goodEvent({ id: 'winter-open', allDay: true, startsAt: '2026-11-14', endsAt: null, timezone: null }),
+    // A SPAN, AND IT IS IN THIS FIXTURE FOR THE SAKE OF THE COMPARISON BELOW. The
+    // covered-day walk in `eventDays` is the only code in this module that ADDS to a
+    // date, and it is the only place where a machine offset could shift a key: one
+    // zone rolling a day backwards produces a different set of covered days, and the
+    // grids would then differ across zones for a reason that looks like a timezone
+    // bug in the reader's data rather than in the code. The fixture was all
+    // single-date events before this, which left the new arithmetic uncompared.
+    goodEvent({
+      id: 'winter-window',
+      name: 'A Three Day Window',
+      allDay: true,
+      startsAt: '2026-11-14',
+      endsAt: '2026-11-16',
+      timezone: null
+    }),
+    // And a span crossing a MONTH, so the roll is compared across the boundary too.
+    goodEvent({
+      id: 'month-crossing',
+      name: 'A Window Over The Month End',
+      allDay: true,
+      startsAt: '2026-10-30',
+      endsAt: '2026-11-02',
+      timezone: null
+    }),
     goodEvent({ id: 'february-leap', startsAt: '2024-02-29T09:00', endsAt: null }),
     goodEvent({ id: 'december-end', startsAt: '2026-12-31T18:30', endsAt: null })
   ];
@@ -820,10 +1245,39 @@ test('the grids are byte-identical under UTC, Los Angeles and Kathmandu', async 
     'positive control: the fixture must produce four months, ascending, including a leap-day month'
   );
   const novemberFromChild = parsed.find((g) => g.key === '2026-11');
-  assert.equal(novemberFromChild.eventCount, 3, 'positive control: November carries three events in the fixture');
+  assert.equal(novemberFromChild.eventCount, 4, 'positive control: November carries four events that START in it');
   assert.equal(novemberFromChild.cells.length, 35, 'positive control: the November grid must be a five-row grid');
   assert.equal(novemberFromChild.cells[0][0], 1, 'positive control: 1 November 2026 must be cell 0, the Sunday column');
   assert.equal(novemberFromChild.cells[13][0], 14, 'positive control: 14 November 2026 must be cell 13, a Saturday');
+
+  // `month-crossing` starts in OCTOBER, so it must not be counted here even though
+  // it covers two November dates. That is the "each grid counts only its own events"
+  // rule meeting a span for the first time, and getting it wrong would report four
+  // events in November for three that start there.
+  assert.equal(
+    parsed.find((g) => g.key === '2026-10').eventCount,
+    2,
+    'positive control: October counts the two events that start there, and not the span reaching into November'
+  );
+
+  // The fixture's SPANS, in the child's own output - so the covered days are part of
+  // what the cross-zone comparison is actually comparing, and not merely part of
+  // what this process computed. November holds 3 and 14 November plus the two dates
+  // the November window covers; 1 and 2 November are covered from October.
+  assert.deepEqual(
+    novemberFromChild.cells.filter(([, key]) => key !== null).map(([dayNumber]) => dayNumber),
+    [1, 2, 3, 14, 15, 16],
+    'positive control: the child must place both spans\' dates, including the ones covered from October'
+  );
+  assert.equal(
+    parsed
+      .find((g) => g.key === '2026-10')
+      .cells.filter(([, key]) => key !== null)
+      .map(([dayNumber]) => dayNumber)
+      .join(','),
+    '2,30,31',
+    'positive control: the month-crossing span must put covered days on 31 October as well as in November'
+  );
 
   // 4. THE BUG IS DEMONSTRABLY REAL ON THIS MACHINE, which is the step that stops
   //    this test from being vacuously green. If the local-accessor version of

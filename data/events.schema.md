@@ -142,16 +142,34 @@ is more honest than one with a fabricated link.
 | `allDay` | `endsAt` means | renders as |
 | --- | --- | --- |
 | `false` | a **clock time** on the same or another day | `7:00 pm - 9:00 pm` |
-| `true` | the **last day** of a multi-day span | `15 - 31 October 2026` |
+| `true` | the **last day** of a multi-day span | `19 - 31 October 2026` |
 
-The all-day case is how early voting is expressed: `"startsAt": "2026-10-15"`,
+The all-day case is how early voting is expressed: `"startsAt": "2026-10-19"`,
 `"endsAt": "2026-10-31"`, `"allDay": true`. Both dates must be plain
 `YYYY-MM-DD`. A span is only meaningful between two all-day dates - a timed pair
 never renders as a span, because `18:30 - 31 October 2026` reads as nonsense.
 
-**The calendar grid marks only the FIRST day of a span.** Early voting appears on
-15 October; the 16th to the 31st look like ordinary empty days. The full range is
-in the panel and in the list. This is a known limitation, recorded in ROADMAP.md.
+**The calendar grid now marks EVERY day of a span.** Early voting appears on 19
+October, and the 20th to the 31st are marked as days the event runs through rather
+than as ordinary empty days. Before 2026-10-05 the grid marked only the first day,
+so the page's default view said voter access existed on one day of thirteen while
+its own panel and list said otherwise.
+
+Two details matter if you are filling this file in:
+
+- A marked continuation day is **not separately selectable.** It has no entry of
+  its own in the page: the event is listed once, on the day it starts, carrying its
+  full range. Do not expect a second listing, and do not split a voting window
+  into thirteen one-day events to "fix" that - thirteen hand-written rows is
+  thirteen chances to be wrong about which days the polls are actually open, and
+  the real one will disagree with them.
+- **A timed event that runs for more than one date gets no covered-day markers.**
+  A span exists only between two all-day dates, so `09:00` on the 3rd to `17:00`
+  on the 5th is rendered as 3 November on every view of the site. That is a
+  limitation of the current schema, not an oversight: there is no way yet to say
+  "this event runs on these three dates, on these times". Until there is, a
+  multi-session timed event should be entered as one all-day entry per date it
+  runs, each with its own clock time in `notes`.
 
 ---
 

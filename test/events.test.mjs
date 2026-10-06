@@ -1630,7 +1630,16 @@ test('the page meta description makes no per-row claim about every row', async (
 
   // Every interpolating slot is present, so "derived" means derived rather than
   // "happens to mention a number".
-  for (const slot of ['eventCount', 'firstDate', 'lastDate', 'days.length']) {
+  //
+  // `selectableDays.length` REPLACED `days.length`, and the reason is the whole of
+  // the covered-day change. `days` now also holds the dates inside a multi-day
+  // event - the twelve days of the early voting window that have nothing of their
+  // own on them - so counting `days` would have put "across 18 dates" into the meta
+  // description of a page offering six dates to choose from. That is an over-count,
+  // which is the same class of lie as the under-count this change fixed and no
+  // easier to notice: a reader counting the squares would believe there were
+  // eighteen things to find.
+  for (const slot of ['eventCount', 'firstDate', 'lastDate', 'selectableDays.length']) {
     assert.ok(
       description.includes(slot),
       `positive control: the description must interpolate ${slot}, or it is not derived from the data. Got: ${description}`
@@ -1819,6 +1828,13 @@ test('an event day and an empty day differ by a NON-COLOUR property', async (t) 
   // there must be EXACTLY as many markers in the built HTML as there are event
   // days, and no more. One per event day is the signal; one per empty day, or one
   // on every cell, would make it meaningless.
+  //
+  // `class="cal__mark"` EXACTLY, and the covered-day marker is `class="cal__mark
+  // cal__mark--span"`. The exact match is deliberate rather than incidental: if the
+  // covered marker carried the bare class too, it would be counted here and this
+  // equality - which asserts one ring per event day and nothing else - would break
+  // the moment the dataset grew a span. The covered-day counts are asserted
+  // separately, in the test below, which knows what it is counting.
   const markerCount = (built.match(/class="cal__mark"/g) || []).length;
   assert.equal(
     markerCount,
@@ -1827,6 +1843,244 @@ test('an event day and an empty day differ by a NON-COLOUR property', async (t) 
       `${eventCells.length} event day(s) and ${bareCells.length} empty day(s)`
   );
   assert.ok(markerCount > 0, 'positive control: at least one marker must be rendered');
+});
+
+// ---------------------------------------------------------------------------
+// Covered days: the built page, not the module
+// ---------------------------------------------------------------------------
+//
+// The defect this pair of tests exists for was never a failing test. `eventDays`
+// keyed every event on `startsAt` alone, so the fortnight of early voting that the
+// panel and the list both print as "19 - 31 October 2026" was marked on the calendar
+// on 19 October and the other twelve dates rendered as ordinary empty squares. The
+// calendar is the DEFAULT view, so the page's front door understated voter access on
+// twelve of the thirteen days it runs - confidently, and in the pessimistic
+// direction, which is the worst way for it to be wrong.
+//
+// Everything here reads dist/events/index.html, because a module test cannot see
+// whether a marker survived compilation, scoping and minification into the document
+// a reader receives. That gap is how a defect like this reaches production with a
+// green suite: the arithmetic was correct and the page was still wrong.
+// ---------------------------------------------------------------------------
+
+test('every day a multi-day event runs on is marked in the built calendar', async (t) => {
+  const builtPath = resolve(PROJECT_ROOT, 'dist', 'events', 'index.html');
+  const built = await readFile(builtPath, 'utf8').catch(() => null);
+  assert.ok(built !== null, `positive control: the built page must exist at ${builtPath}. Run \`npm run build\` first.`);
+
+  // THE DATASET IS THE ORACLE. The expected number of covered days is computed from
+  // the real early-voting range rather than written out, so correcting a real date
+  // does not fail an unrelated rendering test - which is what happened once already,
+  // when the data said the 15th and a test had the 19th hard-coded.
+  const early = REAL_DOC.events.find((event) => event.id === 'early-voting');
+  assert.ok(early, 'positive control: the committed dataset must contain early-voting');
+  assert.equal(early.allDay, true, 'positive control: early voting is all-day, which is what makes it a date span');
+
+  const startDay = Number(early.startsAt.slice(8, 10));
+  const endDay = Number(early.endsAt.slice(8, 10));
+  const month = early.startsAt.slice(5, 7);
+  assert.ok(endDay > startDay, 'positive control: early voting must end after it starts');
+  const expectedCovered = Array.from({ length: endDay - startDay }, (_, i) => {
+    const day = startDay + 1 + i;
+    return `${early.startsAt.slice(0, 7)}-${String(day).padStart(2, '0')}`;
+  });
+  t.diagnostic(`early voting ${early.startsAt} to ${early.endsAt}: ${expectedCovered.length} day(s) after the start`);
+
+  // COUNTED IN THE BUILT PAGE. `data-continues` is on the cell itself, so this
+  // counts cells a reader can see rather than occurrences of a CSS class that might
+  // appear in a stylesheet link.
+  const coveredCells = [...built.matchAll(/<span[^>]*class="cal__day cal__day--continues"[^>]*>/g)].map((m) => m[0]);
+  const spanMarkers = (built.match(/class="cal__mark cal__mark--span"/g) || []).length;
+
+  assert.ok(coveredCells.length > 0, 'positive control: the built page must render at least one covered day');
+  assert.equal(
+    coveredCells.length,
+    expectedCovered.length,
+    `the built calendar must mark every day the event runs on after its start: expected ` +
+      `${expectedCovered.length} (${expectedCovered.join(', ')}), found ${coveredCells.length}`
+  );
+  assert.equal(
+    spanMarkers,
+    coveredCells.length,
+    'every covered cell must carry exactly one span marker, or the marker means nothing'
+  );
+
+  // THE COLLECTIVE CLAIM THIS PAGE NOW MAKES IN PROSE. The panel and the list print
+  // the range; the grid used to contradict it. So the grid must not merely contain
+  // twelve markers somewhere - the twelve DATES must each be marked, in order.
+  const markedDays = [
+    ...built.matchAll(/cal__daynum[^>]*>\s*(\d{1,2})\s*<span class="cal__mark cal__mark--span"/g)
+  ].map((m) => Number(m[1]));
+  assert.deepEqual(
+    markedDays,
+    expectedCovered.map((key) => Number(key.slice(8, 10))),
+    'the marked day numbers must be exactly the days after the start, in order: ' + markedDays.join(', ')
+  );
+
+  // And the START DAY IS NOT ONE OF THEM. It carries the event, so it is selectable
+  // and marked with the ring; marking it as covered as well would say the run
+  // started before it began.
+  const startRing = new RegExp(`class="cal__day" for="day-${early.startsAt}"`).test(built);
+  assert.ok(startRing, 'positive control: the span\'s first day must still be a selectable cell');
+  assert.ok(
+    !new RegExp(`>\\s*${startDay}\\s*<span class="cal__mark cal__mark--span"`).test(built),
+    'the span\'s first day must not also be marked as a covered day'
+  );
+
+  // THE LEGEND IS DERIVED FROM THE DATA. A page whose events are all single dates
+  // must not open with a sentence about a mark it never draws, which is the same
+  // defect as a description claiming every row has a thumbnail - and the test on that
+  // description exists because it shipped.
+  assert.match(
+    built,
+    /class="page-head__legend"/,
+    'the page must explain the marker, since nothing else in the visual grammar does'
+  );
+  assert.match(
+    built,
+    /marks a day inside a multi-day event/,
+    'the legend must say what the mark means, not merely that there is one'
+  );
+});
+
+test('a covered day is NOT selectable: no radio, no panel, no generated selector', async (t) => {
+  const builtPath = resolve(PROJECT_ROOT, 'dist', 'events', 'index.html');
+  const built = await readFile(builtPath, 'utf8').catch(() => null);
+  assert.ok(built !== null, `positive control: the built page must exist at ${builtPath}. Run \`npm run build\` first.`);
+
+  const early = REAL_DOC.events.find((event) => event.id === 'early-voting');
+  assert.ok(early, 'positive control: the committed dataset must contain early-voting');
+  const startDay = Number(early.startsAt.slice(8, 10));
+  const endDay = Number(early.endsAt.slice(8, 10));
+  const coveredKeys = Array.from({ length: endDay - startDay }, (_, i) => {
+    const day = startDay + 1 + i;
+    return `${early.startsAt.slice(0, 7)}-${String(day).padStart(2, '0')}`;
+  });
+  t.diagnostic(`covered dates checked: ${coveredKeys.join(', ')}`);
+
+  // WHY THIS MATTERS MORE THAN THE MARKER. A radio per covered day would be twelve
+  // focusable, announced, checkable controls opening a panel with nothing in it - a
+  // reader arrowing through the calendar told "25 October 2026, 0 events" and shown
+  // an empty column. That is worse than the original defect, because it presents
+  // broken machinery as working machinery. So each of the three mechanisms is
+  // checked separately: the control, the content, and the CSS that connects them.
+  const leaks = [];
+  for (const key of coveredKeys) {
+    if (new RegExp(`id="day-${key}"`).test(built)) leaks.push(`${key}: has a radio`);
+    if (new RegExp(`data-panel="${key}"`).test(built)) leaks.push(`${key}: has a panel`);
+    if (new RegExp(`#day-${key}:`).test(built)) leaks.push(`${key}: has a generated selector`);
+    if (new RegExp(`aria-controls="panel-${key}"`).test(built)) leaks.push(`${key}: is aria-controls target`);
+  }
+  assert.deepEqual(leaks, [], `covered days must not be selectable, and these are: ${leaks.join('; ')}`);
+
+  // AND THE CELL REALLY IS INERT, not merely unlabelled by accident. The covered cell
+  // is a `<span>` with no `for`, no `data-day` and no `href`, so there is nothing for
+  // a click, a tap or a Tab key to land on. Matched on the OPENING TAG only: the cell
+  // nests spans, and trying to capture the whole element with a non-greedy pattern
+  // would stop at the first `</span>` and quietly assert about the day number.
+  const cells = [...built.matchAll(/<span[^>]*class="cal__day cal__day--continues"[^>]*>/g)].map((m) => m[0]);
+  assert.ok(cells.length > 0, 'positive control: the built page must render covered cells');
+  for (const tag of cells) {
+    assert.equal(/for=/.test(tag), false, `a covered cell must not name a control: ${tag}`);
+    assert.equal(/data-day=/.test(tag), false, `a covered cell must not carry data-day, which the selection CSS targets: ${tag}`);
+    assert.equal(/href=/.test(tag), false, `a covered cell must not be a link either: ${tag}`);
+  }
+
+  // AND IT CARRIES REAL TEXT, which is the half of the signal that survives greyscale
+  // print, forced-colours mode and every colour vision deficiency. The marker is
+  // aria-hidden, so this sentence is the ONLY thing a screen reader has on that cell:
+  // without it, a covered date reads as a bare number with something next to it.
+  const explanations = [...built.matchAll(/Covered by ([^<]+?)\. It is listed on ([^<]+?)\./g)];
+  assert.equal(
+    explanations.length,
+    cells.length,
+    'every covered cell must carry the same number of hidden explanations as there are covered cells'
+  );
+  assert.match(
+    built,
+    /Covered by Early Voting \(in person\), which runs \d+ - 31 October 2026\. It is listed on 19 October 2026\./,
+    'the explanation must name the event, the range it runs, AND the date it is listed on - a reader who lands on the ' +
+      '25th needs to be told where to go next, or the text says only that something is happening'
+  );
+
+  // The dates WITH events keep all three mechanisms, so the check above is not
+  // satisfied by the page having thrown the selection feature away entirely.
+  const radios = [...built.matchAll(/<input[^>]*class="events__day"[^>]*>/g)].map((m) => m[0]);
+  const distinctStartDates = [...new Set(REAL_DOC.events.map((event) => event.startsAt.slice(0, 10)))];
+  assert.equal(
+    radios.length,
+    distinctStartDates.length,
+    'there must be exactly one radio per date an event STARTS on, and no more'
+  );
+  for (const tag of radios) {
+    assert.match(tag, /aria-label="[^"]+,\s*[1-9]\d*\s+events?"/, `a radio must never announce zero events: ${tag}`);
+  }
+  assert.equal(
+    (built.match(/data-panel="\d{4}-\d{2}-\d{2}"/g) || []).length,
+    distinctStartDates.length,
+    'and exactly one panel per date an event starts on'
+  );
+});
+
+test('the covered-day marker is drawn with a border, not a background', async (t) => {
+  // THE SAME RULE THE RING FOLLOWS, applied to the second marker. Forced-colours mode
+  // overrides `background-color` to the canvas colour, so a bar painted that way
+  // disappears in exactly the mode it was added for. Border-width and border-style
+  // are not overridden, so a rule drawn with a border keeps its length and weight.
+  //
+  // Without this, the obvious "simplification" - make the covered mark a filled block
+  // so it is easier to see - would silently remove the cue for every reader using a
+  // high-contrast theme, and the suite would stay green.
+  const builtPath = resolve(PROJECT_ROOT, 'dist', 'events', 'index.html');
+  const built = await readFile(builtPath, 'utf8');
+  const hrefs = [...built.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(hrefs.length > 0, 'positive control: the built page must link at least one stylesheet');
+
+  const sheets = [];
+  for (const href of hrefs) {
+    sheets.push(await readFile(resolve(PROJECT_ROOT, 'dist', href.replace(/^\//, '')), 'utf8').catch(() => ''));
+  }
+  const css = sheets.join('\n');
+
+  // POSITIVE CONTROL ON THE SELECTOR: the compiled rule for the plain ring must be
+  // findable, so a regex that matched nothing could not pass the next assertion.
+  assert.ok(css.includes('cal__mark--span'), 'positive control: the built stylesheet must carry a rule for .cal__mark--span');
+
+  const rule = css.match(/\.cal__mark[^{}]*\.cal__mark--span[^{]*\{([^}]*)\}/);
+  assert.ok(rule, 'positive control: the covered marker rule must be selectable on its own, with its declarations');
+  const declarations = rule[1].split(';').map((d) => d.trim()).filter(Boolean);
+  t.diagnostic(`.cal__mark--span declarations: ${declarations.join(' | ')}`);
+
+  assert.equal(
+    /background(-color)?\s*:/.test(rule[1]),
+    false,
+    '.cal__mark--span must be drawn with a border, not a background. Forced-colours mode overrides background-color to ' +
+      'the canvas colour, so a background-painted marker is invisible in the mode it exists for.'
+  );
+  assert.match(
+    rule[1],
+    /border[^:]*:\s*\d/,
+    `the covered marker needs a real border weight to be a shape at all, got: ${rule[1].trim()}`
+  );
+  assert.match(
+    rule[1],
+    /width\s*:\s*\d/,
+    `and a real width, or it is a hairline rather than a mark, got: ${rule[1].trim()}`
+  );
+
+  // IT MUST ALSO BE DISTINGUISHABLE FROM THE RING, which is the other half of the
+  // requirement: a covered day that looked identical to an event day would be a cell
+  // that looks clickable and is not. A different width is the cheap proof; a
+  // different shape is the real one, and the two rules say so.
+  const ring = css.match(/\.cal__mark\[?[^{}]*\]\{([^}]*)\}/) || css.match(/\.cal__mark\{([^}]*)\}/);
+  assert.ok(ring, 'positive control: the ring rule must be findable too, or "different" means nothing');
+  const ringWidth = (ring[1].match(/width\s*:\s*(\d+px)/) || [])[1];
+  const spanWidth = (rule[1].match(/width\s*:\s*(\d+px)/) || [])[1];
+  assert.notEqual(
+    spanWidth,
+    ringWidth,
+    `the covered marker (${spanWidth}) must not be the same size as the event ring (${ringWidth}), or the two states look alike`
+  );
 });
 
 test('data/events.schema.md documents every field the code validates, at the lengths the code enforces', async (t) => {

@@ -64,7 +64,8 @@
 //   - `monthGridFor` returns null for a key that is not a real month, because a
 //     caller that passed a bad key has a bug and a blank calendar would hide it.
 //   - `monthGrids` skips such a month rather than throwing (it used to).
-//   - `dayRadioLabel` returns '' for anything that is not a day.
+//   - `dayRadioLabel`, `isSelectableDay` and `continuationLabel` return a false or
+//     an empty string for anything that is not a day.
 //
 // The reason is the caller. events.astro calls `monthGrids` at MODULE SCOPE, so
 // anything this module throws stops `npm run build` with a stack trace in a
@@ -88,6 +89,8 @@
 
 import {
   formatEventDate,
+  formatEventDateSpan,
+  isDateSpan,
   machineDateTime,
   monthLabel,
   parseWallClock,
@@ -139,6 +142,28 @@ const MINIMUM_ROWS = 5
  * computed by the caller because both the cell renderer and the radio's
  * accessible label need them, and two components deriving "more than one" from
  * `events.length` is two places for the rule to live.
+ *
+ * THE THREE STATES, because `events` is no longer guaranteed non-empty and that
+ * is the whole point of the change.
+ *
+ *   1. A day with events on it: `events` holds them, `count` is their number,
+ *      `continues` is false. It gets a radio, a panel and a clickable cell.
+ *   2. A day with NO event of its own that a multi-day event runs THROUGH:
+ *      `events` is EMPTY, `continues` is true, and `covering` names the events
+ *      whose span reaches it. It gets a cell with a marker and NO radio, NO
+ *      panel and NO `html:has(#day-...)` rule, because it is not independently
+ *      selectable - the event is listed once, on the day it starts.
+ *   3. A day with nothing on it at all: not a day here. `monthGridFor` renders a
+ *      cell with `day: null`, and there is no `EventDay` to describe it.
+ *
+ * State 2 is the defect this shape was widened for. Before it, `eventDays`
+ * keyed only on `dayKey(startsAt)`, so early voting - `2026-10-19` to
+ * `2026-10-31` - was marked on 19 October and the other twelve days rendered as
+ * ordinary empty squares. The panel and the list both said "19 - 31 October
+ * 2026", so the DEFAULT view of the page (the calendar; the list is behind a
+ * toggle) asserted that voter access existed on one day out of thirteen. A
+ * confidently wrong answer, and the pessimistic one, on a page publishing real
+ * voter-access information.
  */
 export interface EventDay {
   /** `YYYY-MM-DD`, the identity of the day. */
@@ -147,26 +172,59 @@ export interface EventDay {
   label: string
   /** `2026-11-14`, for a `<time datetime>` attribute. */
   machine: string
-  /** The events on this date, ascending. Never empty: a day with none is not a day. */
+  /**
+   * The events that START on this date, ascending.
+   *
+   * EMPTY on a day that is only covered by a span. That is not a regression in
+   * this field's promise, it is the correction: "never empty: a day with none is
+   * not a day" was true only while `endsAt` was never consulted, and following
+   * it is what produced a calendar that under-reported a fortnight of voting by
+   * twelve days. `count` is `events.length`, so a covered day counts zero events
+   * of its own, which is accurate.
+   */
   events: EventRecord[]
-  /** `events.length`. */
+  /** `events.length`. Zero on a day that is only covered by a span. */
   count: number
   /** True when `count` is greater than one, which is the case the grid is for. */
   multiple: boolean
+  /**
+   * True when an event's date span COVERS this day without starting on it.
+   *
+   * `continues === covering.length > 0`, kept as a named boolean because the
+   * cell renderer branches on the idea ("this date is covered by something that
+   * started earlier") rather than on a list length.
+   */
+  continues: boolean
+  /**
+   * The events whose span covers this day but does not start on it, ascending by
+   * their own start date.
+   *
+   * A day can carry events of its own AND be covered - a debate on the 22nd
+   * inside a fortnight of early voting - and then this holds the covering events
+   * while `events` holds its own. The two lists do not overlap, and the renderer
+   * needs both.
+   */
+  covering: EventRecord[]
 }
 
 /**
  * One square of the month grid.
  *
- * A real day of the month always has `dayNumber`; it has `day: null` when no
- * event falls on it, because an empty cell is still a place the reader can look
- * and a calendar that omitted empty days would be a list wearing a grid's
- * clothes. A padding cell belongs to an adjacent month and has both fields null.
+ * A real day of the month always has `dayNumber`; it has `day: null` when nothing
+ * falls on it, because an empty cell is still a place the reader can look and a
+ * calendar that omitted empty days would be a list wearing a grid's clothes. A
+ * padding cell belongs to an adjacent month and has both fields null.
+ *
+ * A `day` here is NOT necessarily a selectable day. It may be a day a multi-day
+ * event merely runs through, which has `count: 0` and `continues: true`; the cell
+ * renderer decides between a `<label>` and an inert `<span>` with
+ * `isSelectableDay`, and the distinction is the whole design of the covered-day
+ * marker. See `EventDay` above.
  */
 export interface DayCell {
   /** 1-31, or null for a padding cell. */
   dayNumber: number | null
-  /** The `EventDay` when this date carries at least one event, else null. */
+  /** The `EventDay` when something falls on this date, else null. */
   day: EventDay | null
 }
 
@@ -226,6 +284,27 @@ function asList<T>(value: readonly T[] | null | undefined): readonly T[] {
   return Array.isArray(value) ? (value as readonly T[]) : []
 }
 
+/**
+ * The `YYYY-MM-DD` key `offset` days after `key`, or '' if the key is not a date.
+ *
+ * This is the one piece of date arithmetic in this file that has to ADD, and it is
+ * written to the same rule as the rest of it: `Date.UTC` as calendar arithmetic,
+ * read back with `getUTC*`, and never formatted from. Nothing here can apply a
+ * machine offset, so a span walks the same days in Kathmandu as in Los Angeles -
+ * and `test/calendar.test.mjs` runs this module under three zones and compares
+ * byte for byte, so that is measured rather than promised.
+ *
+ * `Date.UTC` maps a year 0-99 into the 20th century, which would silently rewrite
+ * `0099-12-30` into 1999. `parseWallClock` already rejects years below 100, so a
+ * key that reaches here is four digits and the mapping cannot fire.
+ */
+function shiftDayKey(key: string, offset: number): string {
+  const parts = parseWallClock(key)
+  if (parts === null) return ''
+  const moved = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + offset))
+  return makeDayKey(moved.getUTCFullYear(), moved.getUTCMonth() + 1, moved.getUTCDate())
+}
+
 // ---------------------------------------------------------------------------
 // dayKey
 // ---------------------------------------------------------------------------
@@ -261,13 +340,24 @@ export function dayKey(startsAt: string): string {
  * Group events into days, ascending by date, chronological within each day.
  *
  * Two events on 2026-11-03 produce ONE `EventDay` with `count: 2`. That is the
- * entire reason this function exists, and it is asserted directly in the test
+ * original reason this function exists, and it is asserted directly in the test
  * rather than left implied.
+ *
+ * TWO KINDS OF DAY COME OUT, and the second kind is the fix. A day an event
+ * STARTS on holds that event in `events`; a day a multi-day event merely RUNS
+ * THROUGH holds nothing in `events` and names the covering event in `covering`.
+ * Before, only the first kind existed: `endsAt` was never consulted on this path,
+ * so the fortnight of early voting that the panel and the list both print as
+ * "19 - 31 October 2026" was marked on the calendar on 19 October alone and the
+ * other twelve dates rendered as ordinary empty squares. On a page of real
+ * voter-access information that is the wrong answer in the pessimistic direction,
+ * on the page's DEFAULT view.
  *
  * Order comes from `sortEvents`, so the same list always produces the same days
  * in the same order regardless of the order it arrived in - design rule 8 applied
  * to grouping. Sorting before grouping is also what makes "within a day,
- * chronological" free rather than a second sort.
+ * chronological" free rather than a second sort, and what makes each `covering`
+ * list ascending.
  *
  * Never throws. A missing list is an empty list, and an entry that is not an
  * event with a real `startsAt` is dropped rather than passed to `sortEvents`,
@@ -283,8 +373,10 @@ export function eventDays(events: readonly EventRecord[]): EventDay[] {
   )
   if (usable.length === 0) return []
 
+  const ordered = sortEvents(usable)
+
   const byKey = new Map<string, EventRecord[]>()
-  for (const event of sortEvents(usable)) {
+  for (const event of ordered) {
     const key = dayKey(event.startsAt)
     if (key === '') continue
     const bucket = byKey.get(key)
@@ -292,20 +384,127 @@ export function eventDays(events: readonly EventRecord[]): EventDay[] {
     else bucket.push(event)
   }
 
-  // sortEvents already emits ascending startsAt, so the insertion order of this
-  // map is ascending by key already. Sorted again anyway, because "ascending" is
-  // part of this function's contract and the reason it currently holds is an
+  // -------------------------------------------------------------------------
+  // THE SPAN WALK, which is the whole fix.
+  // -------------------------------------------------------------------------
+  //
+  // For every event whose date span covers more than one date, every date AFTER
+  // its start and up to and including its end is a day the event runs on. Those
+  // days are added to `days` as covered days - NOT as new days with events of
+  // their own, and NOT as new selectable days.
+  //
+  // `isDateSpan` is the single rule for what a span is, shared with the formatter
+  // that prints "19 - 31 October 2026" in the panel and the list. If those two
+  // disagreed, the page would say "19 - 31 October 2026" in prose and mark one
+  // square in the grid, which is the contradiction being fixed. So they cannot
+  // disagree: they ask the same function.
+  //
+  // `gop-quarterly-meeting` is the case that makes `isDateSpan` necessary rather
+  // than merely tidy. It runs 18:30 to 20:30 on 5 October, and an implementation
+  // that treated any `endsAt` as a DATE would mark 5 and 6 October for a
+  // two-hour meeting. The end date here is the end date only when both ends are
+  // date-only values, so a timed pair contributes nothing to this walk.
+  //
+  // NO CAP ON THE LENGTH OF A SPAN, deliberately. A cap would silently mark the
+  // first N covered days and drop the rest, which is the pessimistic half of the
+  // original defect wearing a limit. A `endsAt` of 2099 renders an absurd number
+  // of marked squares, which is visible in the built page and gets fixed at the
+  // source; `npm run events:check` is where a hand-edited range is diagnosed.
+  const covering = new Map<string, EventRecord[]>()
+  for (const event of ordered) {
+    const endsAt = event.endsAt
+    if (typeof endsAt !== 'string' || !isDateSpan(event.startsAt, endsAt)) continue
+    const startKey = dayKey(event.startsAt)
+    const endKey = dayKey(endsAt)
+    if (startKey === '' || endKey === '') continue
+    // From offset 1, so the start date is NOT a covered day: it is the day the
+    // event is LISTED on, and it is already in `byKey` with the event on it.
+    for (let offset = 1; ; offset += 1) {
+      const key = shiftDayKey(startKey, offset)
+      if (key === '' || key > endKey) break
+      const bucket = covering.get(key)
+      if (bucket === undefined) covering.set(key, [event])
+      else bucket.push(event)
+    }
+  }
+
+  // The union of both maps' keys, so a day that is only covered still exists and
+  // `monthGridFor` will place it. Iterating a Set built from both means a span
+  // crossing a month boundary produces a grid for the month it crosses INTO,
+  // which is the case the shipped data does not exercise and a future one will.
+  const keys = new Set<string>([...byKey.keys(), ...covering.keys()])
+
+  // sortEvents already emits ascending startsAt, so the insertion order of the
+  // map above is ascending by key already. Sorted again anyway, because "ascending"
+  // is part of this function's contract and the reason it currently holds is an
   // implementation detail of sortEvents that a future edit could change.
-  return [...byKey.entries()]
-    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
-    .map(([key, list]) => ({
-      key,
-      label: formatEventDate(key),
-      machine: machineDateTime(key),
-      events: list,
-      count: list.length,
-      multiple: list.length > 1
-    }))
+  return [...keys]
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+    .map((key) => {
+      const list = byKey.get(key) ?? []
+      const spans = covering.get(key) ?? []
+      return {
+        key,
+        label: formatEventDate(key),
+        machine: machineDateTime(key),
+        events: list,
+        count: list.length,
+        multiple: list.length > 1,
+        continues: spans.length > 0,
+        covering: spans
+      }
+    })
+}
+
+/**
+ * Is this day SELECTABLE - does the reader choose it, and does a panel exist for it?
+ *
+ * One place, because the answer is used in three: the radio group, the panels, and
+ * the generated per-day selectors in src/pages/events.astro. Deriving it in each
+ * of those independently is three chances to add a radio for a covered day, and a
+ * radio for a covered day is a date that can be selected and shows an empty
+ * panel - strictly worse than the defect above, because it looks like working
+ * selection machinery pointing at nothing.
+ *
+ * The test is `count > 0`, not `!continues`: a day can carry its own events AND
+ * be inside someone else's span (a debate on the 22nd of a fortnight of early
+ * voting), and such a day is perfectly selectable.
+ */
+export function isSelectableDay(day: EventDay | null | undefined): boolean {
+  return day !== null && typeof day === 'object' && (day.count ?? 0) > 0;
+}
+
+/**
+ * The text a cell inside a multi-day span carries for a reader who cannot see it.
+ *
+ * This is the accessible half of the continuation marker and it is TEXT, which is
+ * the part that survives greyscale print, forced-colours mode and every form of
+ * colour vision deficiency. The drawn marker beside it is the part a sighted
+ * reader uses at a glance; neither is sufficient alone.
+ *
+ * It names the covering event, the span it runs, AND the date the event is listed
+ * on - because the reader who lands on 25 October by arrow-keying through the
+ * grid needs to be told where to go next. Without that last clause the text says
+ * only that something is happening, which leaves the reader looking for a link
+ * that is not there.
+ *
+ * Returns '' for a day that is not covered, so a cell renderer can emit the
+ * element unconditionally and never assert a non-empty string. Never throws.
+ */
+export function continuationLabel(day: EventDay | null | undefined): string {
+  if (day === null || typeof day !== 'object' || !Array.isArray(day.covering) || day.covering.length === 0) {
+    return '';
+  }
+  const owner = day.covering[0];
+  if (owner === null || typeof owner !== 'object') return '';
+  const span = formatEventDateSpan(owner.startsAt, owner.endsAt);
+  // Two or more events running through one date is possible and rare; the single
+  // case is worded for the reader and the plural case stays a fact.
+  const who =
+    day.covering.length === 1
+      ? `${owner.name}, which runs ${span}`
+      : `${day.covering.length} events, one of which runs ${span}`;
+  return `Covered by ${who}. It is listed on ${formatEventDate(owner.startsAt)}.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -339,7 +538,15 @@ function daysInMonth(year: number, month: number): number {
  *
  * Every real day of the month gets a cell, event or not, and `eventCount` counts
  * the events in this month only: a `days` list spanning three months is a normal
- * input and must not inflate the count of the month being rendered.
+ * input and must not inflate the count of the month being rendered. A day that is
+ * only COVERED by a span adds nothing to it, because it holds no event of its own -
+ * which is what keeps "the grids together account for every event exactly once"
+ * true now that covered days are in the list.
+ *
+ * A covered day DOES get a cell, with `day` set, because that cell is how the
+ * reader is told the event runs on the date. So `day` being non-null no longer
+ * means "selectable": a cell whose day is only covered renders an inert `<span>`,
+ * not a `<label>`.
  *
  * Returns null for a month key that is not `YYYY-MM` naming a real month. Null
  * rather than an empty grid, because a caller that passed a bad key has a bug and
@@ -397,6 +604,14 @@ export function monthGridFor(monthKey: string, days: readonly EventDay[]): Month
  *
  * Each grid is populated from ITS OWN days only, so a day's events can never
  * appear in the count of a month they are not in.
+ *
+ * A month is rendered if ANY day falls in it, covered or not - so a span crossing
+ * a month boundary produces a grid for the month it crosses into, which is where
+ * the remaining covered days have to be visible. That is the intended reading of
+ * "months from the data": the data says something happens on those dates, even
+ * when nothing STARTS there. The shipped early-voting window does not cross a
+ * month, so test/calendar.test.mjs exercises this with a fixture rather than
+ * hoping the real data grows one.
  *
  * NEVER THROWS, like every other export in this file. This one used to be the
  * exception: it threw when `monthGridFor` returned null for a key that had come

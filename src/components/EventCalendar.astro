@@ -16,6 +16,38 @@
 // everything on it, and the panel stacks them.
 //
 // ---------------------------------------------------------------------------
+// A DAY INSIDE A MULTI-DAY EVENT IS NOT A DAY YOU CAN SELECT
+// ---------------------------------------------------------------------------
+//
+// Early voting runs 19 to 31 October 2026. The panel and the list both print that
+// range. The grid used to mark the 19th and render the following twelve dates as
+// ordinary empty squares - so the DEFAULT view of the page said voter access
+// existed on one day of thirteen, while its own prose said otherwise two hundred
+// pixels away. `eventDays` never consulted `endsAt` on the grid path.
+//
+// Three states render here, and which one it is decides everything else:
+//
+//   event day    <label for="day-...">      ring marker, event name, selectable
+//   covered day  <span>                     rule marker, hidden explanation, inert
+//   empty day    <span class="--bare">      no marker, nothing to select
+//
+// A COVERED DAY GETS NO RADIO, NO PANEL AND NO GENERATED SELECTOR. That is a
+// decision, not an omission: the event is listed once, on the day it starts, with
+// its range. A radio per covered day would be a control that can be focused,
+// checked, and announced as a selectable date, opening a panel with nothing in it -
+// which is worse than the original defect, because it looks like working selection
+// machinery. So `data-day` is on the clickable cell only, and the page's generated
+// `html:has(#day-<key>:checked) [data-day='<key>']` rules cannot reach a covered
+// day at all.
+//
+// IT IS STILL TOLD TO THE READER, TWICE, in two channels that survive the failure
+// modes colour does not. A SHAPE beside the numeral (`.cal__mark--span`, a rule
+// drawn with a border, so it is not erased by forced-colours mode) for a sighted
+// reader, and real TEXT for a screen reader - naming the event, the range it runs
+// and the date it is listed on. The text is inside the cell rather than in a
+// `title` attribute because a tooltip is unreachable by keyboard and unannounced.
+//
+// ---------------------------------------------------------------------------
 // WHY ONLY MONTHS THAT HAVE EVENTS
 // ---------------------------------------------------------------------------
 //
@@ -23,6 +55,14 @@
 // to remember which month the reader was on, and it would buy browsing months that
 // contain nothing. A speakers bureau has no events in an empty month, so an empty
 // grid is not information. Decided with the client, 2026-10-05.
+//
+// ONE QUALIFICATION, added when covered days arrived. "A month that has nothing in
+// it" now has to mean "a month in which no event runs and no event runs THROUGH",
+// not "a month with no event START date in it". A span crossing a month boundary
+// puts covered days in the second month, and those dates have to be visible
+// somewhere or the reader is back to being told the event is not on them. So the
+// month list is derived from every day `eventDays` produced, covered ones included,
+// and a month that holds only covered days still renders.
 //
 // ---------------------------------------------------------------------------
 // A REAL <table>, AND WHY
@@ -43,7 +83,7 @@
 // ---------------------------------------------------------------------------
 
 import type { MonthGrid } from '../lib/calendar'
-import { WEEKDAY_FULL, WEEKDAY_LABELS } from '../lib/calendar'
+import { continuationLabel, WEEKDAY_FULL, WEEKDAY_LABELS } from '../lib/calendar'
 
 interface Props {
   months: MonthGrid[]
@@ -90,7 +130,7 @@ function toWeeks(cells: MonthGrid['cells']): MonthGrid['cells'][] {
               <tr>
                 {week.map((cell) => (
                   <td class="cal__cell">
-                    {cell.day ? (
+                    {cell.day && cell.day.events.length > 0 ? (
                       <label
                         class="cal__day"
                         for={`day-${cell.day.key}`}
@@ -101,6 +141,9 @@ function toWeeks(cells: MonthGrid['cells']): MonthGrid['cells'][] {
                           {cell.dayNumber}
                           {/* A SHAPE, not a tint. See the note on .cal__mark below. */}
                           <span class="cal__mark" aria-hidden="true" />
+                          {cell.day.continues && (
+                            <span class="cal__mark cal__mark--span" aria-hidden="true" />
+                          )}
                         </span>
                         <span class="cal__dayname">{cell.day.events[0].name}</span>
                         {cell.day.multiple && (
@@ -111,7 +154,45 @@ function toWeeks(cells: MonthGrid['cells']): MonthGrid['cells'][] {
                         {past.has(cell.day.key) && (
                           <span class="visually-hidden">(already held)</span>
                         )}
+                        {cell.day.continues && (
+                          <span class="visually-hidden">({continuationLabel(cell.day)})</span>
+                        )}
                       </label>
+                    ) : cell.day ? (
+                      /*
+                        A DAY A MULTI-DAY EVENT RUNS THROUGH, and nothing more.
+                        THIS IS AN INERT SPAN, NOT A LABEL, and it is the single most
+                        load-bearing decision in this component.
+
+                        It was a `<label>` once, pointing at a `#day-<key>` radio that
+                        did not exist. The alternative - giving every covered day its
+                        own radio, its own panel and its own generated
+                        `html:has(#day-...)` rule - was rejected on purpose: the
+                        event is listed ONCE, on the day it starts, with its full
+                        range. A radio per covered day would mean a date that can be
+                        selected, passes keyboard focus, and opens an empty panel.
+
+                        So: no `for`, no `data-day` (which is what the page's generated
+                        selectors target), no radio, no panel. The reader is told the
+                        day is covered by a MARKER and by TEXT, and cannot select it,
+                        which is the truth.
+                      */
+                      <span
+                        class="cal__day cal__day--continues"
+                        data-continues="true"
+                        data-past={past.has(cell.day.key) ? 'true' : undefined}
+                      >
+                        <span class="cal__daynum">
+                          {cell.dayNumber}
+                          <span class="cal__mark cal__mark--span" aria-hidden="true" />
+                        </span>
+                        <span class="visually-hidden">
+                          ({continuationLabel(cell.day)})
+                        </span>
+                        {past.has(cell.day.key) && (
+                          <span class="visually-hidden">(already held)</span>
+                        )}
+                      </span>
                     ) : cell.dayNumber !== null ? (
                       <span class="cal__day cal__day--bare">
                         <span class="cal__daynum">{cell.dayNumber}</span>
@@ -284,6 +365,89 @@ function toWeeks(cells: MonthGrid['cells']): MonthGrid['cells'][] {
 
   /* The empty-day cell renders no .cal__mark at all, which is the whole mechanism:
      presence of the element is the signal, so it cannot be lost to a theme. */
+
+  /* ------------------------------------------------------------------------
+   * .cal__mark--span - THE COVERED-DAY MARKER
+   * --------------------------------------------------------------------- *
+   *
+   * A DAY INSIDE A MULTI-DAY EVENT, as opposed to the day the event starts.
+   * Early voting runs 19 to 31 October 2026; before this marker existed the grid
+   * marked the 19th and rendered 20 through 31 as ordinary empty squares, while
+   * the panel and the list both said "19 - 31 October 2026". The default view of
+   * the page therefore understated voter access on twelve of the thirteen days
+   * it runs - confidently, and in the pessimistic direction.
+   *
+   * It is a DIFFERENT SHAPE from `.cal__mark`, and it has to be, for two reasons:
+   *
+   *   1. It must differ from a genuinely empty day, which carries no marker at
+   *      all. That is already a difference, but a reader who has learned "a dot
+   *      means something starts here" would learn nothing new.
+   *   2. It must differ from the FIRST DAY of the span, which carries the ring and
+   *      is selectable, while this is not. A covered day that looked identical to
+   *      an event day would be a cell that looks clickable and is not.
+   *
+   * SO IT IS A RULE BESIDE THE NUMERAL, not a second ring. A short horizontal bar
+   * reads as "this continues", where a second dot would read as "and another event
+   * starts here" - which is false, and would put the count on the page out by one
+   * on every covered date.
+   *
+   * DRAWN WITH A BORDER, for the same reason as `.cal__mark` and stated there:
+   * forced-colours mode overrides `background-color` to the canvas colour, so a
+   * bar painted that way vanishes in exactly the mode it was added for.
+   * `border-block-end` is not overridden, so the bar keeps its weight and length.
+   *
+   * `height: 0` with a border is not a mistake and not a hack: an element with no
+   * content box and one bottom border IS a rule, and it is the same shape a
+   * `border-block-start` under a heading draws. The `width` is what makes it a
+   * mark rather than a hairline.
+   *
+   * DELIBERATELY NOT THE SAME SIZE OR WEIGHT AS THE SELECTION BAR. Selection is a
+   * `--rule-width-strong` bar down the inline-start edge of the cell, drawn by the
+   * page's generated selectors. Two full-height bars in one cell would compete.
+   */
+  /* `.cal__mark.cal__mark--span`, NOT `.cal__mark--span`. The element carries BOTH
+     classes, and the base `.cal__mark` rule would otherwise also apply to it -
+     giving it the ring's width, height, border and radius. With equal specificity
+     the later rule wins, so the override would work, but it would work only because
+     of SOURCE ORDER, which is exactly the kind of correctness-by-accident this file
+     has been bitten by. Naming both classes raises specificity above the base rule
+     and makes the override hold wherever the stylesheet is assembled.
+     `.cal__mark`'s `display: inline-block` and `flex: none` are still inherited,
+     which is wanted - the bar needs to sit on the numeral's baseline row. */
+  .cal__mark.cal__mark--span {
+    width: 12px;
+    height: 0;
+    border: 0;
+    border-block-end: var(--rule-width-strong) solid currentColor;
+    border-radius: 0;
+  }
+
+  /* The covered-day CELL. Inert: not a label, no pointer, no hover state. The
+     `.cal__day` class is shared with the clickable cell so the padding and the
+     minimum height are identical - a grid whose covered days were a different
+     height from its empty days would look like a rendering fault. */
+  .cal__day--continues {
+    cursor: default;
+  }
+
+  /* The covered day is muted, because it is context rather than an entry point -
+     but ONLY the numeral, and never as the sole signal. The marker above is the
+     signal; this is decoration that happens to make the grid easier to read. */
+  .cal__day--continues .cal__daynum {
+    color: var(--text-muted);
+  }
+
+  /* The legend that explains the marker is rendered by events.astro, in the PAGE's
+     scoped style block, and deliberately not here. Two facts make that correct:
+   *
+   *   - This component renders no prose. Every other string in this file is a day
+   *     number or an event name that came from the data.
+   *   - A rule in a page's scoped block CANNOT match an element another component
+   *     renders. It fails SILENTLY, which is how this page once shipped with no
+   *     focus ring. See the note on the per-day selectors in events.astro.
+   *
+   * What must live HERE is the marker itself, because these cells are rendered
+   * here and nowhere else. That split is the whole lesson of the two files. */
 
   /*
     THE EVENT NAME IN THE CELL, CLAMPED TO TWO LINES.

@@ -178,7 +178,7 @@ it, a human or an AI assistant does. That single fact drove every decision below
 | Selection unit | **A DATE, not an event.** | A calendar cell is a date and two events can share one. One hidden radio per distinct date; calendar cells AND list rows are `label for` on the same radio, so the two views cannot disagree and no script synchronises them. |
 | Same-day events | **Stacked in the panel**, each with its own banner. | Nothing hidden, no banner picked arbitrarily. No longer hypothetical: two elections fall on 3 November 2026, and the stacking renders `h2` then `h3`. |
 | Event timestamps | **Local wall clock, `YYYY-MM-DDTHH:MM`, offsets REJECTED.** | The file holds no absolute instant, so the zone is a human `timezone` label. No DST arithmetic, no dependency. Stated as a limitation. |
-| Multi-day spans | `allDay: true` plus a plain-date `endsAt`, rendered as `15 - 31 October 2026`. | Early voting is seventeen days and the end date is the number a voter needs. The schema already allowed it; only the RENDERER was incomplete, so this closed a gap rather than adding a feature. A timed pair never renders as a span. |
+| Multi-day spans | `allDay: true` plus a plain-date `endsAt`, rendered as `19 - 31 October 2026`. | Early voting is thirteen days and the end date is the number a voter needs. The schema already allowed it; only the RENDERER was incomplete, so this closed a gap rather than adding a feature. A timed pair never renders as a span. Every day of the span is marked in the grid, but only the first is a selectable entry. |
 | Undated prose | **A third root key, `pageNote`, validated like an event.** | "Ongoing campaign activity" is not an event and has no date. Faking it as one would put undated prose on a calendar of real election dates. Empty `paragraphs` is rejected so "no note" and "a note with nothing in it" cannot be expressed the same way. |
 | Missing artwork | **Generated typographic placeholders**, carrying the event name, the date and the word `PLACEHOLDER`. | There are no photographs for any real event yet. A plate of type cannot be mistaken for a photo, and the word on it means nobody mistakes the page for finished. |
 | Type vocabulary | **Extended once, to `Meeting`.** | A party quarterly meeting is not a moderated forum, and the chip is what a reader scans. The vocabulary was built to be extendable; this was its first real use. |
@@ -192,14 +192,28 @@ it, a human or an AI assistant does. That single fact drove every decision below
 
 **Known follow-ups, recorded so absence is not read as oversight**
 
-- **The top follow-up: a multi-day span marks only its FIRST day in the grid.**
-  Early voting occupies 15 October's cell; the 16th to the 31st render as ordinary
-  empty days. The full range is correct in the panel and in the list, but a reader
-  scanning the grid sees a fortnight of voter access as one day. Fixing it means
-  teaching `src/lib/calendar.ts` that a day can be a continuation rather than the
-  start of something - which adds continuation days that must NOT get their own
-  radio or panel, since they are not separately selectable. It is a real change to a
-  well-tested module and belongs in its own pass, not in a data replacement.
+- **DONE 2026-10-05: a multi-day span now marks EVERY day it runs on in the grid.**
+  This was the top follow-up, and it was the worst defect the project had: early
+  voting occupied one cell of thirteen while the panel and the list said
+  "19 - 31 October 2026", so the page's DEFAULT view understated voter access on
+  twelve of the thirteen days it runs - confidently, and in the pessimistic
+  direction. `src/lib/calendar.ts` now knows a day can be a *continuation*: a date
+  a span runs through rather than one that starts there. Such a day is marked with a
+  rule beside its numeral and carries hidden text naming the event, the range and
+  the date it is listed on, and it is deliberately NOT given a radio, a panel or a
+  generated selector - it is not separately selectable, and a control that opens an
+  empty panel is worse than the bug. The span rule itself is one shared function
+  (`isDateSpan` in `src/lib/events-schema.ts`) asked by both the formatter that
+  prints the range and the calendar that marks the days, so the two cannot disagree.
+- **Remaining: a span must be between two ALL-DAY dates, so a timed event that really
+  does run for more than one date gets no covered-day markers.** It renders as its
+  start date on every view of the site, consistently, but a reader is not told it
+  continues. The fix is not a change to the calendar: it is a schema that can say
+  "this event runs on these three dates, on these times", which does not exist. Until
+  it does, `data/events.schema.md` tells an author to enter such an event as one
+  all-day entry per date. Deliberately left as a follow-up rather than "fixed" with a
+  special case, because a special case here would be the second definition of what a
+  span is, and two definitions is how this page ended up contradicting itself.
 - The per-day selectors are **generated from the data** (done 2026-10-05). They used
   to be three hand-written blocks, one line per date, with a test failing the build
   if a date in the data was missing from any of them. The test did its job - it is

@@ -96,7 +96,7 @@ All of these are run from the project folder, in a terminal opened there.
 | `npm run dev` | Starts Astro's local dev server. The site is at `http://localhost:4321/`. Edit a file and it reloads. |
 | `npm run build` | Builds the static site into `dist/`. This is exactly what GitHub runs. |
 | `npm run fetch` | Fetches every enabled feed, validates it, rewrites `data/articles.json`, and prints a per-source report. Exits non-zero if any feed fails. |
-| `npm test` | Runs the test suite (152 tests). No network access; it does not touch `data/articles.json`. |
+| `npm test` | Runs the test suite (206 tests). No network access; it does not touch `data/articles.json`. Run `npm run build` first: several tests read `dist/`. |
 | `npm run events:check` | Validates `data/events.json` and prints every problem it finds, plus whether every referenced image file exists on disk. |
 | `npm run preview` | Serves the already-built `dist/` locally, so you can check the real build output. |
 
@@ -190,11 +190,26 @@ behaviour, not a bug.
 A second dataset, `data/events.json`, with the opposite provenance: **no script
 writes it.** A human writes it, or an assistant writes it from instructions.
 
-Because of that, the schema is enforced hard:
+The entries currently in it are real, dated civic events in the Upstate of South
+Carolina, drawn from the organiser's own notices. Every one carries a `url` to the
+page it came from, and the page tells the reader so and links to it. **If you add an
+event, add its source URL too.** A civic date with no source is an assertion with
+nothing behind it, and the validator cannot tell the difference - it checks shape,
+never truth.
+
+**Check facts against the source before you commit them.** On 2026-10-05 an audit
+of this file found a wrong county on a polling-place instruction, a start date four
+days early on the early-voting window, and two events whose notes claimed no time
+had been published when the organiser had published one. All four passed
+`npm run events:check` and 192 passing tests, because every automated check here
+validates *shape*. The only thing that catches a wrong fact is reading the source.
+
+Because the file has no writer, the schema is enforced hard:
 
 - `scripts/check-events.mjs` (run it with `npm run events:check`) validates the
   file, reports **every** problem at once instead of stopping at the first, and
-  checks that every referenced image actually exists in `public/img/events/`.
+  checks that every referenced image actually exists in `public/img/events/`
+  *and that nothing in that folder is unreferenced*.
 - An unknown key is a hard error. A misspelled `loction` would otherwise render a
   row with no venue and a green build, which is the failure this guards.
 - `src/lib/events.ts` throws on a malformed file, so a mistake fails

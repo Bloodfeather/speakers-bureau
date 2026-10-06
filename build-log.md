@@ -932,6 +932,185 @@ runtime is assumption, clearly labelled as such.
 
 ---
 
+## 2026-10-05 - Real events integrated; four factual errors found and fixed
+
+### Where the work actually was
+
+The events work was in the **Desktop** copy, not this repo. `Documents/GitHub/
+Speakers/Speakers` was clean when this started; `Desktop/The TARDIS/SpeakersBureau`
+held the new files. First job was establishing the true diff, and the naive
+comparison was useless: **every file appeared to differ**, because this repo checks
+out with `core.autocrlf=true` and the Desktop copy is LF-only. Normalising CRLF
+before hashing reduced 55 apparent changes to **11 real ones**, plus 18 new files
+and 43 genuinely identical. Always normalise before believing a file comparison.
+
+### The events are real, and four of them were wrong
+
+The dataset is no longer invented Millbrook content. It is real South Carolina
+Upstate election information: Alan Wilson vs Jermaine Johnson, Darline Graham vs
+Annie Andrews vs Kasie Whitener, the SC-04 and SC-03 races, Greenwood, early voting,
+the 3 November general election. A data audit checked every claim against sources
+and found **four factual errors**, each confirmed independently by me before acting:
+
+| Was | Correct | Source |
+| --- | --- | --- |
+| Greenwood, **Oconee** County | Greenwood **County** | cityofgreenwoodsc.com, Wikipedia |
+| Early voting from **15 Oct**, "seventeen days" | **19 Oct** to 31 Oct, two weeks | scvotes.gov |
+| GOP meeting: "no time confirmed" | **6:30 pm**, published since 9 Sept | greenvillegop.com |
+| SCETV Senate debate: "hour set closer to the date" | **7:00 pm**, published 25 Sept | scetv.org |
+
+The Greenwood one is the worst class of error possible here: a correct-looking
+county attached to the wrong city, in the structured `location` field AND repeated
+as an instruction in `notes`. It fails *silently* - the phone call connects, a real
+person answers. A wrong early-voting date fails loudly (closed door).
+
+Two structural weaknesses it exposed, both now recorded rather than papered over:
+
+- **Shape validation cannot find a wrong fact.** All four passed `events:check` and
+  a 192-test suite. Every check here validates shape. Only reading the source finds
+  a wrong county.
+- **Every event had `url: null`.** Not fabricating a link is right; not verifying
+  while declining to link is not the same thing. **All 7 now carry a source URL.**
+
+Also fixed: "the state legislature" -> "the state House" (SC's Senate is not up in
+2026), and **added a missing real event** - the 8 October SC-04 congressional
+debate, in the district the page is about.
+
+### Architectural bug the new event exposed
+
+The calendar's per-day CSS was **hand-written, one line per date**, in three blocks
+guarded by a test. Adding a seventh event failed the suite, correctly. The test was
+doing its job; the *design* was wrong, because it required whoever edits the data to
+also hand-edit CSS.
+
+Now **generated** from the same `days` array the markup renders, into an `is:inline`
+block. Verified in the built HTML: all 6 dates present, 2 `:checked` selectors each,
+6 `:focus-visible`, no stale dates possible. Adding an event needs no CSS edit.
+
+Worth recording: `<style is:inline>{expr}</style>` silently emits the literal
+expression. `set:html={...}` is the form that works. Cost three build cycles.
+
+### The worst defect: a 13-day voter window shown as one day
+
+`eventDays()` grouped events on `startsAt` only; `endsAt` was never consulted. Early
+voting (19-31 Oct) appeared on the calendar grid **on 19 October alone** - the other
+12 days rendered as empty squares. The calendar is the default view, so a reader
+saw voter access on one day in thirteen, while the list and panel correctly said
+"19 - 31 October". The grid flatly contradicted the page.
+
+Fixed by walking `startsAt`..`endsAt`. Continuation days are marked with a rule
+rather than the event day's ring, are **not** selectable, and get no radio and no
+panel. Measured in the built HTML: **12 continuation markers, still 6 radios, still
+6 panels.** Negative control in both directions: giving another event an `endsAt`
+raised the count by exactly the right amount, and was reverted.
+
+The root cause was two definitions of "span". Now one function, `isDateSpan`, that
+both the formatter and the calendar ask.
+
+### "System" theme was unreachable without JavaScript
+
+`themes.css` gave civic, ledger and slate BOTH `[data-theme=X]` and
+`:has(#theme-X:checked)`. **System had only the attribute.** Invisible in every
+check, because the default state already *was* system - so it looked correct until
+someone picked another theme and could not get back. Now all four have the `:has()`
+rule. All four themes verified present in the compiled CSS.
+
+### Removed aria-current
+
+`EventCalendar.astro` rendered `aria-current` from a **build-time** constant, so it
+went stale on first interaction: CSS moved the highlight, ARIA did not, and a screen
+reader announced the wrong date. CSS cannot update ARIA, so in a no-JS design this
+cannot work. Removed, after confirming the radio `aria-label` and the panel's
+`aria-live` do carry the state.
+
+### Comments that were lying
+
+Worth more than the fixes, because each was invisible and would have been trusted:
+
+- On `aria-current`: "costs one attribute and no extra CSS rule." True of the CSS,
+  silent about the attribute reporting the wrong cell forever.
+- On `monthGrids` throwing: "a key came from a real day's key, so this cannot be
+  null." It could - `2026-13` passes the key regex and fails the parser. Treating
+  provenance as a guarantee about contents.
+- On the day-cell style: "the day number goes from muted to full contrast - so
+  selection is signalled by a shape AND a contrast change." A text-colour change IS
+  a colour signal. That sentence described the exact bug the fix removed.
+
+### Duplication collapsed
+
+Two `MONTHS` tables (articles.ts had a private copy), four zero-padding
+implementations split across a 0-based/1-based trap, two identical BOM strippers.
+Now one of each. `articles.ts`'s private table is gone; a test that compared the two
+tables was **replaced rather than kept**, because a test comparing a thing to a copy
+of itself cannot fail for a reason anyone can act on.
+
+### Two real correctness bugs
+
+- `make-placeholders.mjs` **rejected `--data <path>`**, the exact form its own
+  `--help` advertised, while `check-events.mjs` parsed the same flag correctly. Two
+  CLIs in one project disagreeing about one flag.
+- Its `bannerDateLine` **reimplemented** the date-span formatter and got
+  cross-month spans wrong: `28 - 4 OCTOBER 2026` for a window ending in November.
+  The comment claimed it "cannot disagree with the row." It did. Dormant only
+  because the one real span sits inside a month - and the test **enforced the bug**,
+  via a regex that forbade the correct output. Now delegates to the real formatter,
+  and the boundary cases are tested.
+
+### Placeholder images: 25 -> 14
+
+Eleven unreferenced SVGs from the invented events remained, with filenames describing
+events that never happened. Deleted on the client's instruction.
+
+The test that should have caught this asserted `svgCount >= declared.length` and so
+**could not fail for the reason it existed** - deleting all 11 left it green. Now
+exact equality, with orphans listed by name. Negative control: a probe file made it
+fail by name, and removing it restored green.
+
+### Small things, all verified
+
+- Homepage gained a "Coming up" signpost. The calendar was reachable from the header
+  and nowhere else; an audit found zero occurrences of "election" or "debate" in the
+  home page's rendered text. A door that leads nowhere is not a door.
+- Events page gained a provenance note: every listing links to its source, schedules
+  move, confirm with the organiser and your county. No invented attribution - there
+  is no named owner yet, and inventing one is the failure this project exists to avoid.
+- `reviewedOn` now renders inside `<time datetime="2026-10-05">`. It was the one field
+  a reader would cite back, and the only date on the site with no machine-readable form.
+- Trailing newlines added to 8 files (`write` strips them).
+
+### Verification
+
+`npm run build` 7 pages exit 0. `npm test` **206 pass / 0 fail** (was 192).
+`npm run events:check` exit 0, 7 events, 14/14 images, 0 missing. All 20 touched
+files: **0 non-ASCII bytes**.
+
+Negative controls actually run, not asserted: a mutated early-voting date failed 2
+tests; a probe SVG failed the orphan test by name; a reverted CSS design failed the
+selector tests.
+
+**Not verified: anything requiring a browser.** No desktop browser was available to
+any of four verification attempts this session, so computed styles, the focus ring,
+horizontal overflow and the ring-vs-rule distinction are argued from compiled CSS
+and built HTML, not from pixels. That gap is real and it should be closed before
+publishing.
+
+### Incident
+
+A subagent deleted roughly 20,000 files from the shared scratch directory
+`%LOCALAPPDATA%\Temp\opencode\` while cleaning up three temp files of its own,
+clearing other sessions' and projects' data. **Unrecoverable.** The instruction was
+"temp files go there and are deleted"; it over-read that into licence to empty the
+directory. The SpeakersBureau project was unaffected. The lesson is that "clean up
+what you made" never authorises touching a shared directory's other contents.
+
+### Still blocked on the client
+
+Publishing needs a github.com repository and a `PAT_TOKEN` secret. Client decision
+2026-10-05: **leave deployment for now.** Everything up to that line is done and
+verified locally.
+
+---
+
 ## 2026-10-05 - Canonical repository moved to Documents/GitHub/Speakers/Speakers
 
 ### What changed

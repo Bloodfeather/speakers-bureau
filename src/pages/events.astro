@@ -62,6 +62,7 @@ import {
   eventDays,
   dayKey,
   dayRadioLabel,
+  isSelectableDay,
   monthGrids
 } from '../lib/calendar'
 import {
@@ -82,8 +83,41 @@ import {
 
 const ordered = sortEvents(events)
 
-/** One entry per distinct date, ascending, each holding its events. */
+/**
+ * One entry per date something happens on, ascending, each holding its events.
+ *
+ * This list ALSO holds dates that only exist because a multi-day event runs
+ * THROUGH them - 20 to 31 October 2026, for the early voting window - and those
+ * carry no events of their own. They are here so the month grid can mark them.
+ * They are NOT selectable, and `selectableDays` below is what everything that
+ * needs a control uses instead.
+ */
 const days = eventDays(ordered)
+
+/**
+ * The dates a reader can actually choose: the ones with at least one event on
+ * them. A covered day is excluded.
+ *
+ * THIS IS THE LINE BETWEEN "the calendar tells the reader about this date" and
+ * "the calendar offers the reader this date", and it is computed in one place
+ * because four things depend on it - the radio group, the panels, the selected
+ * date on first paint, and the generated per-day CSS below. Deriving it separately
+ * in each is four chances to add a radio for a day with nothing behind it, and
+ * that failure is worse than the one this page had before: the control would be
+ * real, focusable, keyboard-operable and announced as a selectable date, and it
+ * would open an empty panel.
+ */
+const selectableDays = days.filter((day) => isSelectableDay(day))
+
+/**
+ * How many dates exist only because an event runs through them.
+ *
+ * Drives the legend below. The legend is conditional on this being non-zero,
+ * because a page that explains a marker nobody can see is a paragraph about
+ * nothing - the same rule as the page note, which renders only when the data
+ * carries one.
+ */
+const coveredOnlyDays = days.filter((day) => day.continues && !isSelectableDay(day))
 
 /** Month grids, derived from those days - never a hardcoded month list. */
 const months = monthGrids(days)
@@ -91,14 +125,37 @@ const months = monthGrids(days)
 /**
  * Dates already past, taken from the data rather than from the clock.
  *
- * A day's first event decides it, which is unambiguous: every event on a date
- * starts on that date, so they cannot disagree about whether it has passed.
+ * A day's first event decides it, which is unambiguous for a day with events on
+ * it: every event on a date starts on that date, so they cannot disagree about
+ * whether it has passed.
+ *
+ * A COVERED DAY HAS NO EVENT OF ITS OWN TO ASK, so it inherits the answer from the
+ * event that starts the run - `covering[0]`, which `eventDays` sorted ascending, so
+ * it is the earliest coverer. Without that, a fortnight of early voting that has
+ * already happened would render as upcoming for every day after its start, which is
+ * the mirror image of the bug that put covered days in the grid at all: there it
+ * under-reported future access, and here it would over-report past access.
+ *
+ * BUILT IN A LOOP RATHER THAN IN A FILTER, and that is the load-bearing part. The
+ * covered days need to look up a set that is still being built, so the two have to
+ * be interleaved in date order - and `days` is ascending, so the owner is always
+ * added before the days it covers. A `days.filter(...)` that read `pastKeys` inside
+ * its own predicate would read the variable while its `const` initialiser was still
+ * running, which throws a ReferenceError at MODULE SCOPE and takes the build down.
  */
-const pastKeys = new Set(
-  days
-    .filter((day) => day.events.length > 0 && isPast(day.events[0], reviewedOn))
-    .map((day) => day.key)
-)
+const pastKeys = new Set<string>();
+for (const day of days) {
+  if (day.events.length > 0) {
+    if (isPast(day.events[0], reviewedOn)) pastKeys.add(day.key);
+    continue;
+  }
+  // A covered day: no event of its own, so it is past exactly when the run that
+  // covers it is. `covering[0]` is the earliest coverer, because `eventDays` sorted
+  // each list ascending by the covering event's own start.
+  const owner = day.covering[0];
+  if (owner === undefined) continue;
+  if (pastKeys.has(dayKey(owner.startsAt))) pastKeys.add(day.key);
+}
 
 /**
  * The day selected on first paint: the first UPCOMING one, falling back to the
@@ -109,8 +166,13 @@ const pastKeys = new Set(
  * from `reviewedOn`, a date a human puts in the file. Calling new Date() would make
  * the built HTML depend on the day the build ran, which is ROADMAP design rule 8
  * broken in its most literal way. See `reviewedOn` in src/lib/events-schema.ts.
+ *
+ * Drawn from `selectableDays`, NOT from `days`. A covered day has no panel to show,
+ * so selecting it would leave the reader looking at an empty column beside a cell
+ * they believe they chose.
  */
-const selectedKey = (days.find((day) => !pastKeys.has(day.key)) ?? days[0])?.key ?? ''
+const selectedKey =
+  (selectableDays.find((day) => !pastKeys.has(day.key)) ?? selectableDays[0])?.key ?? ''
 
 // ---------------------------------------------------------------------------
 // THE PER-DAY SELECTORS, GENERATED
@@ -144,7 +206,14 @@ const selectedKey = (days.find((day) => !pastKeys.has(day.key)) ?? days[0])?.key
 // events and honest to say is not fine at hundreds. At that point the right trade
 // is one small inline script setting a data attribute on the selected cell, and
 // the calendar should stop pretending otherwise.
-const dayKeys = days.map((day) => day.key)
+//
+// FROM `selectableDays`, NEVER FROM `days`. This is the fourth consumer of that
+// split and the one that makes it matter most: a covered day emitted here would
+// get `#day-2026-10-25`, a `data-day='2026-10-25'` target and a focus rule - for a
+// date with no radio to check and no panel to show. The selectors would be dead,
+// the cell would be marked, and nothing would say why. So the generator is fed the
+// selectable days and can only ever describe dates that exist as controls.
+const dayKeys = selectableDays.map((day) => day.key)
 
 const selectorFor = (attr: string, pseudo: string) =>
   dayKeys.map((key) => `html:has(#day-${key}:${pseudo}) [data-${attr}='${key}']`).join(',\n  ')
@@ -175,10 +244,17 @@ const lastDate = lastEvent
 // EVERY CLAIM IN HERE IS DERIVED FROM THE DATA. An earlier version said "Each row
 // carries a thumbnail" and three of seven rows had none. See the note in the
 // first commit of this file.
+//
+// `selectableDays.length`, NOT `days.length`, and the difference is thirteen
+// against six on the shipped data. `days` also holds the twelve dates inside the
+// early voting window, and "across 18 dates" would tell a reader there are eighteen
+// things to choose from when there are six - an over-count that runs in the
+// optimistic direction, which is exactly as much of a lie as the defect this change
+// fixed, and no easier to spot.
 const description =
   `The events calendar: ${eventCount} dated events` +
   (firstDate && lastDate ? ` between ${firstDate} and ${lastDate}` : '') +
-  ` across ${days.length} dates. Choose a date to see what is on.`
+  ` across ${selectableDays.length} dates. Choose a date to see what is on.`
 
 /** Render one row for an event, with the flags the list view needs. */
 const rowFlags = (event: (typeof ordered)[number]) => {
@@ -212,6 +288,52 @@ const rowFlags = (event: (typeof ordered)[number]) => {
         )
       }
     </p>
+
+    {/*
+      THE COVERED-DAY LEGEND, rendered only when there are covered days to explain.
+
+      A marker with no legend is a marker a reader has to decode from the page's own
+      visual grammar, and this page does not have one: there is nothing else on the
+      calendar that looks like a rule beside a numeral. So the shape is named in
+      words, once, near the calendar.
+
+      CONDITIONAL, and the condition is `coveredOnlyDays.length > 0`. A page whose
+      events are all single dates would otherwise open with a sentence about a mark
+      that appears nowhere on it - which is the same defect as a description
+      claiming every row has a thumbnail, and the test on that description exists
+      because it shipped.
+
+      IT LIVES HERE AND NOT IN EventCalendar.astro, and that is forced rather than
+      chosen: the marker is drawn by the component, but this is PROSE about the
+      component's output, and a rule in a page's scoped style block cannot style
+      another component's elements anyway - it fails SILENTLY. See the note at the
+      foot of the calendar's own style block.
+
+      NO TAG NAME IS SPELLED IN THIS COMMENT, and that is not fussiness. The suite
+      that reads this page's style block finds it with a non-greedy tag pattern, so
+      a literal style tag inside an earlier comment captures the block from the
+      wrong place and mis-pairs its comment delimiters - which is exactly what this
+      comment did: it made the page appear to name a class it does not style, and
+      turned a 200-character aside into a red build. Prose about a tag refers to
+      the block, not to its punctuation.
+
+      THE BRACE AFTER THIS COMMENT IS LOAD-BEARING, and it is worth naming because
+      it looks like a typo. `{/* ... */}` is an EXPRESSION container holding a
+      comment, not a self-closing comment: drop the `}` and the container simply
+      continues into whatever expression follows, so the block after it stops being a
+      sibling and the build dies with "Expected } but found .". An earlier version
+      of this comment lost exactly that brace, and the error pointed 30 lines away
+      from the cause.
+    */}
+    {
+      coveredOnlyDays.length > 0 && (
+        <p class="page-head__legend">
+          A short rule beside a date marks a day inside a multi-day event, such as an
+          early voting window. Those dates are not separate entries: the event is
+          listed on the day it starts, with its full date range shown there.
+        </p>
+      )
+    }
 
     {/*
       THE PROVENANCE NOTE. Added 2026-10-05 after an audit of this page's data.
@@ -276,10 +398,21 @@ const rowFlags = (event: (typeof ordered)[number]) => {
     per event on that date - and with several labels a browser concatenates them
     all into an unreadable accessible name. Naming it directly makes the name the
     same in both views, which is correct, because both views select DATES.
+
+    RENDERED FROM `selectableDays`, not from `days`, and this is the single most
+    consequential line in the file for the shape of the controls. `days` also holds
+    the dates inside the early voting window; a radio for each of those would be
+    twelve focusable, announced, checkable controls that open a panel containing
+    nothing - a reader arrowing through the calendar would be told "25 October 2026,
+    0 events" and shown a blank column. That is worse than the original defect,
+    because it presents broken machinery as working machinery.
+
+    `dayRadioLabel` therefore only ever sees a day with at least one event, which is
+    why its count is never zero and its plural is always honest.
   */}
   <div class="events__inputs">
     {
-      days.map((day) => (
+      selectableDays.map((day) => (
         <input
           class="events__day"
           type="radio"
@@ -361,10 +494,18 @@ const rowFlags = (event: (typeof ordered)[number]) => {
       aria-atomic: with atomic set, every selection would re-announce the whole
       region including the banner alt text, and the day name - which is what
       actually changed.
+
+      ONE PANEL PER SELECTABLE DAY, and that is why the list above is `days` and
+      this one is `selectableDays`. A panel exists to be shown by exactly one
+      `:checked` selector, and the generated selector list contains no covered day.
+      An extra hidden panel would be dead markup for every date inside a span, and
+      its contents would still be in the accessibility tree under a region that is
+      announced as live - so a screen reader could encounter a fortnight of voting
+      text that the page can never show on purpose.
     */}
     <aside class="events__panel" aria-label="Selected date" aria-live="polite">
       {
-        days.map((day) => (
+        selectableDays.map((day) => (
           <div class="panel" id={`panel-${day.key}`} data-panel={day.key} aria-label={day.label}>
             {pastKeys.has(day.key) && <p class="panel__flag">Already held</p>}
             {day.events.map((event, index) => (
@@ -456,6 +597,25 @@ const rowFlags = (event: (typeof ordered)[number]) => {
   .page-head__source {
     max-width: var(--measure);
     margin-block-start: var(--space-3);
+    padding-inline-start: var(--space-4);
+    border-inline-start: var(--rule-width-strong) solid var(--rule-strong);
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  /* The covered-day legend. Rendered from `coveredOnlyDays`, so it appears only when
+     there is at least one covered day, and never on a calendar where every event is
+     a single date.
+
+     It is styled HERE rather than in EventCalendar.astro for the reason the calendar
+     spells out at the foot of its own style block: a rule in this page's scoped block
+     carries this page's scope id, and the elements it would need to match are
+     rendered by another component under a different one. Written here, this rule
+     would match the legend paragraph - which this page renders - and nothing else,
+     which is exactly right. The MARKER it explains stays in the component, because
+     the component is what draws it. */
+  .page-head__legend {
+    max-width: var(--measure);
     padding-inline-start: var(--space-4);
     border-inline-start: var(--rule-width-strong) solid var(--rule-strong);
     font-size: var(--size-sm);
