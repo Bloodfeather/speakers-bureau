@@ -67,12 +67,16 @@ export const SITE_CURATOR_ATTRIBUTION =
 /**
  * One line of positioning, shown under the name in the masthead.
  *
- * Cut down from the Bureau's own sentence - "the SC Speakers Bureau creates
- * engaging and educational events with speakers who inform and educate local
- * citizens" - because a masthead line has to be one line. It is the client's
- * wording, not project copy, which is why it carries no provisional marker.
+ * CLIENT COPY, chosen by the client on 2026-10-06 and not derived from anything
+ * in this project. The previous line was a truncation of the Bureau's own
+ * sentence about speakers, which is a different claim from the one this site
+ * makes: this site is a reading room, not a speakers bureau, and the line now
+ * describes what a visitor actually gets here.
+ *
+ * One sentence per string in this file. A reader who likes this line should not
+ * have to hunt through the repository to find where to change it.
  */
-export const SITE_TAGLINE = 'Speakers who inform and educate local citizens.';
+export const SITE_TAGLINE = 'Your connection to ardent hearts and independent journalism.';
 
 /**
  * The short honest paragraph on the home page.
