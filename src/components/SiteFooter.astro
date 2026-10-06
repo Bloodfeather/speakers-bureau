@@ -28,7 +28,7 @@
 import ThemeSwitcher from './ThemeSwitcher.astro'
 import { formatUtcDate } from '../lib/articles'
 import {
-  SITE_CURATOR,
+  SITE_CURATOR_ATTRIBUTION,
   SITE_NAME,
   SITE_OUTBOUND_NOTE,
   SITE_WINDOW_NOTE,
@@ -76,7 +76,7 @@ const fetchedOn = formatUtcDate(generatedAt)
     </nav>
 
     <p class="site-footer__colophon">
-      {SITE_CURATOR} - {SITE_NAME}
+      {SITE_CURATOR_ATTRIBUTION} {SITE_NAME}
     </p>
   </div>
 </footer>

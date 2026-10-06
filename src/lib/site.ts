@@ -5,10 +5,10 @@
 // PLACEHOLDER CONTENT - READ BEFORE SHIPPING
 // ---------------------------------------------------------------------------
 //
-// SITE_NAME and SITE_CURATOR were CHOSEN by the client on 2026-10-05 and are no
-// longer placeholders. SITE_TAGLINE, SITE_INTRO and SITE_WINDOW_NOTE are still
-// written for this project rather than supplied by the client, and the `site`
-// value in astro.config.mjs is still https://example.org.
+// SITE_NAME and SITE_CURATOR_ATTRIBUTION were CHOSEN by the client on 2026-10-05
+// and are no longer placeholders. SITE_TAGLINE, SITE_INTRO and SITE_WINDOW_NOTE
+// are still written for this project rather than supplied by the client, and the
+// `site` value in astro.config.mjs is still https://example.org.
 //
 // A placeholder is only useful while it is obviously one. The name and byline were
 // written plainly as placeholders so nobody would ship them by accident; now that
@@ -34,20 +34,28 @@
  * placeholder "Speakers Bureau"; the apostrophe in "Citizen's" is an ASCII `'` and
  * the string uses double quotes because of it.
  *
- * NOT the same thing as the organisation. `SITE_CURATOR` names the body that puts
- * the collection together, which the client described as "the SC Speakers Bureau
- * Curator". Keeping the two apart is deliberate: a reader who sees "The Citizen's
- * Reading Room" at the top and "SC Speakers Bureau" in the byline should be able to
- * tell that one is the publication and the other is the curator, rather than having
- * to guess whether they are two names for one thing.
+ * NOT the same thing as the organisation. `SITE_CURATOR_ATTRIBUTION` names the
+ * body that produces the collection, which the client described as "the SC
+ * Speakers Bureau Curator". Keeping the two apart is deliberate: a reader who sees
+ * "The Citizen's Reading Room" in the masthead and "SC Speakers Bureau" in the
+ * footer should be able to tell that one is the publication and the other its
+ * editor, rather than having to guess whether they are two names for one thing.
  */
 export const SITE_NAME = "The Citizen's Reading Room";
 
 /**
- * The byline above the masthead name, chosen by the client 2026-10-05, replacing
- * the placeholder "A reading room".
+ * The curator credit, shown ONCE, in the site footer only.
+ *
+ * Client decision 2026-10-05: the client is the curator AND the webmaster, and does
+ * not want the title in the masthead. An earlier version of this file kept a second
+ * value here for an eyebrow above the masthead name; that element is gone, so there
+ * is now one credit in one place rather than a name repeated twice on every page.
+ *
+ * Pre-worded here rather than assembled by the footer, so there is exactly one
+ * sentence to change if the credit ever changes.
  */
-export const SITE_CURATOR = 'By the SC Speakers Bureau Curator';
+export const SITE_CURATOR_ATTRIBUTION =
+  'Curated and maintained by the SC Speakers Bureau Curator.';
 
 /**
  * One line of positioning, shown under the name in the masthead.

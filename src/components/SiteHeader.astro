@@ -3,23 +3,28 @@
 // positioning, and the primary navigation.
 //
 // ---------------------------------------------------------------------------
-// THE NAME AND BYLINE ARE NOW REAL
+// THE NAME IS NOW REAL; THE CURATOR CREDIT IS NOT IN HERE
 // ---------------------------------------------------------------------------
 //
-// SITE_NAME ("The Citizen's Reading Room") and SITE_CURATOR ("By the SC Speakers
-// Bureau Curator") were chosen by the client on 2026-10-05, replacing the
-// placeholders "Speakers Bureau" and "A reading room". Both `data-provisional`
-// markers are removed from this file for that reason, and the grep that used to
-// find them now returns nothing here.
+// SITE_NAME ("The Citizen's Reading Room") was chosen by the client on 2026-10-05,
+// replacing the placeholder "Speakers Bureau", and the `data-provisional` marker is
+// removed from it for that reason.
+//
+// THE EYEBROW IS GONE, and this is the second pass at it in one day. It first read
+// "A reading room" as a placeholder, then became "By the SC Speakers Bureau
+// Curator" when the client chose wording, and is now removed entirely: the client is
+// the curator AND the webmaster and does not want the title in the masthead. The
+// credit lives once, in the footer, where it does not compete with the name for
+// first attention on a site with one author.
 //
 // The tagline under the name is still project-written copy and is NOT the
 // client's, so `data-provisional="tagline"` stays on that one element alone. It is
 // the last honest marker in the masthead.
 //
 // NOTE ON THE TWO NAMES. "The Citizen's Reading Room" is the publication. "The
-// SC Speakers Bureau" is the curator that assembles it. They are deliberately not
-// the same string, so the byline and the masthead read as a publication and its
-// editor rather than as one organisation written two ways.
+// SC Speakers Bureau" is the body that produces it. They are deliberately not the
+// same string, so the footer reads as a publication and its editor rather than as
+// one organisation written two ways.
 //
 // ---------------------------------------------------------------------------
 // WHY THE NAV IS LINKS AND NOT A SCRIPT
@@ -36,7 +41,7 @@
 // removing a page load.
 //
 
-import { SITE_CURATOR, SITE_NAME, SITE_TAGLINE, withBase } from '../lib/site'
+import { SITE_NAME, SITE_TAGLINE, withBase } from '../lib/site'
 
 interface Props {
   /** The current path, used to mark the current nav item. */
@@ -58,10 +63,6 @@ const isCurrent = (href: string) => currentPath === href
 
 <header class="masthead">
   <div class="masthead__inner">
-    <p class="label masthead__label">
-      {SITE_CURATOR}
-    </p>
-
     <p class="masthead__name">
       <a class="masthead__home" href={withBase('/')}>
         {SITE_NAME}

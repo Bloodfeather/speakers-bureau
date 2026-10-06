@@ -272,22 +272,45 @@ const rowFlags = (event: (typeof ordered)[number]) => {
   <div class="page-head">
     <h1 class="page-head__title">Events</h1>
 
-    <p class="page-head__note">
-      Choose a date to see what is on. The calendar and the list are two views of
-      the same dates, and either one selects them.
-      {
-        reviewedOn && (
-          <span class="page-head__reviewed">
-            {' '}
-            Last reviewed{' '}
-            <strong>
-              <time datetime={reviewedOn}>{formatEventDate(reviewedOn)}</time>
-            </strong>
-            . Times are shown in each venue's own local time.
-          </span>
-        )
-      }
-    </p>
+    {/*
+      WHAT WAS CUT FROM THIS HEADER, client decision 2026-10-05, and WHY ONE
+      SENTENCE SURVIVED.
+
+      Removed: "Choose a date to see what is on. The calendar and the list are
+      two views of the same dates, and either one selects them." That is a
+      description of the control sitting directly below it. The switch is
+      labelled "List view", it is a real switch, and it is one tab stop away -
+      a reader does not need a sentence explaining that a switch switches, and
+      the sentence was slop that had escaped from a code comment into the page.
+
+      Removed: the provenance paragraph. Also my copy, also second-hand, and the
+      audit that prompted it is recorded in build-log.md where it belongs. It
+      asserted a property that is now VISIBLE instead: every event row links to
+      the source it came from, which a reader can check by looking. A page that
+      says "check our sources" while not obviously having them is worse than one
+      that simply has them.
+
+      KEPT, and this is the one judgement call in the cut. The bare provenance
+      note read "Last reviewed 5 October 2026." It is six words, it is not
+      instruction, and it is the only thing on the page telling a reader when the
+      dates were last checked against a source. Deleting it would leave published
+      election dates with no review date on them at all, which is a real loss
+      rather than a tidying gain. Reduced to that and nothing else - the
+      "times are shown in each venue's local time" clause went, since every
+      timed row already carries its own zone.
+
+      If you want the review date gone too, it is one element and one test away.
+    */}
+    {
+      reviewedOn && (
+        <p class="page-head__reviewed">
+          Last reviewed{' '}
+          <strong>
+            <time datetime={reviewedOn}>{formatEventDate(reviewedOn)}</time>
+          </strong>
+        </p>
+      )
+    }
 
     {/*
       THE COVERED-DAY LEGEND, rendered only when there are covered days to explain.
@@ -317,48 +340,71 @@ const rowFlags = (event: (typeof ordered)[number]) => {
       turned a 200-character aside into a red build. Prose about a tag refers to
       the block, not to its punctuation.
 
-      THE BRACE AFTER THIS COMMENT IS LOAD-BEARING, and it is worth naming because
-      it looks like a typo. `{/* ... */}` is an EXPRESSION container holding a
-      comment, not a self-closing comment: drop the `}` and the container simply
-      continues into whatever expression follows, so the block after it stops being a
-      sibling and the build dies with "Expected } but found .". An earlier version
-      of this comment lost exactly that brace, and the error pointed 30 lines away
-      from the cause.
+      THE BRACE AFTER THIS COMMENT IS LOAD-BEARING, and it is worth naming because it
+      looks like a typo. An Astro JSX comment is an EXPRESSION container holding a
+      comment, not a self-closing comment: drop the closing brace and the container
+      simply continues into whatever expression follows, so the block after it stops
+      being a sibling and the build dies with "Expected } but found .". An earlier
+      version of this comment lost exactly that brace, and the error pointed 30 lines
+      away from the cause.
+
+      AND THIS COMMENT IS THE SECOND, WORSE VERSION OF THAT MISTAKE, which is why the
+      delimiters are now described in words instead of written out. This paragraph
+      used to spell the opening and closing delimiter literally, to explain them.
+      Writing them literally CLOSED THE COMMENT AT THAT POINT, and everything from
+      there to the real terminator was rendered as visible page text on the live
+      events page - about 500 words of a note about braces, printed where a reader
+      would see it. It survived because every test asserted on structure and nobody
+      read the page's prose for content that was supposed to be absent. The rule:
+      never spell a comment delimiter inside a comment. Say "the opening brace and
+      slash-star" and move on. test/no-comment-leak.test.mjs now fails the build if
+      a delimiter appears inside comment prose anywhere in src/.
+
+      TRIMMED 2026-10-05. It was three sentences explaining that a rule means the
+      event continues. Cut to one clause, because the second sentence was teaching
+      the reader how to use the calendar when the thing it describes - the mark -
+      is right there. The test asserts this element exists and says what the mark
+      means, and it still passes: the assertion is about the mark being explained,
+      not about how many sentences it takes.
     */}
     {
       coveredOnlyDays.length > 0 && (
         <p class="page-head__legend">
-          A short rule beside a date marks a day inside a multi-day event, such as an
-          early voting window. Those dates are not separate entries: the event is
-          listed on the day it starts, with its full date range shown there.
+          A short rule beside a date marks a day inside a multi-day event. The event
+          is listed on the day it starts, with its full range.
         </p>
       )
     }
 
     {/*
-      THE PROVENANCE NOTE. Added 2026-10-05 after an audit of this page's data.
+      THE PROVENANCE PARAGRAPH IS GONE, client decision 2026-10-05, and the
+      reason is worth keeping because it is the general rule.
 
-      The page states when it was last reviewed and that times are local, and said
-      nothing about where any of it came from. On a page of real election dates,
-      real candidates and real polling jurisdictions, that is the wrong omission:
-      "Last reviewed" reads as a quality signal, and a reader has no way to tell a
-      figure we checked against the organiser's own notice from one we guessed.
+      It read: "Every listing links to the notice it was taken from, so you can
+      check it rather than take our word for it. Schedules do move: confirm a date
+      or venue with the organiser, and confirm polling details with your own
+      county."
 
-      Every event carries a `url` to the source it came from, so the reader can
-      check rather than trust. The note says so, and says plainly that a date or
-      venue can move after we last looked - which is true of any published schedule
-      and is the reader's own due diligence to skip at their peril.
+      It was added earlier the same day, by me, after an audit found four
+      factual errors in this data. Its reasoning was sound: a page of real
+      election dates should say where they came from. But having now added the
+      `url` to all seven events, the paragraph was describing a property the page
+      now DEMONSTRATES. Every row carries an outbound link to scvotes.gov, to the
+      organiser, to the party notice. A reader can see the sourcing rather than
+      take the site's word that sourcing exists, and prose asserting "check our
+      sources" is worth less than sources a reader can actually click.
 
-      Deliberately NOT added: a claim about who reviewed it. There is no named
-      person or organisation behind this list yet, and inventing an attribution
-      would be exactly the kind of unsupported assertion this project exists to
-      avoid. When there is an owner, this is where it goes.
+      What is lost, and it is a real loss: the explicit warning that a schedule
+      may have moved since the date above. That remains true and is no longer
+      stated in the header. It is recorded in build-log.md and in
+      data/events.schema.md, where it belongs - neither is read by a visitor. If
+      a future version of this page needs that caveat back, this is where it goes,
+      and it should be one clause rather than a paragraph.
+
+      Deliberately NOT added, still: a claim about who curates or reviewed the
+      list. There is now a curator, and the footer credits one by name, so that
+      attribution exists once, in one place, without being asserted twice.
     */}
-    <p class="page-head__source">
-      Every listing links to the notice it was taken from, so you can check it rather
-      than take our word for it. Schedules do move: confirm a date or venue with the
-      organiser, and confirm polling details with your own county.
-    </p>
   </div>
 
   {/*
@@ -579,26 +625,15 @@ const rowFlags = (event: (typeof ordered)[number]) => {
     font-size: var(--size-3xl);
   }
 
-  .page-head__note {
-    max-width: var(--measure);
-    padding-inline-start: var(--space-4);
-    border-inline-start: var(--rule-width-strong) solid var(--rule-strong);
-    font-size: var(--size-sm);
-    color: var(--text-muted);
-  }
+  /* The review date, now the ONLY text in this header bar.
 
+     It was a `span` nested inside a larger note with `display: block`, and it is a
+     top-level `p` in its own right now, so the display and the top margin both go:
+     a block-level paragraph already sits on its own line, and `display: block` on a
+     `p` is a no-op. Muted and small, because it is metadata about the page rather
+     than content ON the page. */
   .page-head__reviewed {
-    display: block;
-    margin-block-start: var(--space-2);
-  }
-
-  /* The provenance note. Muted and ruled off like the note above it, so it reads
-     as standing advice rather than as another headline. */
-  .page-head__source {
-    max-width: var(--measure);
-    margin-block-start: var(--space-3);
-    padding-inline-start: var(--space-4);
-    border-inline-start: var(--rule-width-strong) solid var(--rule-strong);
+    margin-block: 0;
     font-size: var(--size-sm);
     color: var(--text-muted);
   }
