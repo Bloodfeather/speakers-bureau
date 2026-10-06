@@ -128,6 +128,96 @@ check would otherwise pass trivially on an empty corpus.
 
 ---
 
+## 2026-10-06 - Two image defects, found by looking at the live site
+
+The site went live on Cloudflare and a reader looked at it. Both defects below
+were visible within one page view and were invisible to 213 passing tests. That
+is the point of the entry: everything this project checks was green while a
+broken image icon sat at the top of the home page.
+
+**Verified after every step:** `npm run build` exit 0, 7 pages. `npm test` 224
+passing / 0 failing (was 213). `npm run events:check` exit 0. `npm run fetch`
+exit 0, 3 sources, 43 items, 0 failed. Every file touched is pure ASCII and ends
+in a newline, checked on the bytes.
+
+### 1. A podcast enclosure rendered as an image
+
+The built home page contained:
+
+    <img src="https://api.substack.com/feed/podcast/218377170/ac19357b5f...mp3">
+
+An MP3 in an `img src`. `scripts/lib/rss.mjs` took `enclosure/@_url` on sight,
+and a Substack item encloses its audio EXACTLY the way it encloses a photo - the
+element is identical, only the type differs. **Three articles** were affected,
+not one; the home page showed the worst of them and the other two were one click
+away in `/latest/`.
+
+Fixed in two places, deliberately:
+
+- The parser now reads the enclosure's own `@_type` and accepts only `image/*`,
+  with a list of definitively-non-image extensions as a backstop for feeds that
+  omit the attribute. Where type is absent AND the URL has no extension the URL
+  is ACCEPTED, because refusing every extensionless URL would silently drop real
+  images from hosts that serve them without a suffix.
+- `imageUrl()` gained the same rejection at render time. This is not
+  belt-and-braces for its own sake: **the dataset is committed**, so a commit
+  made before the parser fix still carries the three podcast urls, and that
+  commit is what a build reads. Without the render guard, the fix would only take
+  effect after the next scheduled fetch.
+
+`npm run fetch` has since been run against the live feeds. The committed dataset
+now holds **0 non-image urls and 3 null images** - the posts are still there,
+they simply have no picture, which is true.
+
+The card already guarded with `{image && ...}`, so all three render as complete
+cards: title, byline, excerpt, chips and outbound link, verified in the built
+HTML.
+
+### 2. One image cropped through its own headline
+
+"Five Hospitals and a Denial" is 1456x819, which is 1.778 against the card
+frame's 1.5. `object-fit: cover` crops CENTRED, so it discarded about 7.8% from
+EACH side - and the left-hand 7.8% ran into the leading "F" of the headline set
+into the artwork. The image was clipping the article's own title.
+
+`object-position` is now settable per article, anchored to the left for this one,
+which keeps the full title and takes the entire crop from the right instead.
+
+The overrides live in `data/image-frames.json`, keyed by article id, rather than
+in the card stylesheet, because this is a fact about one article's artwork and
+not a fact about how cards are styled - and because the person who notices a
+badly framed image is the person who edits `data/events.json`, not the person who
+edits a component. A test asserts every key in that file resolves to a real
+article id, because a typo there is a lookup that silently does nothing.
+
+### A positive control that was itself the bug
+
+The first version of the new test proved `imageUrl()` rejects audio by looking
+for an article in `data/articles.json` that still held an `.mp3`. That assertion
+passed only while the bug was still present, so **it failed the moment the fix
+worked** - and it failed the suite after a successful `npm run fetch`.
+
+This is the exact failure mode this project keeps warning about, written by me,
+in the same session, in the file whose purpose is preventing it. A positive
+control must be a statement about the DETECTOR, never about the state of the
+world. The control is now built from literals - eight URLs that must be rejected
+including query-string and fragment disguises, five that must be kept - so it
+holds whether the dataset holds zero podcast posts or twenty.
+
+### Still open, and it is the same blocker as before
+
+- **The site cannot be updated from here yet.** `gh` is installed but not logged
+  in, and there is no Cloudflare credential on this machine. So the fix is
+  committed locally and is NOT live. Until both are resolved every change still
+  means drag `dist` across by hand.
+- The live URL is a **`workers.dev`** address, not `pages.dev`. The deploy job
+  written earlier runs `wrangler pages deploy`, which would not publish there.
+  Either the project becomes a Pages project or the deploy step becomes a
+  Workers static-assets deploy; the two are not interchangeable and the workflow
+  is currently pointed at the wrong one.
+
+---
+
 ## 2026-10-06 - The publishing target moves from GitHub Pages to Cloudflare Pages
 
 The client chose Cloudflare and supplied the domain, `scspeakersbureau.org`.

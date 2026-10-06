@@ -180,20 +180,52 @@ export function toIsoUtc(value) {
   return null;
 }
 
+/**
+ * Is this URL an image we are willing to put in an `<img src>`?
+ *
+ * WHY THIS EXISTS. A Substack feed item can carry an `<enclosure>` that is not
+ * an image at all: a podcast episode is enclosed exactly the way a photo is,
+ * and the shape of the element is identical. The extractor used to take
+ * `enclosure/@_url` on sight, so a post published as a podcast landed in the
+ * dataset with an `.mp3` in its `image` field and rendered as a broken image
+ * icon. Three articles in the shipped dataset were affected. The feed was fine;
+ * the reader was the one who found out.
+ *
+ * The rule is the enclosure's own `type` attribute, because that is the feed
+ * telling us what it is rather than us guessing from a filename. Many feeds omit
+ * `type`, so there is a backstop: a list of extensions that are definitively not
+ * images. Where `type` is absent AND the URL carries no recognisable extension,
+ * the URL is accepted, because refusing every extensionless URL would silently
+ * drop real images from hosts that serve them without a suffix.
+ */
+const NON_IMAGE_EXTENSION =
+  /\.(mp3|m4a|aac|oga|opus|ogg|wav|flac|mp4|m4v|mov|avi|webm|pdf|epub|json|xml)(\?|#|$)/i;
+
+function isUsableImageUrl(url, type) {
+  const declared = typeof type === 'string' ? type.trim().toLowerCase() : '';
+  if (declared !== '') return declared.startsWith('image/');
+  return !NON_IMAGE_EXTENSION.test(url);
+}
+
 /** Pull the enclosure image URL, tolerating a missing or attribute-less node. */
 function extractImage(item) {
   const enclosure = item.enclosure;
   const candidate = Array.isArray(enclosure) ? enclosure[0] : enclosure;
   if (candidate && typeof candidate === 'object' && typeof candidate['@_url'] === 'string') {
     const url = candidate['@_url'].trim();
-    return url === '' ? null : url;
+    if (url !== '' && isUsableImageUrl(url, candidate['@_type'])) return url;
   }
-  // Atom media:content is a plausible alternative in mixed feeds.
+  // Atom media:content is a plausible alternative in mixed feeds. A podcast post
+  // carries BOTH, so falling through to here rather than returning early is what
+  // lets an item whose enclosure is audio still find a real image.
   const media = item['media:content'];
   const mediaCandidate = Array.isArray(media) ? media[0] : media;
   if (mediaCandidate && typeof mediaCandidate === 'object') {
     const url = mediaCandidate['@_url'];
-    if (typeof url === 'string' && url.trim() !== '') return url.trim();
+    if (typeof url === 'string' && url.trim() !== '') {
+      const trimmed = url.trim();
+      if (isUsableImageUrl(trimmed, mediaCandidate['@_type'])) return trimmed;
+    }
   }
   return null;
 }

@@ -1,0 +1,9 @@
+{
+  "_comment": "Per-article framing overrides for author-supplied images. See the imageObjectPosition comment in src/lib/articles.ts for why this exists and why it is a data file rather than a stylesheet rule.",
+  "frames": {
+    "www-malone-news-p-five-hospitals-and-a-denial": {
+      "objectPosition": "left center",
+      "_why": "The source image is 1456x819 (1.778) shown in a 3:2 frame, so object-fit: cover crops about 7.8% from each side. The left-hand crop ran into the leading F of the headline set into the artwork. Anchoring to the left edge keeps the full title and takes the entire crop from the right instead."
+    }
+  }
+}

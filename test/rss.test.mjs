@@ -109,6 +109,91 @@ test('reads the image from the enclosure url ATTRIBUTE', () => {
   assert.equal(article.image, 'https://cdn.example.test/images/gas-station_1024x683.jpeg');
 });
 
+test('a PODCAST enclosure is not an image, and must not become one', () => {
+  // The bug a reader reported. A Substack item encloses its audio exactly the
+  // way it encloses a photo, so `<enclosure>` alone cannot mean "image". Taking
+  // its url on sight put an .mp3 into article.image and shipped a broken image
+  // icon on the home page for three posts.
+  const podcast = `<?xml version="1.0"?>
+<rss version="2.0"><channel><title>Podcast Press</title><link>https://pod.example</link>
+<item>
+  <title>An episode about something</title>
+  <link>https://pod.example/p/an-episode</link>
+  <guid isPermaLink="true">https://pod.example/p/an-episode</guid>
+  <pubDate>Sun, 05 Oct 2026 10:03:33 GMT</pubDate>
+  <enclosure url="https://api.substack.com/feed/podcast/218377170/abc123.mp3"
+             type="audio/mpeg" length="12345"/>
+</item></channel></rss>`;
+
+  const { ok, items } = parseFeed(podcast);
+  assert.equal(ok, true, 'a podcast feed must still parse cleanly');
+  assert.ok(items.length > 0, 'positive control');
+  assert.equal(
+    normalizeItem(items[0], SOURCE, RESOLVED).image,
+    null,
+    'an audio enclosure must yield a null image, never an mp3 url'
+  );
+});
+
+test('an image enclosure is accepted whether or not it declares a type', () => {
+  // Both halves matter. Many real feeds omit @_type entirely, so a rule that
+  // only trusted @_type would reject every image from those feeds.
+  const withType = `<rss version="2.0"><channel><title>T</title><link>https://x.test</link>
+    <item><title>i</title><link>https://x.test/p/1</link>
+    <guid isPermaLink="true">https://x.test/p/1</guid><pubDate>Sun, 05 Oct 2026 10:03:33 GMT</pubDate>
+    <enclosure url="https://cdn.x.test/a_1024x683.jpeg" type="image/jpeg" length="1"/>
+    </item></channel></rss>`;
+  const withoutType = withType.replace(' type="image/jpeg"', '');
+
+  for (const [label, xml] of [['with type', withType], ['no type', withoutType]]) {
+    const { ok, items } = parseFeed(xml);
+    assert.equal(ok, true, `${label}: must parse`);
+    assert.equal(
+      normalizeItem(items[0], SOURCE, RESOLVED).image,
+      'https://cdn.x.test/a_1024x683.jpeg',
+      `${label}: an image enclosure must be kept`
+    );
+  }
+});
+
+test('an audio enclosure does not stop a real image being found', () => {
+  // The fall-through case. A podcast post can carry BOTH an audio enclosure and
+  // a media:content image, so returning early on the audio would lose the image.
+  const both = `<rss version="2.0"><channel><title>T</title><link>https://x.test</link>
+    <item><title>i</title><link>https://x.test/p/2</link>
+    <guid isPermaLink="true">https://x.test/p/2</guid><pubDate>Sun, 05 Oct 2026 10:03:33 GMT</pubDate>
+    <enclosure url="https://api.substack.com/feed/podcast/1/b.mp3" type="audio/mpeg" length="1"/>
+    <media:content url="https://cdn.x.test/cover_1024x683.jpeg" type="image/jpeg"/>
+    </item></channel></rss>`;
+
+  const { ok, items } = parseFeed(both);
+  assert.equal(ok, true);
+  assert.equal(
+    normalizeItem(items[0], SOURCE, RESOLVED).image,
+    'https://cdn.x.test/cover_1024x683.jpeg',
+    'the image must win over the audio enclosure'
+  );
+});
+
+test('POSITIVE CONTROL: an audio enclosure IS still parseable and not dropped', () => {
+  // The rejection above must reject the IMAGE, never the ITEM. A parser that
+  // discarded podcast posts entirely would pass the test above while silently
+  // removing content from the site, which is the same class of error as the one
+  // being fixed.
+  const podcast = `<rss version="2.0"><channel><title>T</title><link>https://x.test</link>
+    <item><title>Keep me</title><link>https://x.test/p/3</link>
+    <guid isPermaLink="true">https://x.test/p/3</guid><pubDate>Sun, 05 Oct 2026 10:03:33 GMT</pubDate>
+    <enclosure url="https://api.substack.com/feed/podcast/1/c.mp3" type="audio/mpeg" length="1"/>
+    </item></channel></rss>`;
+
+  const { ok, items } = parseFeed(podcast);
+  assert.equal(ok, true);
+  const article = normalizeItem(items[0], SOURCE, RESOLVED);
+  assert.equal(article.title, 'Keep me', 'the item itself must survive');
+  assert.ok(article.url, 'and keep its link');
+  assert.equal(article.image, null);
+});
+
 test('guid is an object because of isPermaLink, and still yields the link', () => {
   const { ok, items } = parseFeed(TWO_ITEM_XML);
   assert.equal(ok, true);

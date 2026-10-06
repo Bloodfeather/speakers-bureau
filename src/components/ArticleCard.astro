@@ -28,11 +28,15 @@
 //             name with the word "News" missing. `bylineFor()` decides, and it is
 //             the only implementation of that decision in the project.
 //
-//   image     Present on every article, but typed `string | null` and rendered
-//             conditionally anyway. A card whose image fails to load (hosting
-//             removed it, CDN 404, network) must still be a complete card, so
-//             the image is decorative-adjacent and the title never depends on
-//             it.
+//   image     ABSENT on the podcast episodes. A Substack item encloses its audio
+//             exactly the way it encloses a photo, so three posts in this dataset
+//             carry an `.mp3` where an image belongs, and `imageUrl()` refuses
+//             them. The block below is therefore rendered conditionally for a
+//             reason that is REAL rather than theoretical - it was measured, not
+//             anticipated, after a reader reported a broken image on the home
+//             page. A card whose image fails to load (hosting removed it, CDN 404,
+//             network) must still be a complete card, so the image is
+//             decorative-adjacent and the title never depends on it.
 //
 // ---------------------------------------------------------------------------
 // OUTBOUND LINKS
@@ -62,7 +66,7 @@
 // cause. Comment separators here use `// ---`
 // with a leading `//`, which is not a fence.
 import type { Article } from '../lib/articles'
-import { bylineFor, formatUtcDate, imageUrl, machineDate } from '../lib/articles'
+import { bylineFor, formatUtcDate, imageObjectPosition, imageUrl, machineDate } from '../lib/articles'
 
 interface Props {
   article: Article
@@ -78,6 +82,9 @@ const byline = bylineFor(article)
 const dek = article.dek?.trim() ?? ''
 const excerpt = article.excerpt?.trim() ?? ''
 const image = imageUrl(article)
+// Which part of the image survives the crop into the 3:2 frame. Undefined for
+// the great majority of articles, which then get the browser default (centred).
+const imagePosition = imageObjectPosition(article)
 const published = formatUtcDate(article.publishedAt)
 const datetime = machineDate(article.publishedAt)
 
@@ -124,6 +131,7 @@ const chips = (article.categories ?? []).filter((category) => category.trim() !=
           decoding="async"
           width="480"
           height="320"
+          style={imagePosition ? `object-position: ${imagePosition}` : undefined}
         />
       </div>
     )

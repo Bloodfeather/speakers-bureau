@@ -52,6 +52,25 @@
 // ---------------------------------------------------------------------------
 
 import datasetJson from '../../data/articles.json' with { type: 'json' }
+import imageFramesJson from '../../data/image-frames.json' with { type: 'json' }
+
+/**
+ * Per-article image framing, keyed by article id.
+ *
+ * Imported as JSON with the same import-attribute syntax as the dataset, for the
+ * same reason: it is data the build needs, it is read at module scope, and this
+ * module is imported by `node --test`, so anything that only exists inside the
+ * Astro/Vite build would make that run fail for an unrelated reason.
+ *
+ * An entry may carry a `_why`. Keys beginning with an underscore are ignored by
+ * the reader, which is what lets a human record WHY an override exists next to
+ * the override - the reason is the part that is expensive to rediscover.
+ */
+interface ImageFrame {
+  objectPosition?: string
+}
+
+const IMAGE_FRAMES = (imageFramesJson as { frames?: Record<string, ImageFrame> }).frames ?? {}
 
 // THE MONTH TABLE IS NOT HERE, and the reason it is not is the whole reason
 // src/lib/months.ts exists. This module reads the dataset at module scope, so a
@@ -436,16 +455,67 @@ export function publicationNames(articlesIn: readonly Article[] = articles): str
 // ---------------------------------------------------------------------------
 
 /**
+ * A URL we are willing to put in an `<img src>`, or null.
+ *
+ * WHAT THIS REJECTS, AND WHY IT IS NOT ONLY IN THE PARSER. `scripts/lib/rss.mjs`
+ * already refuses an enclosure whose `type` is not `image/*`, so a freshly
+ * fetched dataset cannot contain an audio file in `image`. This check is the
+ * second of two, and it earns its place because the dataset is COMMITTED: a
+ * commit made before that parser fix still carries three podcast episodes with
+ * an `.mp3` in `image`, and that commit is what a build reads. A render-time
+ * guard means a dataset that predates the parser fix degrades to a card with no
+ * image instead of a broken image icon, with no re-fetch required.
+ *
+ * Delete this when it is provably redundant: when no committed dataset has held
+ * a non-image in `image` for a full refresh cycle.
+ */
+const NON_IMAGE_EXTENSION =
+  /\.(mp3|m4a|aac|oga|opus|ogg|wav|flac|mp4|m4v|mov|avi|webm|pdf|epub|json|xml)(\?|#|$)/i
+
+/**
  * An image URL, or null.
  *
  * Substack's CDN URLs are long query strings such as
  * `/image/fetch/$s_!Lia4!,f_auto,q_auto:good,.../https%3A%2F%2F...`, so there is
  * no reliable way to append a resize parameter ourselves. They are already sized
  * by the feed, so the card sets no width/height and lets CSS fix the aspect box.
+ *
+ * `object-fit: cover` in a fixed frame means the browser crops whatever does not
+ * fit, so WHICH PART SURVIVES is a framing decision, not a layout one. See
+ * `imageObjectPosition` for the per-article override that controls it.
  */
 export function imageUrl(article: Pick<Article, 'image'>): string | null {
   const value = article.image?.trim()
-  return value ? value : null
+  if (!value) return null
+  return NON_IMAGE_EXTENSION.test(value) ? null : value
+}
+
+/**
+ * The CSS `object-position` for an article's image, or undefined for the default.
+ *
+ * Cards sit in a fixed 3:2 frame. An author-supplied image of any other shape is
+ * cropped to fit, and `cover` crops CENTRED by default, which silently eats an
+ * equal bite from both sides. That is wrong whenever the interesting content sits
+ * off-centre - and it is wrong in a way a reader cannot report usefully, because
+ * the image simply looks slightly wrong and nobody can say why.
+ *
+ * Concretely: "Five Hospitals and a Denial" is 1456x819, which is 1.778 against
+ * a frame of 1.5, so a centred crop discards about 7.8% from EACH side. The
+ * left 7.8% runs into the leading "F" of the headline set into the image, so the
+ * centred crop clipped the article's own title. Moving the window to the left
+ * edge shows the full title and takes the whole crop from the right instead.
+ *
+ * WHY A DATA FILE AND NOT A STYLESHEET RULE. The overrides live in
+ * data/image-frames.json, keyed by article id, because that is a fact about one
+ * article's artwork rather than a fact about how cards are styled, and because
+ * the person who notices a badly framed image is the person who edits
+ * data/events.json - not the person who edits a component stylesheet. An article
+ * with no entry gets the browser default, which is correct for most images and
+ * is what every other card does today.
+ */
+export function imageObjectPosition(article: Pick<Article, 'id'>): string | undefined {
+  const frames = IMAGE_FRAMES[article.id]
+  return frames?.objectPosition
 }
 
 // ---------------------------------------------------------------------------
