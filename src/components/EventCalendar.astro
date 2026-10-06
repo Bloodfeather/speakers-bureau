@@ -1,0 +1,362 @@
+---
+// src/components/EventCalendar.astro - the month grids.
+//
+// ---------------------------------------------------------------------------
+// WHAT "INTERACTIVE" MEANS HERE, PRECISELY
+// ---------------------------------------------------------------------------
+//
+// Clicking a date selects that DAY, and the info panel beside it updates. That is
+// the whole interaction, and it is implemented with a hidden radio input per day
+// plus `<label for>` - the same mechanism the theme switcher already uses in this
+// project, for the same reason: it works with scripting off, cannot flash, and
+// gets keyboard support from the platform.
+//
+// The selection unit is a DAY rather than an event because two events can share a
+// date, and a calendar cell is a date. Selecting a date therefore selects
+// everything on it, and the panel stacks them.
+//
+// ---------------------------------------------------------------------------
+// WHY ONLY MONTHS THAT HAVE EVENTS
+// ---------------------------------------------------------------------------
+//
+// Rendering every month would require either a second selection group or URL state
+// to remember which month the reader was on, and it would buy browsing months that
+// contain nothing. A speakers bureau has no events in an empty month, so an empty
+// grid is not information. Decided with the client, 2026-10-05.
+//
+// ---------------------------------------------------------------------------
+// A REAL <table>, AND WHY
+// ---------------------------------------------------------------------------
+//
+// A month grid is tabular data - a caption, column headers, and cells in rows -
+// so it is marked up as a table and gets row/column semantics from the platform
+// rather than from ARIA applied afterwards. The caption is the month name, which
+// means a screen reader announces "November 2026" on entering the grid instead of
+// leaving the reader to infer it from seven day numbers.
+//
+// SUNDAY FIRST. That is the convention for a US civic audience; the week-start is
+// one line to change for a locale that begins on Monday.
+//
+// The day cells are padding-free where it matters: leading and trailing cells
+// belong to the adjacent months and carry no day number, so a reader scanning the
+// grid is never shown a date that is not in this month.
+// ---------------------------------------------------------------------------
+
+import type { MonthGrid } from '../lib/calendar'
+import { WEEKDAY_FULL, WEEKDAY_LABELS } from '../lib/calendar'
+
+interface Props {
+  months: MonthGrid[]
+  /** `YYYY-MM-DD` keys for dates that have already passed. */
+  pastKeys?: readonly string[]
+}
+
+// NO `selectedKey` PROP, and there was one. See the note on aria-current below:
+// the only thing it fed was an attribute whose value was fixed at build time, so
+// passing it in was passing a constant to a component that had no way to keep it
+// true. The selected cell is marked by the page's generated per-day selectors,
+// which move with the radio's real `:checked` state.
+
+const { months, pastKeys = [] } = Astro.props
+
+/** A Set, because this is looked up once per cell and an array scan is O(n^2). */
+const past = new Set(pastKeys)
+
+/** Chunk a month's flat cells into rows of seven. */
+function toWeeks(cells: MonthGrid['cells']): MonthGrid['cells'][] {
+  const weeks = []
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7))
+  return weeks
+}
+---
+
+<div class="cal">
+  {
+    months.map((month) => (
+      <section class="cal__month">
+        <table class="cal__table">
+          <caption class="cal__caption">{month.label}</caption>
+          <thead>
+            <tr>
+              {WEEKDAY_LABELS.map((label, index) => (
+                <th class="cal__weekday" scope="col">
+                  <abbr title={WEEKDAY_FULL[index]}>{label}</abbr>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {toWeeks(month.cells).map((week) => (
+              <tr>
+                {week.map((cell) => (
+                  <td class="cal__cell">
+                    {cell.day ? (
+                      <label
+                        class="cal__day"
+                        for={`day-${cell.day.key}`}
+                        data-day={cell.day.key}
+                        data-past={past.has(cell.day.key) ? 'true' : undefined}
+                      >
+                        <span class="cal__daynum">
+                          {cell.dayNumber}
+                          {/* A SHAPE, not a tint. See the note on .cal__mark below. */}
+                          <span class="cal__mark" aria-hidden="true" />
+                        </span>
+                        <span class="cal__dayname">{cell.day.events[0].name}</span>
+                        {cell.day.multiple && (
+                          <span class="cal__count">
+                            +{cell.day.count - 1} more
+                          </span>
+                        )}
+                        {past.has(cell.day.key) && (
+                          <span class="visually-hidden">(already held)</span>
+                        )}
+                      </label>
+                    ) : cell.dayNumber !== null ? (
+                      <span class="cal__day cal__day--bare">
+                        <span class="cal__daynum">{cell.dayNumber}</span>
+                      </span>
+                    ) : (
+                      <span class="cal__pad" />
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    ))
+  }
+
+  {/*
+    WHY THERE IS NO aria-current ON THESE CELLS, AND WHY IT MUST NOT COME BACK.
+
+    It was here, rendered from a `selectedKey` prop, and it was WRONG rather than
+    merely redundant. The prop is a BUILD-TIME constant: events.astro picks the
+    first upcoming day once, while rendering, and hands the same string to every
+    cell. The attribute is therefore baked into the HTML and can never change. A
+    reader who then selects a different date gets the CSS `:checked` styling moved
+    by the page's generated per-day selectors, while the accessibility tree goes on
+    reporting the OLD cell as current - a cell that is not current, marked as
+    current, in the document a screen reader is reading. That is worse than no
+    signal at all, and it is invisible in review because the markup is correct as
+    written and only becomes false after the reader acts.
+
+    There is no CSS or HTML mechanism that could maintain it. CSS cannot write an
+    ARIA attribute, and an attribute's value cannot be expressed as a selector. In
+    a design with no JavaScript, an attribute that describes the current state can
+    only be maintained by JavaScript, so on this page it cannot be.
+
+    THE STATE IS ALREADY CARRIED, twice over, and both are verified in the built
+    markup rather than assumed:
+
+      1. The day RADIO. Each date is a real `input type="radio"` with an
+         `aria-label` naming the date and its event count, and the selected one
+         carries `checked`. That is platform state: it moves with the selection and
+         it is what a screen reader announces when the reader arrows between dates.
+         This is the same mechanism the theme switcher in this project uses.
+      2. The PANEL, in events.astro, which is `aria-live="polite"` and renders a
+         block per date with the date as its label. Changing the selection changes
+         what is visible inside that region, which is what makes the region announce
+         the new date.
+
+    So removing the attribute loses no announcement. What it removes is a false
+    one.
+  */}
+  {
+    months.length === 0 && (
+      <p class="cal__empty">No months with events are listed at the moment.</p>
+    )
+  }
+</div>
+
+<style>
+  /* Every class in this file is rendered by this file, so one Astro scope id
+     covers all of them. That is the whole reason these rules are not in
+     events.astro: a rule in a page's scoped block cannot match an element another
+     component renders, and it fails SILENTLY. See "THE PER-DAY SELECTORS" in
+     events.astro. */
+  .cal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .cal__table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .cal__caption {
+    padding-block-end: var(--space-2);
+    font-family: var(--font-display);
+    font-size: var(--size-md);
+    font-weight: var(--weight-bold);
+    text-align: start;
+    color: var(--text);
+  }
+
+  .cal__weekday {
+    padding-block-end: var(--space-2);
+    font-size: var(--size-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    text-align: start;
+    color: var(--text-muted);
+    border-block-end: var(--rule-width) solid var(--rule);
+  }
+
+  /* The browser's dotted underline on <abbr> is noise on a grid header where the
+     full name is decoration rather than a definition. */
+  .cal__weekday abbr {
+    text-decoration: none;
+  }
+
+  .cal__cell {
+    padding: 0;
+    vertical-align: top;
+    border: var(--rule-width) solid var(--rule);
+  }
+
+  .cal__day {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    /* A minimum HEIGHT rather than an aspect-ratio square, so a wide phone does
+       not get five enormous rows and a narrow desktop does not get tiny ones. */
+    min-height: 3.75rem;
+    padding: var(--space-2);
+    cursor: pointer;
+  }
+
+  .cal__day:hover .cal__dayname {
+    color: var(--link-hover);
+  }
+
+  /* inline-flex rather than a bare span, so the marker sits beside the numeral on
+     one baseline row instead of drifting onto its own line. */
+  .cal__daynum {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--size-sm);
+    font-weight: var(--weight-bold);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+  }
+
+  /* ------------------------------------------------------------------------
+   * WHY A MARKER, AND WHY IT IS DRAWN WITH A BORDER
+   * --------------------------------------------------------------------- *
+   *
+   * A date that carries events used to be distinguishable from an empty date by
+   * ONE thing: the numeral's text colour, muted to full contrast. That is a hue
+   * difference, and a hue is exactly what disappears in forced-colours mode, in
+   * greyscale print, and for any reader with a colour vision deficiency. The
+   * event NAME in the cell is text and therefore survives, but it is clamped to
+   * two lines, so on a long name a reader scanning for "which dates are worth
+   * selecting" can be left with a clipped fragment and no marker at all.
+   *
+   * So the cell now carries a SHAPE as well, and the shape is what the selection
+   * state is not: it cannot be turned off by a palette.
+   *
+   * DRAWN WITH A BORDER RATHER THAN A BACKGROUND, and that is the part that
+   * matters. In forced-colours mode the user agent overrides background-color to
+   * the canvas colour, so a dot painted with `background: currentColor` becomes
+   * invisible - a cue that exists in the stylesheet and is absent exactly where it
+   * was added to help. Border-width and border-style are NOT overridden, so a
+   * ring drawn with a border keeps its shape and its size.
+   *
+   * Subtle on purpose: 5px, no fill, hairline-adjacent weight. It has to read as
+   * a mark on a printed programme, not as a notification badge.
+   */
+  .cal__mark {
+    display: inline-block;
+    flex: none;
+    width: 5px;
+    height: 5px;
+    border: var(--rule-width-strong) solid currentColor;
+    border-radius: var(--radius-pill);
+  }
+
+  /* The empty-day cell renders no .cal__mark at all, which is the whole mechanism:
+     presence of the element is the signal, so it cannot be lost to a theme. */
+
+  /*
+    THE EVENT NAME IN THE CELL, CLAMPED TO TWO LINES.
+
+    This is the one place in the project that truncates text, and it is different
+    from ArticleCard's rule on purpose. A card is the only place its excerpt
+    appears, so clamping there hides content. A calendar cell is a navigation
+    target: the full name is one selection away in the panel, and the cell's job
+    is to let a reader see at a glance WHICH dates are worth selecting. Clamping
+    to two lines keeps the grid's rows even, which is what makes it scannable.
+  */
+  .cal__dayname {
+    font-size: var(--size-xs);
+    line-height: var(--leading-snug);
+    color: var(--text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .cal__count {
+    font-size: var(--size-xs);
+    color: var(--text-muted);
+  }
+
+  /* A date with no events: the number is shown, so the grid still reads as a
+     calendar, but there is nothing to select and no label to click. */
+  .cal__day--bare {
+    cursor: default;
+  }
+
+  .cal__pad {
+    display: block;
+    min-height: 3.75rem;
+  }
+
+  /* SELECTION IS NOT A TINT.
+
+     The selected cell is filled AND ruled by the page's generated per-day
+     selectors (`html:has(#day-<key>:checked) [data-day='<key>']`), and the
+     background is `var(--chip-bg)`. So the shape of the selection - a ruled bar
+     down the inline-start edge - survives forced colours, where the fill does not.
+     The contrast change on the day number below is a second, weaker cue and is
+     deliberately NOT relied on: this comment used to call it one of "the two
+     non-colour signals", which was wrong, because a change in text colour is a
+     colour signal.
+
+     `data-day` is on the event-day label only, so `:has()` here is a second route
+     to the same cells the marker reaches. */
+  .cal__day:has(.cal__dayname) .cal__daynum {
+    color: var(--text);
+  }
+
+  /*
+    A DATE ALREADY HELD. Marked with a DOTTED RULE under the day number as well as
+    with muted text, because the muted text alone is a colour-only signal. Nothing
+    is hidden: a bureau's past engagements are part of the record, and the list view
+    shows them under "Already held" rather than dropping them.
+  */
+  .cal__day[data-past='true'] .cal__daynum {
+    color: var(--text-muted);
+    text-decoration: underline dotted;
+    text-underline-offset: 0.2em;
+  }
+
+  .cal__day[data-past='true'] .cal__dayname {
+    color: var(--text-muted);
+  }
+
+  .cal__empty {
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+</style>

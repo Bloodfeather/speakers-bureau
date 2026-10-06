@@ -5,6 +5,190 @@ interruption, read the top entry, then `ROADMAP.md`, then continue.
 
 ---
 
+## 2026-10-05 - Eight defects in the events feature, found by review
+
+A review pass over the events work. No data file changed: `data/events.json`,
+`data/articles.json` and `data/sources.yml` are byte-identical to before, and the
+site renders the same seven events on the same dates. What changed is duplication,
+three claims in comments that did not match behaviour, and one attribute that was
+wrong rather than merely redundant.
+
+**Verified after every step:** `npm run build` exit 0, 7 pages. `npm test` 196
+passing / 0 failing (was 192; four net new tests). `npm run events:check` exit 0.
+`npm run events:placeholders` exit 0, wrote 0, skipped 14. Every file touched is
+pure ASCII, checked on the bytes.
+
+### 1. One month table, not two
+
+`src/lib/articles.ts` declared its own `MONTHS` array, identical to the one in
+`src/lib/months.ts`. Deleted; articles.ts now imports it.
+
+The duplication was held in step by a test that extracted both arrays with a regex
+and compared them, which is a guard that fires only after somebody has already
+edited one and not the other - a red suite at the END of the change rather than a
+reason not to make it. That test is replaced by one asserting the STRUCTURE:
+`months.ts` still holds twelve month names (positive control first, so a stub
+cannot satisfy it), `articles.ts` declares no array and imports the name.
+
+**The old assertion is therefore gone rather than kept as a tautology.** Reporting
+it as asked: it would have become vacuous, and a test that compares a thing to a
+copy of itself cannot fail for a reason anyone can act on.
+
+### 2. One zero-padding rule, and the 0-based/1-based split closed
+
+Four implementations of "pad to two digits", and two of them disagreed about what
+they took. `months.ts:monthKeyPart()` took a ZERO-based month index and added 1;
+`calendar.ts:twoDigits()` and three inline `String(x).padStart(2, '0')` calls took
+the value as given. Both were correct at their call sites, so the difference was
+carried entirely by a name, and an off-by-one month renders as a plausible wrong
+date rather than as an error.
+
+`months.ts` now exports ONE `twoDigits(value)`, which uses the value exactly as
+given and does no index arithmetic, and `monthKeyPart(month1Based)`, which is
+`twoDigits` with the convention in the name. Used by `events-schema.ts`
+(`machineDateTime`, `formatClockTime`, `monthKey`, `wallClockToSortable`,
+`isPast`), by `calendar.ts`, and by `scripts/make-placeholders.mjs`. Every output
+string is unchanged; the exact-value assertions in `test/events.test.mjs` confirm
+it (`20261114183000`, `20261114200000`).
+
+`twoDigits` accepts `number | string` because two callers hold a string by the time
+they can validate it, and coercing twice is a second place for the answer to go
+wrong.
+
+### 3. One BOM stripper
+
+`scripts/check-events.mjs` and `scripts/make-placeholders.mjs` each held a private
+`stripBom`, byte-identical. check-events' own comment above its copy argued against
+reimplementing what the other CLI needs - while doing exactly that, one function
+over. Both now import `stripBom` from the new `scripts/lib/bom.mjs`. The character
+is still built from its code point (`0xfeff`), never typed, and the existing test
+that asserts a BOM built from `String.fromCharCode(0xfeff)` is not an ASCII space
+still passes against it.
+
+`stripBomForTest` stays exported from check-events.mjs: the test asserts the real
+function, and a test with its own copy of the logic would keep passing after the
+real one was deleted.
+
+### 4. monthGrids no longer throws
+
+`calendar.ts:monthGrids()` threw when `monthGridFor` returned null for a key that
+had come out of a day's own key, on the reasoning that such a key "cannot" happen.
+It can: `day.key` is a string on a plain object, and the key filter is a regex on
+`YYYY-MM` that `2026-13` passes. `parseWallClock` then rejects it, and the build
+died - at MODULE SCOPE in events.astro, so `npm run build` went red with a stack
+trace in a helper rather than rendering a page.
+
+It is now a filter, so an impossible month yields no grid, exactly as
+`monthGridFor` already returned null for it. Every other export in the module
+already never throws, and the module doc now says so as a stated rule with the
+reason: data validation is `src/lib/events.ts` and `npm run events:check`, and this
+module lays out grids. New test proves it does not throw on `2026-13-01` and that a
+real month SURVIVES alongside an impossible one - a guard that threw everything
+away would pass every "does not throw" assertion and render an empty calendar.
+
+### 5. wallClockToSortable can no longer return NaN
+
+`'2026-11-14T18:30:00-05:00'` splits on `T` and `:` into a third time field of
+`00-05`, `Number()` refuses the string, and the function returned NaN. `sortEvents`
+feeds the value straight into a comparator as `a - b`, and a NaN comparator result
+is UNSPECIFIED: the engine keeps whatever order it had, so the built HTML depends
+on the sort implementation and the input order rather than on the data. That is
+design rule 8 broken, and it is invisible in review because a wrong order still
+looks like a list.
+
+Upstream validation rejects offsets, so this was not reachable from the dataset -
+which is not a guard, since the function and `sortEvents` are public API and
+`sortEvents` is re-exported from `src/lib/events.ts`. Now guarded: a non-finite
+result becomes `0`, which is smaller than any `YYYYMMDDHHMMSS`, so unusable values
+sort first and the caller's `id` tiebreak orders them among themselves
+deterministically. Which end they land on is arbitrary and documented; that they
+land on the SAME end every time is the property that was missing. The new test
+asserts order stability under input reversal, that nothing is dropped, and that a
+real timestamp still sorts as it always did.
+
+### 6. aria-current removed from the calendar cells
+
+`EventCalendar.astro` rendered `aria-current` from a `selectedKey` prop.
+`selectedKey` is a BUILD-TIME constant: events.astro picks the first upcoming day
+once, while rendering, and hands the same string to every cell. The attribute is
+baked into the HTML and can never change, so after the reader selects a different
+date the CSS `:checked` styling moves while the accessibility tree goes on
+reporting the OLD cell as current. A cell that is not current, marked as current,
+in the document a screen reader is reading, is worse than no signal.
+
+**The markup was checked before removing it, as asked, and the claim holds.** In
+the built page: each day is a real `<input type="radio">` with an `aria-label`
+naming the date and its event count (`"3 November 2026, 2 events"`), `aria-controls`
+pointing at its own panel, and exactly one carrying `checked`; and the panel is
+`<aside ... aria-live="polite">` with a block per date whose `aria-label` is the
+date. Platform state moves with the selection and the live region announces what
+changed. There is no fix inside a no-JS design - CSS cannot write an ARIA
+attribute, and an attribute's value cannot be a selector - so this is a removal of
+a false signal, not a loss of a real one.
+
+The prop is gone too, rather than left in the interface where the next person
+reconnects it. A long comment records why, so nobody re-adds it. New test asserts
+the absence in the source AND in the built HTML, and positively asserts the radio
+labels and the live region, so if either carrier were ever removed the failure
+would say the removal cost an announcement.
+
+### 7. An event day is no longer told apart by colour alone
+
+The unselected cell differed from an empty cell in exactly one thing: the numeral's
+text colour, `var(--text-muted)` against `var(--text)`. No background, no weight, no
+shape. A hue is the one thing forced-colours mode, greyscale print and every colour
+vision deficiency remove - so the question the grid exists to answer, "which dates
+are worth selecting", was carried by the one channel that cannot be relied on.
+
+Each event day now carries a 5px ring beside the numeral, drawn with a `border`
+rather than a `background`. **That choice is the fix, not a detail:** forced-colours
+mode overrides `background-color` to the canvas colour, so a dot painted that way
+would be invisible in exactly the mode it was added for, while `border-width` and
+`border-style` survive the override. The empty-day cell renders no marker at all,
+so presence of the element is the signal and no palette can remove it.
+
+Checked against all three themes by reading the compiled rule out of the built
+stylesheet: the ring is `currentColor`, which on an event day resolves to `--text`,
+measured at 15.72:1 (civic), 21.00:1 (ledger) and 15.84:1 (slate) against the page
+background - all far above the 3:1 non-text minimum, and `currentColor` follows the
+theme automatically rather than needing a per-theme value. New test asserts the
+compiled rule carries at least one non-colour property, that it has real width and
+height, that it has NO `background`, and that there is exactly one marker per event
+day and none on an empty day.
+
+### 8. The EventRow comment was 16 lines of a bug that lives elsewhere
+
+`EventRow.astro` carried a long explanation of the `:global()` scoping bug that
+removed the page's focus ring. **Confirmed stale:** the rules it described are now
+generated per date in `events.astro`'s `is:inline` block, and `test/events.test.mjs`
+already fails if a class owned by this component appears in that page's scoped
+`<style>`. Compressed to four lines pointing at the live explanation. The real
+constraint - the component's classes must not be styled from the page - is kept,
+and the pointer names the test that enforces it.
+
+### Three places the code's own comments were LYING
+
+Recorded because they are the same failure this project exists to prevent, expressed
+in English:
+
+1. **`EventCalendar.astro`, on `aria-current`:** *"It costs one attribute and no extra
+   CSS rule, because the selected treatment is already applied to the same element by
+   the page's per-day selectors."* True of the CSS, silent about the attribute. The
+   attribute was baked in at build time and reported the wrong cell after any
+   interaction. A comment that counted the cost of an attribute without asking what
+   the attribute would say.
+2. **`calendar.ts`, on the `monthGrids` throw:** *"A key came from a real day's key, so
+   this cannot be null."* It could. `2026-13` passes the key regex and fails the
+   parser, and taking a value's provenance as a guarantee about its contents is the
+   mistake, not the missing null check.
+3. **`EventCalendar.astro`, on selection:** *"THE TWO NON-COLOUR SIGNALS A CELL NEEDS...
+   the day number goes from muted to full contrast here - so selection is signalled by
+   a shape AND a contrast change, never by a tint alone."* A change in text colour is
+   a colour signal. Calling it one of "the two non-colour signals" is the exact error
+   fix 7 exists to remove, written in a comment about it. Corrected in place.
+
+---
+
 ## 2026-10-05 - Phase 3: the visible site (a front door / reading room)
 
 The pages the earlier phases were building towards. Nothing about the pipeline

@@ -51,13 +51,64 @@ one, save it without.
 ```json
 {
   "reviewedOn": "2026-10-05",
-  "events": [ { ... }, { ... } ]
+  "events": [ { ... }, { ... } ],
+  "pageNote": {
+    "heading": "...",
+    "paragraphs": [ "...", "..." ]
+  }
 }
 ```
 
 - `reviewedOn` - optional, `YYYY-MM-DD`. The date a human last checked this list.
   See section 7.
 - `events` - required, an array, and it must not be empty.
+- `pageNote` - **optional**. A block of prose rendered under the calendar. See
+  section 2b.
+
+Any other top-level key is a hard error with a spelling suggestion, so a typo
+cannot be silently ignored.
+
+---
+
+## 2b. `pageNote`: PROSE THAT IS NOT AN EVENT
+
+Some things belong on an events page and are not events. The current example is
+"ongoing campaign activity", which has no date because it is not a thing that
+happens on a day.
+
+**Do not fake it as an event with an invented date.** That would put undated prose
+onto a calendar of real election dates, and a reader would reasonably believe it
+has a date it does not have.
+
+```json
+"pageNote": {
+  "heading": "Ongoing campaign activity in the Upstate",
+  "paragraphs": [
+    "One paragraph of running prose.",
+    "Another paragraph."
+  ]
+}
+```
+
+| Rule | |
+| --- | --- |
+| `heading` | required, non-empty, max 120 characters |
+| `paragraphs` | required, an array of **strings**, min 1, max 900 characters each |
+| unknown keys inside `pageNote` | hard error, with a spelling suggestion |
+
+Three rules here exist to stop a specific silent failure:
+
+- **`paragraphs` must be an array, even for one paragraph.** A bare string is
+  rejected. The block is meant to grow.
+- **An empty `paragraphs` array is rejected.** A heading with nothing under it
+  renders as a section header over blank space, which on a finished page reads as
+  a decision rather than a bug. To have no note at all, **omit the whole
+  `pageNote` key** or set it to `null` - both are valid and render nothing.
+- **Unknown keys are rejected.** `paragraph` instead of `paragraphs` would
+  otherwise render a heading and a rule with no words under them.
+
+The page reads this block; it does not hardcode the prose. A test fails if the
+campaign text ever appears in the page source instead.
 
 ---
 
@@ -65,25 +116,42 @@ one, save it without.
 
 ```json
 {
-  "id": "riverside-water-forum",
-  "name": "Riverside Water Forum",
-  "event": "An evening on who owns the river, who pays to keep it flowing, and what a low-water year actually does to farms downstream. Four speakers, then questions.",
-  "startsAt": "2026-11-14T18:30",
-  "endsAt": "2026-11-14T20:30",
+  "id": "governor-debate",
+  "name": "SC Governor Debate",
+  "event": "Alan Wilson (R) and Jermaine Johnson (D) meet in the televised debate for the governor of South Carolina.",
+  "startsAt": "2026-10-06T19:00",
+  "endsAt": null,
   "allDay": false,
   "timezone": "Eastern Time (ET)",
-  "location": "Riverside Public Library, 14 Mill Street, Millbrook",
-  "type": "Forum",
-  "thumbnail": "/img/events/riverside-water-forum-thumb.svg",
-  "banner": "/img/events/riverside-water-forum-banner.svg",
-  "url": "https://example.org/events/riverside-water-forum",
-  "notes": "Doors at 6pm. The hearing room is reached up the stairs at the rear."
+  "location": "WIS Studios, Columbia",
+  "type": "Debate",
+  "thumbnail": "/img/events/governor-debate-thumb.svg",
+  "banner": "/img/events/governor-debate-banner.svg",
+  "url": null,
+  "notes": "Starts at 7:00 pm and is streamed live by WIS."
 }
 ```
 
-`url` and `notes` are optional and may be `null` or omitted. `thumbnail` and
-`banner` are optional too, and both may be `null` - the calendar is built to
-render without either, and there are events in the sample data that do.
+`url`, `notes`, `thumbnail`, `banner` and `endsAt` are optional and may be `null`
+or omitted. The calendar is built to render without any of them, and events in the
+current data do: three have no `url`, because a real event with no published page
+is more honest than one with a fabricated link.
+
+### A NOTE ON `endsAt`, WHICH DOES TWO DIFFERENT JOBS
+
+| `allDay` | `endsAt` means | renders as |
+| --- | --- | --- |
+| `false` | a **clock time** on the same or another day | `7:00 pm - 9:00 pm` |
+| `true` | the **last day** of a multi-day span | `15 - 31 October 2026` |
+
+The all-day case is how early voting is expressed: `"startsAt": "2026-10-15"`,
+`"endsAt": "2026-10-31"`, `"allDay": true`. Both dates must be plain
+`YYYY-MM-DD`. A span is only meaningful between two all-day dates - a timed pair
+never renders as a span, because `18:30 - 31 October 2026` reads as nonsense.
+
+**The calendar grid marks only the FIRST day of a span.** Early voting appears on
+15 October; the 16th to the 31st look like ordinary empty days. The full range is
+in the panel and in the list. This is a known limitation, recorded in ROADMAP.md.
 
 ---
 
@@ -187,7 +255,7 @@ is made and everything renders in one chronological list.
 ## 8. TYPES: A CLOSED LIST, ON PURPOSE
 
 ```
-Election   Debate   Forum   Rally   Fundraiser   Workshop   Lecture
+Election   Debate   Forum   Meeting   Rally   Fundraiser   Workshop   Lecture
 ```
 
 These render as filter chips. Free text fragments over time - "Keynote",
@@ -197,17 +265,27 @@ An unknown type is a loud failure that prints the whole allowed list.
 
 Matching is **case-sensitive**: `forum` is rejected, `Forum` is correct.
 
+**Order matters.** The list above is the order a filter row renders in. Put a new
+entry where a reader would expect it relative to the existing groups rather than
+appending it to the end.
+
 **To add a genuine one-off**, make it a deliberate two-place edit:
 
 1. add it to `EVENT_TYPES` in `src/lib/events-schema.ts`
-2. add a row to the table in `data/events.schema` (section 3)
+2. add it to the list above (this section)
 
 Both, in the same change. The point is that this cannot be done by accident while
 filling in forty rows.
 
-Note `Lecture` is singular while the original brief said "Lectures"; the other six
+Note `Lecture` is singular while the original brief said "Lectures"; the other seven
 were singular, and a chip reading "Lectures" is a grammar error in a filter row.
 One-word revert if that was not the intent.
+
+`Meeting` was added when the real events replaced the placeholders. A party
+quarterly meeting is a scheduled gathering, not a moderated Q&A, and the chip is
+the first thing a reader scans - filing it under `Forum` would make a filter lie
+about its contents. It is the first time the vocabulary was actually extended, so
+it is the worked example of the two-place edit above.
 
 ---
 
@@ -216,15 +294,29 @@ One-word revert if that was not the intent.
 - Put files in `public/img/events/`. A path in the data is `/img/` plus that
   directory, so `public/img/events/foo.svg` is written `/img/events/foo.svg`.
 - Naming convention: `<id>-thumb.svg` and `<id>-banner.svg`.
-- The placeholder set is SVG and flat geometric. **Real photography is welcome and
-  is the point** - drop in `.jpg` or `.png` and update the path to match.
-- Aspect ratios the layout is built around: thumbnail **3:2** (the sample files
+- **No photographs exist for the real events yet**, so `npm run events:placeholders`
+  generates a **typographic placeholder** for each: a warm plate carrying the event
+  name, the date, and the word `PLACEHOLDER`. It is a plate of type, not a
+  photograph pretending to be one.
+- **Replacing one is a two-step job.** Put the real image in place and update the
+  path, then re-run `npm run events:check`. The generator **refuses to overwrite an
+  existing file**, so a real photograph survives someone re-running it. Its
+  `--force` flag will destroy real artwork; there is almost never a reason to use it.
+  The generator also skips any path that does not end in `.svg`, so a `.jpg` is
+  never at risk.
+- **Real photography is welcome and is the point** - drop in `.jpg` or `.png` and
+  update the path to match.
+- **Placeholders do not follow the site's theme.** An SVG loaded through `<img>` is
+  an isolated document and cannot read the page's CSS custom properties, so the
+  civic palette is baked in. This is correct and not a defect: a real photograph
+  would not follow the theme either.
+- Aspect ratios the layout is built around: thumbnail **3:2** (the generated files
   are 480x320), banner **8:3** (1600x600). Both are cropped by CSS with
   `object-fit: cover`, so a different ratio still renders - it will just crop more.
 - Both are optional. An event with neither renders as a complete row, and its
   panel shows a framed notice saying no banner was supplied. That is deliberate:
-  the frame keeps its height so the sticky panel on a phone does not jump when
-  the reader selects a different event.
+  the frame keeps its height so the panel does not jump when the reader selects a
+  different date.
 - A path that does not resolve to a real file is a **build-time failure**, caught
   by `npm run events:check`. A 404 image on a page about dates is exactly the
   kind of quiet breakage this project treats as unacceptable.
@@ -239,25 +331,76 @@ One-word revert if that was not the intent.
 This is the part that is easy to miss, so it is stated as a numbered list.
 
 1. Add the event object to the `events` array in `data/events.json`.
-2. **Add its `id` to the selection rules in `src/pages/events.astro`.** There is a
-   block of seven `html:has(#event-input-<id>:checked) [data-panel='<id>']`
-   selectors. Add one line for the new id.
-3. Drop any image files into `public/img/events/` and reference them.
+2. **Add its DATE to the selection rules in `src/pages/events.astro`.** There are
+   three blocks of selectors there, and each needs one line for the new date
+   (`YYYY-MM-DD`):
+   - `#day-<date>:checked) :global([data-panel='<date>'])` - shows the panel
+   - `#day-<date>:checked) :global([data-day='<date>'])` - marks it selected
+   - `#day-<date>:focus-visible) :global([data-day='<date>'])` - rings the focus
+3. Drop any image files into `public/img/events/` and reference them. If you have
+   none, run `npm run events:placeholders` to generate typographic plates.
 4. Run `npm run events:check` until it exits 0.
-5. Run `npm test`. One test asserts that every event in the data has a matching
-   selector in step 2, so **step 2 is verified rather than remembered**.
+5. Run `npm test`. Tests assert that every **date** in the data has all three
+   selectors, that no selector names a date the data no longer contains, and that
+   both blocks hold exactly one line per date - so **step 2 is verified rather than
+   remembered**, in both directions.
 
-**Why step 2 exists at all.** Astro scopes CSS written inside a component, and
-there is no way to generate a selector from a JSON array. So those seven lines are
-hand-written, and adding an event without adding its line would produce a page
-where the row is selectable and its panel never appears: no error, no warning, a
-green build, and a feature that silently does nothing. The test in step 5 is the
-answer to "if this were broken, how would I find out?" - but you should still do
-step 2, because finding out from a test failure is worse than doing it.
+**It is the DATE, not the event id.** The calendar's selection unit is a date,
+because a calendar cell is a date and two events can share one. Adding a second
+event to a date that already exists needs **no** new selectors - the cell and the
+panel already exist, and the panel simply stacks the two events.
+
+### Why step 2 exists at all
+
+CSS cannot relate a `<label for>` to the control it merely names. A calendar cell
+and a list row are rendered by different components from the radio they select, and
+the panel is a sibling of both, so the only way to say "this date is selected" is
+one selector per date. Those lines are hand-written, and adding a date without
+adding its lines produces a page where the cell is clickable and **nothing
+happens**: no error, no warning, a green build, and a feature that silently does
+nothing.
+
+The test in step 5 is the answer to "if this were broken, how would I find out?" -
+but you should still do step 2, because finding out from a test failure is worse
+than doing it.
+
+### When this stops being the right design
+
+At roughly forty dates, step 2 is about 120 lines of hand-maintained CSS. At that
+point the right trade is about ten lines of inline script setting a `data-` attribute
+on the selected cell, and the calendar stops working with scripting off. Not before.
 
 ---
 
-## 11. WHAT THIS SCHEMA DELIBERATELY DOES NOT HAVE
+## 11. HOW THE PAGE USES THIS FILE
+
+Worth knowing before you edit the data, because it explains several fields.
+
+- **The calendar shows only months that have events.** No event means no month, and
+  no empty grid is rendered. A month grid is built per distinct month in the data.
+- **The list view is the same data, not a second list.** It is grouped by the same
+  month headings and rows point at the same date radios, so a date selected in one
+  view is selected in the other.
+- **A date with several events stacks them in the panel**, each with its own banner.
+  Nothing is hidden and no banner is picked arbitrarily. The current data relies on
+  this: two elections fall on 3 November 2026.
+- **`reviewedOn` marks past dates.** Dates before it are shown as already held: in
+  the list they move to an "Already held" section, and in the calendar their cell is
+  marked. Nothing is hidden - a bureau's past engagements are part of the record.
+- **Bump `reviewedOn` when you review the list.** It is the only thing that moves
+  the past/upcoming line, and it is deliberately not read from the clock.
+- **The banner is height-capped**, not shown at its natural size. A full-width
+  banner was the reason this page was redesigned. Any image proportion works; it is
+  cropped to fit.
+- **A multi-day span marks only its first day in the grid.** The full range appears
+  in the panel and the list. If a span matters enough to fill the grid, that is a
+  page change, not a data change.
+- **`pageNote` is rendered last**, after the calendar and before the usage note, as
+  its own `<h2>` section.
+
+---
+
+## 12. WHAT THIS SCHEMA DELIBERATELY DOES NOT HAVE
 
 Recorded so their absence reads as a decision rather than an oversight.
 
@@ -265,10 +408,13 @@ Recorded so their absence reads as a decision rather than an oversight.
 - **No recurrence, series, or repeating events.** Add the rows.
 - **No organiser, speaker, or ticket-price fields.** The brief listed name, date,
   event, location and type; anything else is a conversation, not a default.
-- **No `updatedAt` per event.** `reviewedOn` at the top covers "when was this
+- **No `updatedOn` per event.** `reviewedOn` at the top covers "when was this
   list last checked", which is the question a reader actually has.
 - **No filter by type on the page yet.** The vocabulary is closed and the set
   present is derived from the data, so a filter is a change to the page alone and
   not a change to this contract.
 - **No absolute UTC instant per event.** See section 5 for why, and what is given
   up.
+- **No capacity, ticket price, or booking link semantics.** `url` is "a page with
+  more about this event" and nothing more. If booking is ever added it wants its own
+  field rather than overloading this one.

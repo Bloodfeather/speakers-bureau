@@ -40,9 +40,9 @@
 // same form articles.ts already uses, which Node 24 supports natively.
 import datasetJson from '../../data/events.json' with { type: 'json' }
 import { validateEvents } from './events-schema.ts'
-import type { EventRecord } from './events-schema.ts'
+import type { EventRecord, PageNote } from './events-schema.ts'
 
-export type { EventRecord, EventDataset, EventType, MonthGroup } from './events-schema.ts'
+export type { EventRecord, EventDataset, EventType, MonthGroup, PageNote } from './events-schema.ts'
 export {
   EVENT_TYPES,
   EVENT_FIELDS,
@@ -55,6 +55,7 @@ export {
   isPast,
   eventTypesPresent,
   formatEventDate,
+  formatEventDateSpan,
   formatEventTime,
   formatEventZone,
   machineDateTime
@@ -96,6 +97,17 @@ export const events: EventRecord[] = result.events
  * way available. See `reviewedOn` in src/lib/events-schema.ts.
  */
 export const reviewedOn: string | null = result.reviewedOn
+
+/**
+ * The optional closing block of prose, or null when the file does not carry one.
+ *
+ * Null is an ordinary value, not a failure: most pages will not have one, and the
+ * events page renders nothing at all when this is null rather than an empty section
+ * with a heading over it. The validator rejects a `pageNote` whose paragraphs array
+ * is empty precisely so that "no note" can never be expressed as "a note with
+ * nothing in it".
+ */
+export const pageNote: PageNote | null = result.pageNote
 
 /** How many events there are, for the page to state rather than have typed. */
 export const eventCount: number = events.length

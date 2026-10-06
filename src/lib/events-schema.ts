@@ -77,7 +77,12 @@
 // "node --test can import it directly" was never actually exercised - no test in
 // the repo imports that module. The claim was plausible and untested. Test the
 // claim next time, do not inherit it.
-import { MONTHS, monthKeyPart } from './months.ts'
+import { MONTHS, monthKeyPart, twoDigits } from './months.ts'
+
+// `twoDigits` and `monthKeyPart` used to be three inline `String(x).padStart(2,
+// '0')` calls here plus a private copy in calendar.ts, and the two copies
+// disagreed about whether the value they took was 0-based or 1-based. One
+// implementation now, and both names say which. See months.ts.
 
 // ---------------------------------------------------------------------------
 // Vocabulary
@@ -91,11 +96,26 @@ import { MONTHS, monthKeyPart } from './months.ts'
  * were singular, and a chip reading "Lectures" in a filter row is a grammar
  * error that a reader sees. It is a one-word revert if that was not the intent,
  * and it is recorded in build-log.md rather than made silently.
+ *
+ * `Meeting` WAS ADDED when the placeholder events were replaced with the real
+ * ones, and the reason is worth keeping: the Greenville County Republican Party
+ * Quarterly Meeting is a scheduled gathering, not a forum. Nobody is moderating
+ * questions from the floor, and the type chip is the first thing a reader scans to
+ * decide whether a listing is worth their evening. Filing a party business meeting
+ * under `Forum` would have made a filter lie about what it contained. The
+ * vocabulary was always designed to be extendable - `isEventType` rejects anything
+ * outside this array, so adding one here is the whole mechanism - and this is the
+ * first time it was used for that.
+ *
+ * ORDER IS SIGNIFICANT. `eventTypesPresent` returns present types in this order,
+ * so it is the order a filter row renders in. New entries go where a reader would
+ * expect them relative to the existing groups, not appended blindly to the end.
  */
 export const EVENT_TYPES = [
   'Election',
   'Debate',
   'Forum',
+  'Meeting',
   'Rally',
   'Fundraiser',
   'Workshop',
@@ -183,6 +203,8 @@ export interface EventDataset {
    */
   reviewedOn: string | null
   events: EventRecord[]
+  /** Optional closing prose block. Null when the file does not carry one. */
+  pageNote: PageNote | null
 }
 
 /**
@@ -211,6 +233,14 @@ export interface ValidationResult {
    */
   events: EventRecord[]
   reviewedOn: string | null
+  /**
+   * The validated note block, or null when absent, invalid, or `ok` is false.
+   *
+   * Null on failure for the same reason `events` is empty rather than partial: a
+   * half-parsed note block is a page with a heading and no body, or a body with no
+   * heading, and either looks finished.
+   */
+  pageNote: PageNote | null
 }
 
 // ---------------------------------------------------------------------------
@@ -530,8 +560,46 @@ function suggestKey(typo: string, legalKeys: readonly string[]): string {
   return bestScore <= 2 ? best : '';
 }
 
-/** The only two keys the top level of the file may carry. */
-const ROOT_KEYS = ['events', 'reviewedOn'] as const;
+/**
+ * The only keys the top level of the file may carry.
+ *
+ * `pageNote` joined these two when the placeholder events were replaced with real
+ * ones. The client supplied a block of prose - "Ongoing Campaign Activity in the
+ * Upstate" - that is emphatically NOT a dated event, and the two obvious homes for
+ * it were both bad:
+ *
+ *   - Hardcoded into src/pages/events.astro: then the calendar's words live in a
+ *     component, away from the file that holds everything else a reader sees, and
+ *     the next person to update this page has to find two places.
+ *   - Faked as events with invented dates: worse. It would put undated prose on a
+ *     calendar of real election dates, and a reader would reasonably believe the
+ *     campaign activity has a date it does not have.
+ *
+ * So it is a third root key with its own shape and its own validation, including the
+ * same unknown-key typo suggester the events get. An assistant filling in this file
+ * edits one document, and a misspelled `paragraph` inside it is still caught.
+ */
+const ROOT_KEYS = ['events', 'reviewedOn', 'pageNote'] as const;
+
+/** The only keys `pageNote` may carry. Same rationale as ALLOWED_EVENT_KEYS. */
+const PAGE_NOTE_KEYS = ['heading', 'paragraphs'] as const;
+
+/** Generous enough for a real paragraph, short enough to catch a whole essay. */
+const PAGE_NOTE_HEADING_MAX = 120;
+const PAGE_NOTE_PARAGRAPH_MAX = 900;
+
+/**
+ * A closing block of prose rendered under the calendar: a heading and paragraphs.
+ *
+ * Modeled as paragraphs rather than a list because the content is running prose
+ * about several subjects, and a `<ul>` would force a structure the writing does not
+ * have. Rendering them as `<p>` is also the honest choice for text this site did
+ * not write as a set of items.
+ */
+export interface PageNote {
+  heading: string
+  paragraphs: string[]
+}
 
 function validateField(
   spec: FieldSpec,
@@ -779,6 +847,126 @@ function validateField(
 }
 
 /**
+ * Validate the optional `pageNote` block, collecting problems as it goes.
+ *
+ * COLLECTS EVERY PROBLEM, like the event loop, and for the same reason: an
+ * assistant filling this file in should see all four mistakes in one run rather
+ * than fixing them one build at a time.
+ *
+ * Returns null - not a partial object - when anything is wrong, so a caller cannot
+ * render a heading with an empty body. An absent or null `pageNote` is NOT a
+ * problem: the block is genuinely optional and most pages will not have one.
+ */
+function validatePageNote(raw: unknown, problems: ValidationProblem[]): PageNote | null {
+  if (raw === undefined || raw === null) return null;
+
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    problems.push(
+      problem(
+        '(root).pageNote',
+        'pageNote-not-object',
+        `(root).pageNote must be an object with "heading" and "paragraphs", got ${Array.isArray(raw) ? 'an array' : typeof raw}`
+      )
+    );
+    return null;
+  }
+
+  const block = raw as Record<string, unknown>;
+  let failed = false;
+
+  // Same unknown-key treatment as an event, INCLUDING the typo suggester. A
+  // misspelled "paragraphs" would otherwise render an empty note section that
+  // looks deliberate: a heading, a rule, and no words under it.
+  for (const key of Object.keys(block)) {
+    if ((PAGE_NOTE_KEYS as readonly string[]).includes(key)) continue;
+    failed = true;
+    problems.push(
+      problem(
+        '(root).pageNote',
+        'unknown-key',
+        `(root).pageNote accepts only "heading" and "paragraphs", got "${key}". ${describeSuggestion(suggestKey(key, PAGE_NOTE_KEYS))}`
+      )
+    );
+  }
+
+  let heading = '';
+  const rawHeading = block.heading;
+  if (typeof rawHeading !== 'string' || rawHeading.trim() === '') {
+    failed = true;
+    problems.push(
+      problem(
+        '(root).pageNote.heading',
+        rawHeading === undefined ? 'pageNote-heading-missing' : 'pageNote-heading-empty',
+        `(root).pageNote.heading must be a non-empty string, got ${rawHeading === undefined ? 'nothing' : JSON.stringify(rawHeading)}. ` +
+          'A heading is what tells a reader why this block of prose is on a page of dates.'
+      )
+    );
+  } else if (rawHeading.length > PAGE_NOTE_HEADING_MAX) {
+    failed = true;
+    problems.push(
+      problem(
+        '(root).pageNote.heading',
+        'too-long',
+        `(root).pageNote.heading is ${rawHeading.length} characters, over the limit of ${PAGE_NOTE_HEADING_MAX}`
+      )
+    );
+  } else {
+    heading = rawHeading.trim();
+  }
+
+  const paragraphs: string[] = [];
+  const rawParagraphs = block.paragraphs;
+  if (!Array.isArray(rawParagraphs)) {
+    failed = true;
+    problems.push(
+      problem(
+        '(root).pageNote.paragraphs',
+        rawParagraphs === undefined ? 'pageNote-paragraphs-missing' : 'pageNote-paragraphs-not-array',
+        `(root).pageNote.paragraphs must be an array of strings, got ${rawParagraphs === undefined ? 'nothing' : Array.isArray(rawParagraphs) ? 'an array' : typeof rawParagraphs}. ` +
+          'Pass a single string for a one-paragraph note, not a bare string: the schema wants a list so the block can grow.'
+      )
+    );
+  } else if (rawParagraphs.length === 0) {
+    failed = true;
+    problems.push(
+      problem(
+        '(root).pageNote.paragraphs',
+        'pageNote-paragraphs-empty',
+        '(root).pageNote.paragraphs is an empty array. A heading with no text under it renders as a section header with nothing in it, which reads as a mistake on the page rather than as an absence. Delete the whole pageNote block instead.'
+      )
+    );
+  } else {
+    rawParagraphs.forEach((entry, index) => {
+      if (typeof entry !== 'string' || entry.trim() === '') {
+        failed = true;
+        problems.push(
+          problem(
+            `(root).pageNote.paragraphs[${index}]`,
+            'pageNote-paragraph-empty',
+            `(root).pageNote.paragraphs[${index}] must be a non-empty string, got ${JSON.stringify(entry)}. An empty paragraph renders as blank vertical space.`
+          )
+        );
+        return;
+      }
+      if (entry.length > PAGE_NOTE_PARAGRAPH_MAX) {
+        failed = true;
+        problems.push(
+          problem(
+            `(root).pageNote.paragraphs[${index}]`,
+            'too-long',
+            `(root).pageNote.paragraphs[${index}] is ${entry.length} characters, over the limit of ${PAGE_NOTE_PARAGRAPH_MAX}`
+          )
+        );
+        return;
+      }
+      paragraphs.push(entry.trim());
+    });
+  }
+
+  return failed ? null : { heading, paragraphs };
+}
+
+/**
  * Validate the whole file.
  *
  * @param raw - the parsed JSON, typed `unknown` because nothing about a hand
@@ -795,7 +983,8 @@ export function validateEvents(raw: unknown): ValidationResult {
         problem('(root)', 'root-not-object', `the file must contain a JSON object at the top level, got ${Array.isArray(raw) ? 'an array' : typeof raw}`)
       ],
       events: [],
-      reviewedOn: null
+      reviewedOn: null,
+      pageNote: null
     };
   }
 
@@ -804,12 +993,12 @@ export function validateEvents(raw: unknown): ValidationResult {
   // Unknown keys at the ROOT, same rationale as at the event level: a typo in
   // `reviewedOn` would otherwise be silently ignored.
   for (const key of Object.keys(doc)) {
-    if (key === 'events' || key === 'reviewedOn') continue;
+    if ((ROOT_KEYS as readonly string[]).includes(key)) continue;
     problems.push(
       problem(
         '(root)',
         'unknown-key',
-        `the top level accepts only "events" and "reviewedOn", got "${key}". ${describeSuggestion(suggestKey(key, ROOT_KEYS))}`
+        `the top level accepts only ${ROOT_KEYS.map((allowed) => `"${allowed}"`).join(', ')}, got "${key}". ${describeSuggestion(suggestKey(key, ROOT_KEYS))}`
       )
     );
   }
@@ -830,6 +1019,12 @@ export function validateEvents(raw: unknown): ValidationResult {
     }
   }
 
+  // Validated HERE, between reviewedOn and events, rather than at the end. The
+  // early returns below mean a file with no events array never reaches the end, and
+  // a note block that is only checked on the success path would go unvalidated in
+  // exactly the broken files where a second problem matters most.
+  const pageNote = validatePageNote(doc.pageNote, problems);
+
   if (!Array.isArray(doc.events)) {
     problems.push(
       problem(
@@ -838,7 +1033,10 @@ export function validateEvents(raw: unknown): ValidationResult {
         `(root).events must be an array of events, got ${doc.events === undefined ? 'nothing' : Array.isArray(doc.events) ? 'an array' : typeof doc.events}`
       )
     );
-    return { ok: false, problems, events: [], reviewedOn };
+    // pageNote is nulled on every failure path, even when it validated cleanly, so
+    // a caller that ignores `ok` still cannot render a note beside a broken
+    // calendar. See the `pageNote` field comment on ValidationResult.
+    return { ok: false, problems, events: [], reviewedOn, pageNote: null };
   }
 
   if (doc.events.length === 0) {
@@ -849,7 +1047,10 @@ export function validateEvents(raw: unknown): ValidationResult {
         '(root).events is an empty array. An events page with no events is a page that renders a lie about a calendar; delete the page instead, or add at least one event.'
       )
     );
-    return { ok: false, problems, events: [], reviewedOn };
+    // pageNote is nulled on every failure path, even when it validated cleanly, so
+    // a caller that ignores `ok` still cannot render a note beside a broken
+    // calendar. See the `pageNote` field comment on ValidationResult.
+    return { ok: false, problems, events: [], reviewedOn, pageNote: null };
   }
 
   const seenIds = new Map<string, number>();
@@ -964,9 +1165,12 @@ export function validateEvents(raw: unknown): ValidationResult {
   });
 
   if (problems.length > 0) {
-    return { ok: false, problems, events: [], reviewedOn };
+    // pageNote is nulled on every failure path, even when it validated cleanly, so
+    // a caller that ignores `ok` still cannot render a note beside a broken
+    // calendar. See the `pageNote` field comment on ValidationResult.
+    return { ok: false, problems, events: [], reviewedOn, pageNote: null };
   }
-  return { ok: true, problems: [], events, reviewedOn };
+  return { ok: true, problems: [], events, reviewedOn, pageNote };
 }
 
 function describeSuggestion(suggestion: string): string {
@@ -1030,7 +1234,53 @@ function formatClockTime(hour: number, minute: number): string {
   // 0 and 12 both display as 12, which is the one piece of arithmetic here that
   // is worth stating: `hour % 12` alone would print "0:30 am".
   const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-  return `${displayHour}:${String(minute).padStart(2, '0')} ${meridiem}`
+  return `${displayHour}:${twoDigits(minute)} ${meridiem}`
+}
+
+/**
+ * The date, or the DATE SPAN when the event runs over more than one day.
+ *
+ * `3 November 2026` normally. `15 - 31 October 2026` for early voting, which is
+ * `startsAt: 2026-10-15` with `endsAt: 2026-10-31` and `allDay: true`.
+ *
+ * WHY THIS EXISTS, because the alternative was a silent lie. The schema has always
+ * accepted an all-day `endsAt`, and the `ends-before-starts` check was specifically
+ * repaired to work for all-day pairs - but the RENDERER only ever printed
+ * `startsAt`. So the first real dataset to contain a span would have shown "15
+ * October 2026" for a fortnight of voting: the start date, true, with the end
+ * dropped, in the one place a reader would look to find out how long they have.
+ *
+ * The schema was right and the renderer was incomplete. That is the ordinary shape
+ * of a gap, and it is only a gap because no sample data had ever exercised it -
+ * which is why the span case is asserted directly rather than inferred.
+ *
+ * A SPAN IS ONLY MEANINGFUL BETWEEN TWO ALL-DAY DATES, so a timed pair falls back to
+ * the start date. `formatEventTime` already prints `6:30 pm - 8:00 pm` for those, and
+ * combining both would give "18:30 - 31 October 2026", which reads as nonsense.
+ *
+ * The separator is an ASCII hyphen with spaces, for the same reason as the clock
+ * range above: every character authored into this project is ASCII.
+ */
+export function formatEventDateSpan(startsAt: string, endsAt: string | null): string {
+  const start = parseWallClock(startsAt);
+  if (start === null) return '';
+  if (endsAt === null) return formatEventDate(startsAt);
+
+  const end = parseWallClock(endsAt);
+  if (end === null) return formatEventDate(startsAt);
+
+  const sameDay = start.year === end.year && start.month === end.month && start.day === end.day;
+  if (sameDay) return formatEventDate(startsAt);
+  if (!start.allDay || !end.allDay) return formatEventDate(startsAt);
+
+  const sameMonth = start.year === end.year && start.month === end.month;
+  if (sameMonth) return `${start.day} - ${end.day} ${MONTHS[start.month - 1]} ${start.year}`;
+
+  const sameYear = start.year === end.year;
+  if (sameYear) {
+    return `${start.day} ${MONTHS[start.month - 1]} - ${end.day} ${MONTHS[end.month - 1]} ${start.year}`;
+  }
+  return `${start.day} ${MONTHS[start.month - 1]} ${start.year} - ${end.day} ${MONTHS[end.month - 1]} ${end.year}`;
 }
 
 /**
@@ -1063,9 +1313,11 @@ export function machineDateTime(value: string): string {
   const parsed = parseWallClock(value);
   if (parsed === null) return '';
   if (parsed.allDay) return value;
-  const hour = String(parsed.hour).padStart(2, '0');
-  const minute = String(parsed.minute).padStart(2, '0');
-  return `${parsed.year}-${monthKeyPart(parsed.month - 1)}-${String(parsed.day).padStart(2, '0')}T${hour}:${minute}`
+  // Every number here is 1-based, so `monthKeyPart` and `twoDigits` are given the
+  // value as parsed. Both come from months.ts; there is no local padStart here.
+  const hour = twoDigits(parsed.hour);
+  const minute = twoDigits(parsed.minute);
+  return `${parsed.year}-${monthKeyPart(parsed.month)}-${twoDigits(parsed.day)}T${hour}:${minute}`
 }
 
 // ---------------------------------------------------------------------------
@@ -1098,13 +1350,33 @@ export function sortEvents(eventsIn: readonly EventRecord[]): EventRecord[] {
 /**
  * A sortable number for a wall-clock string, WITHOUT interpreting a timezone.
  *
- * Both forms are reduced to the same `YYYYMMDD`(+`HHMM`) integer, so a date-only
+ * Both forms are reduced to the same `YYYYMMDD`(+`HHMMSS`) integer, so a date-only
  * event and a timed event on the same day sort adjacently and a date-only event
  * sorts before a timed one that morning, which is what a reader expects from a
  * calendar. Zero-padded fixed-width integers compare correctly as strings, which
  * is the whole trick: no Date, no offset, no machine timezone.
+ *
+ * NEVER RETURNS NaN, and that is the whole point of the guard at the bottom.
+ * `sortEvents` feeds this straight into a comparator as `a - b`. A NaN from a
+ * comparator is not "sorts badly", it is unspecified: the engine keeps whatever
+ * order it had, so the built HTML depends on the sort implementation and the
+ * input order rather than on the data. Design rule 8 forbids that, and it is
+ * invisible in review because a wrong order still looks like a list.
+ *
+ * The offset case is the concrete one. `2026-11-14T18:30:00-05:00` splits on 'T'
+ * and on ':' into a third field of `00-05`, `Number()` refuses the whole string,
+ * and the previous version returned NaN for it. Upstream validation rejects
+ * offsets, so this is not reachable from data/events.json today - but this
+ * function is exported and `sortEvents` is re-exported from src/lib/events.ts,
+ * so it is public API, and "the input cannot currently happen" is not a guard.
+ *
+ * An unparseable value sorts as 0, i.e. before every real date, and the caller's
+ * `id` tiebreak orders those among themselves deterministically. Any total order
+ * is defensible here; an engine-chosen one is not, because it is not a fact about
+ * the data.
  */
 export function wallClockToSortable(value: string): number {
+  if (typeof value !== 'string') return 0;
   const [datePart, timePart = ''] = value.split('T');
   const [hour = '00', minute = '00', second = '00'] = timePart.split(':');
   // FIXED WIDTH, ALWAYS. The first version appended timePart with its colons
@@ -1114,15 +1386,17 @@ export function wallClockToSortable(value: string): number {
   // 18:30:00 to 20:00 was reported as ending before it started. It surfaced only
   // after the ends-before-starts rule was rewritten to use this function - which
   // is the ordinary way a latent bug gets found, by giving it a second caller.
-  const timeDigits = `${hour.padStart(2, '0')}${minute.padStart(2, '0')}${second.padStart(2, '0')}`;
-  return Number(`${datePart.replace(/-/g, '')}${timeDigits}`);
+  const timeDigits = `${twoDigits(hour)}${twoDigits(minute)}${twoDigits(second)}`;
+  const digits = `${datePart.replace(/-/g, '')}${timeDigits}`;
+  const sortable = Number(digits);
+  return Number.isFinite(sortable) ? sortable : 0;
 }
 
 /** `2026-11` for a wall-clock string. The month a calendar groups by. */
 export function monthKey(value: string): string {
   const parsed = parseWallClock(value);
   if (parsed === null) return '';
-  return `${parsed.year}-${monthKeyPart(parsed.month - 1)}`
+  return `${parsed.year}-${monthKeyPart(parsed.month)}`
 }
 
 /** `November 2026` for a `2026-11` key. */
@@ -1173,7 +1447,7 @@ export function isPast(event: EventRecord, reviewedOn: string | null): boolean {
   const reviewed = parseWallClock(reviewedOn);
   if (reviewed === null) return false;
   const eventDay = Number(event.startsAt.slice(0, 10).replace(/-/g, ''));
-  const reviewedDay = Number(`${reviewed.year}${String(reviewed.month).padStart(2, '0')}${String(reviewed.day).padStart(2, '0')}`);
+  const reviewedDay = Number(`${reviewed.year}${twoDigits(reviewed.month)}${twoDigits(reviewed.day)}`);
   return eventDay < reviewedDay
 }
 

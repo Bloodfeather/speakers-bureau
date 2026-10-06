@@ -139,54 +139,103 @@ and "why is this article on the site" is answerable with `git log`.
 - [ ] Manual `workflow_dispatch` trigger
 - [ ] GitHub repo creation, Pages configured to publish from workflow
 
-### Phase 3.5 - Events calendar  [COMPLETE 2026-10-05]
+### Phase 3.5 - Events calendar  [COMPLETE 2026-10-05, redesigned 2026-10-05, real data 2026-10-05]
 
 A second dataset with the opposite provenance to `articles.json`: nothing writes
 it, a human or an AI assistant does. That single fact drove every decision below.
 
 - [x] `src/lib/events-schema.ts` - the schema as CODE: field table, closed type
-      vocabulary, wall-clock date rules, formatting. Pure, so three callers share it.
+      vocabulary, wall-clock date rules, date-SPAN formatting, formatting. Pure, so
+      three callers share it.
 - [x] `src/lib/events.ts` - the loader. Validates and **throws**, so a malformed
       file fails `npm run build` rather than rendering a partial calendar.
 - [x] `src/lib/months.ts` - month names, extracted so the events code does not
       drag `articles.json` in with it.
-- [x] `src/pages/events.astro` + `src/components/EventRow.astro` - the calendar.
-      Selection is **pure CSS** (`html:has()`), zero JavaScript, and a radio group
-      so keyboard support is the platform's rather than hand-written.
-- [x] `data/events.json` - 7 sample events, one per type, deliberately including
-      an all-day event and two with missing artwork so the degraded paths are
-      *known* rather than believed.
+- [x] `src/lib/calendar.ts` - day grouping and month-grid arithmetic. No
+      `new Date(string)` and no local accessor anywhere: a date-only string is UTC
+      midnight, and reading it locally reports the previous day west of Greenwich.
+- [x] `src/pages/events.astro` + `EventCalendar.astro` + `EventRow.astro` +
+      `EventDetail.astro` - **a real month-grid calendar on the left, an info panel
+      on the right**, swappable by a boolean switch for the month-grouped list, both
+      keeping the two-column arrangement.
+- [x] `data/events.json` - **6 REAL events**: the Greenville County GOP quarterly
+      meeting, the SC Governor Debate, the SCETV Senate debate, early voting
+      (15-31 Oct), the 3 November general election, and Greenwood's municipal
+      election on the same day.
 - [x] `data/events.schema.md` - the written contract an AI assistant works from.
 - [x] `scripts/check-events.mjs` + `npm run events:check` - readable report, all
       problems at once, plus an on-disk check that every referenced image exists.
-- [x] `public/img/events/` - 11 placeholder SVGs (thumbnails + banners).
-- [x] `test/events.test.mjs` - 30 tests.
+- [x] `scripts/make-placeholders.mjs` + `npm run events:placeholders` - generates a
+      typographic plate per event for artwork that does not exist yet. **Refuses to
+      overwrite**, so real photography cannot be destroyed by a re-run.
+- [x] `public/img/events/` - 12 generated placeholders (thumbnails + banners).
+- [x] `test/events.test.mjs` + `test/calendar.test.mjs` + `test/placeholders.test.mjs`.
 
 **Decisions taken here that a later phase must not undo**
 
 | Decision | Choice | Consequence |
 | --- | --- | --- |
-| Event timestamps | **Local wall clock, `YYYY-MM-DDTHH:MM`, offsets REJECTED.** | The file holds no absolute instant, so the zone is a human `timezone` label. A DST-arithmetic dependency is avoided entirely. Stated as a limitation, not hidden. |
-| Past vs upcoming | Split on `reviewedOn`, a date **in the data**. | `new Date()` at build time would make the built HTML depend on the build day - design rule 8 broken in its most literal form. A human bumps the date when they review the list. |
-| Panel visibility | One panel per event in the DOM, CSS picks one. | No state, no handler, nothing to desync, identical with scripting off. Costs markup proportional to event count. |
-| Hand-authored data | **Unknown keys are a hard error.** | A misspelled `loction` would otherwise render a row with no venue, green build, page looking finished. This is the whole reason the schema is code. |
-| Problem reporting | Collect **every** problem, not the first. | Deliberate departure from `scripts/lib/validate.mjs`, which short-circuits. Right for one HTTP response, wrong for a 40-row hand-edited file. |
-| Type filter | Not built. | Needs URL or script state, both out of scope for a page that must work without either. The vocabulary is closed and the present set is derived from data, so a filter is a page-only change. |
+| Selection unit | **A DATE, not an event.** | A calendar cell is a date and two events can share one. One hidden radio per distinct date; calendar cells AND list rows are `label for` on the same radio, so the two views cannot disagree and no script synchronises them. |
+| Same-day events | **Stacked in the panel**, each with its own banner. | Nothing hidden, no banner picked arbitrarily. No longer hypothetical: two elections fall on 3 November 2026, and the stacking renders `h2` then `h3`. |
+| Event timestamps | **Local wall clock, `YYYY-MM-DDTHH:MM`, offsets REJECTED.** | The file holds no absolute instant, so the zone is a human `timezone` label. No DST arithmetic, no dependency. Stated as a limitation. |
+| Multi-day spans | `allDay: true` plus a plain-date `endsAt`, rendered as `15 - 31 October 2026`. | Early voting is seventeen days and the end date is the number a voter needs. The schema already allowed it; only the RENDERER was incomplete, so this closed a gap rather than adding a feature. A timed pair never renders as a span. |
+| Undated prose | **A third root key, `pageNote`, validated like an event.** | "Ongoing campaign activity" is not an event and has no date. Faking it as one would put undated prose on a calendar of real election dates. Empty `paragraphs` is rejected so "no note" and "a note with nothing in it" cannot be expressed the same way. |
+| Missing artwork | **Generated typographic placeholders**, carrying the event name, the date and the word `PLACEHOLDER`. | There are no photographs for any real event yet. A plate of type cannot be mistaken for a photo, and the word on it means nobody mistakes the page for finished. |
+| Type vocabulary | **Extended once, to `Meeting`.** | A party quarterly meeting is not a moderated forum, and the chip is what a reader scans. The vocabulary was built to be extendable; this was its first real use. |
+| Past vs upcoming | Split on `reviewedOn`, a date **in the data**. | `new Date()` at build time would make the built HTML depend on the build day - design rule 8 broken in its most literal form. A human bumps the date when they review. |
+| Panel on a phone | **UNDER the calendar, not pinned.** | Pinning was the original mistake; a pinned 594px banner was 71% of the viewport. The selected cell shows the event name inline, so a tap still confirms immediately. |
+| Banner size | Flat `7rem` cap at every width. | Decoration may not take the screen. Measured 112px / 13.3% of an 844px viewport, against 71% before. |
+| Month navigation | Only months that have events. | Navigation needs a second selection group or URL state, and buys browsing empty months. |
+| Hand-authored data | **Unknown keys are a hard error.** | A misspelled `loction` would otherwise render a row with no venue, green build, page looking finished. |
+| Problem reporting | Collect **every** problem, not the first. | Deliberate departure from `scripts/lib/validate.mjs`. Right for one HTTP response, wrong for a 40-row hand-edited file. |
+| Type filter | Not built. | The vocabulary is closed and the present set is derived from data, so a filter is a page-only change. |
 
 **Known follow-ups, recorded so absence is not read as oversight**
 
-- `articles.ts` still declares its own `MONTHS` table. Collapsing it to import
-  `src/lib/months.ts` is a one-line change to a file owned by the reading-room
-  work, deliberately not made underneath its owner.
-  `test/events.test.mjs` asserts the two tables are equal, so drift fails loudly.
+- **The top follow-up: a multi-day span marks only its FIRST day in the grid.**
+  Early voting occupies 15 October's cell; the 16th to the 31st render as ordinary
+  empty days. The full range is correct in the panel and in the list, but a reader
+  scanning the grid sees a fortnight of voter access as one day. Fixing it means
+  teaching `src/lib/calendar.ts` that a day can be a continuation rather than the
+  start of something - which adds continuation days that must NOT get their own
+  radio or panel, since they are not separately selectable. It is a real change to a
+  well-tested module and belongs in its own pass, not in a data replacement.
+- The per-day selectors are **generated from the data** (done 2026-10-05). They used
+  to be three hand-written blocks, one line per date, with a test failing the build
+  if a date in the data was missing from any of them. The test did its job - it is
+  how the seventh event was caught - but the design under it asked whoever edits
+  the data to also hand-edit CSS in an `.astro` file, guarded only by a check that
+  fires after the build already broke. See "THE PER-DAY SELECTORS" in
+  `src/pages/events.astro`. The cost is one `is:inline` block holding generated CSS,
+  which is unscoped by definition.
+- **No event has a `url`.** The three real debates and meetings have no published
+  page, and inventing `example.org` links was what the placeholder data did. The
+  panel omits the link block entirely when `url` is null, so the outbound-link path
+  is currently unexercised by the real data.
+- **`articles.ts` no longer declares its own `MONTHS` table** (done 2026-10-05).
+  It imports the table from `src/lib/months.ts`, and `src/lib/months.ts` also owns
+  the one `twoDigits()` that four call sites used to reimplement. The zero-padding
+  split was a live trap rather than a style question: `monthKeyPart()` took a
+  ZERO-based month index while the private `twoDigits()` in `calendar.ts` took the
+  value as given, so the difference between the two was an off-by-one month that
+  renders as a plausible wrong date rather than as an error.
+- **Every date on the site is rendered in UTC and no code path can shift it.**
+  Checked, not assumed: `test/calendar.test.mjs` runs `src/lib/calendar.ts` in child
+  processes under `TZ=UTC`, `TZ=America/Los_Angeles` and `TZ=Asia/Kathmandu` and
+  compares the output byte for byte. Design rule 8 is enforced at the only layer
+  where it could silently fail.
+- **The events page is not colour-only for anything**, including forced colours.
+  A date with events carries a small ring drawn with a `border`, not a `background`:
+  forced-colours mode overrides `background-color` to the canvas colour, so a
+  background-painted marker would be invisible exactly where it was added to help.
+  A test asserts the marker has at least one non-colour property and no background.
 - `eventTypesPresent()` is exported and tested but **no page consumes it** - it
   exists for the type filter that has not been built. It is not a feature.
-- Adding an event requires a matching `:has()` selector in `events.astro`, because
-  Astro scopes component CSS and cannot generate one from data. A test enforces
-  it; see `data/events.schema.md` section 10.
 - No CI wiring: `refresh.yml` runs only `npm run fetch` and `npm run build`, and
-  never `npm test`. The events tests therefore do not run on GitHub. The
-  build-time throw in `src/lib/events.ts` is what guards the deployed site.
+  never `npm test`. The events tests do not run on GitHub. The build-time throw in
+  `src/lib/events.ts` is what guards the deployed site.
+- No absolute UTC instant per event. See the table above.
+
 
 ### Phase 5 - Handover
 - [ ] Swap placeholder sources for the real Substack URLs

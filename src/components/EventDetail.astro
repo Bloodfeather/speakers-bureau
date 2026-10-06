@@ -1,0 +1,271 @@
+---
+// src/components/EventDetail.astro - ONE event's full detail, for the panel.
+//
+// ---------------------------------------------------------------------------
+// WHY THIS IS A COMPONENT AND NOT INLINE IN THE PANEL
+// ---------------------------------------------------------------------------
+//
+// Because the selection unit is a DAY, not an event. Selecting a date can show
+// one event or several, and when there are several they are STACKED - each with
+// its own banner - rather than one being picked arbitrarily and the rest hidden.
+//
+// So the panel needs to render the same block N times, once per event on the
+// selected day. That block was inline in the panel when selection was per-event;
+// extracting it here is what makes "stack them" a two-line change instead of a
+// duplicated template that drifts.
+//
+// Everything about an event's presentation lives in this file: the banner and its
+// absent-state, the type and time line, the description, the location, the notes
+// and the outbound link. The panel owns layout and visibility; this owns content.
+//
+// NOTE ON LINKS INSIDE A ROW: an event ROW (EventRow.astro) is a <label>, and a
+// link inside a <label> is a control inside a control - it toggles the selection
+// as well as following the link, and it pollutes the radio's accessible name.
+// Every outbound link therefore lives HERE, in the panel, where there is no label
+// wrapping it. That separation is why the detail markup can be rich.
+// ---------------------------------------------------------------------------
+
+import type { EventRecord } from '../lib/events'
+import {
+  formatEventDateSpan,
+  formatEventTime,
+  formatEventZone,
+  machineDateTime
+} from '../lib/events'
+import { withBase } from '../lib/site'
+
+interface Props {
+  event: EventRecord
+  /** Heading level, so the panel's h2/h3 outline stays correct when stacked. */
+  headingLevel?: 'h2' | 'h3'
+  /** Show the "back to the calendar" link. Only the last block on a day needs it. */
+  showBackLink?: boolean
+  /** The id of the list or calendar to return to. */
+  backTargetId?: string
+}
+
+const {
+  event,
+  headingLevel = 'h2',
+  showBackLink = false,
+  backTargetId = 'events-calendar'
+} = Astro.props
+
+const Heading = headingLevel
+
+/**
+ * The SPAN, not just the start date.
+ *
+ * Early voting runs 15 to 31 October. Printing "15 October 2026" would be true and
+ * useless: it is the start of a seventeen-day window, and the end is the part a
+ * reader needs. `formatEventDateSpan` collapses to a single date when there is no
+ * span, so this is the only call either component needs to make.
+ */
+const dateLabel = formatEventDateSpan(event.startsAt, event.endsAt)
+const timeLabel = formatEventTime(event.startsAt, event.endsAt)
+const zoneLabel = formatEventZone(event.timezone)
+const machine = machineDateTime(event.startsAt)
+---
+
+<article class="detail">
+  {
+    event.banner ? (
+      <div class="detail__banner">
+        <img
+          class="detail__image"
+          src={withBase(event.banner)}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          width="1600"
+          height="600"
+        />
+      </div>
+    ) : (
+      /*
+        THE ABSENT-BANNER SLOT, AND WHY IT KEEPS ITS FRAME.
+
+        A day whose event has no banner keeps the same box and the same height as
+        one that does, and says so in words inside it. Collapsing the slot was
+        rejected for a concrete reason rather than taste: on a phone the panel sits
+        directly under the calendar, and a panel that changes height when the
+        reader selects a different day makes the content below jump under their
+        finger. A stable frame also means the layout cannot be reshaped by a change
+        in which images happen to exist.
+      */
+      <div class="detail__banner detail__banner--absent">
+        <p class="detail__banner-absent">No banner image has been supplied for this event.</p>
+      </div>
+    )
+  }
+
+  <p class="detail__meta">
+    <span class="chip">{event.type}</span>
+    <!--
+      ONE LINE, ON PURPOSE. The date and the time were on separate lines, and JSX
+      collapses the line break between two expressions into a space - so the comma
+      that starts the time span was rendered with a space in front of it:
+      "6 October 2026 , 7:00 pm". Measured, not imagined.
+
+      Keeping the two expressions adjacent on one line removes the whitespace
+      entirely, which is the only fix that does not rely on CSS to paper over a
+      markup problem. Formatting tools will want to wrap this line; a comment here
+      so the next person does not "tidy" it back into a bug.
+    -->
+    <time class="detail__when" datetime={machine}>{dateLabel}{timeLabel && <span class="detail__time">{`, ${timeLabel}`}</span>}</time>
+    {zoneLabel && <span class="detail__zone">{zoneLabel}</span>}
+  </p>
+
+  <Heading class="detail__name">{event.name}</Heading>
+
+  <p class="detail__event">{event.event}</p>
+
+  <p class="detail__location">
+    <span class="label detail__location-label">Where</span>
+    <span class="detail__location-text">{event.location}</span>
+  </p>
+
+  {event.notes && <p class="detail__notes">{event.notes}</p>}
+
+  {
+    event.url && (
+      <p class="detail__link">
+        <a class="detail__anchor" href={event.url} rel="external noopener noreferrer" target="_blank">
+          <span>Event details</span>
+          <span class="detail__link-marker" aria-hidden="true">
+            &#8599;
+          </span>
+          <span class="visually-hidden">(external link, opens in a new tab)</span>
+        </a>
+      </p>
+    )
+  }
+
+  {
+    showBackLink && (
+      <p class="detail__back">
+        <a class="detail__back-link" href={`#${backTargetId}`}>
+          Back to the calendar
+        </a>
+      </p>
+    )
+  }
+</article>
+
+<style>
+  /* Every value is a token from src/styles/themes.css. No colour literal and no
+     px font size in this file, and test/theme-contrast.test.mjs fails the suite
+     if one appears. */
+  .detail__banner {
+    /*
+      A CAPPED HEIGHT, NOT AN ASPECT RATIO. The previous version used
+      `aspect-ratio: 16 / 7` on a full-width panel, which on a narrow screen
+      produced a 594px banner - 71% of an 844px phone viewport. That was the
+      complaint that prompted this redesign.
+
+      A fixed cap is the honest fix, because the problem is not the image's
+      proportions but the amount of screen a decorative banner is allowed to take
+      before the text it sits above. `object-fit: cover` crops rather than
+      letterboxes, so an image of any proportion still fills the box.
+    */
+    height: 7rem;
+    overflow: hidden;
+    background: var(--chip-bg);
+    border: var(--rule-width) solid var(--rule);
+    border-radius: var(--radius-sm);
+  }
+
+  .detail__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .detail__banner--absent {
+    display: grid;
+    place-items: center;
+  }
+
+  .detail__banner-absent {
+    margin: 0;
+    padding-inline: var(--space-4);
+    max-width: none;
+    font-size: var(--size-sm);
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .detail__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-3);
+    margin-block: var(--space-3) var(--space-2);
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  /* A dot between meta items, as a flex-row separator rather than as punctuation
+     in the markup, so the items wrap cleanly and no screen reader announces
+     commas that are not there. Same convention as ArticleCard. */
+  .detail__meta > * + *::before {
+    content: '\00b7';
+    margin-inline-end: var(--space-3);
+    color: var(--rule-strong);
+  }
+
+  .detail__zone {
+    font-size: var(--size-xs);
+  }
+
+  .detail__name {
+    font-size: var(--size-lg);
+  }
+
+  .detail__event {
+    margin-block-end: var(--space-3);
+    font-size: var(--size-md);
+    line-height: var(--leading-snug);
+  }
+
+  .detail__location {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin-block-end: var(--space-3);
+    padding-block-start: var(--space-3);
+    border-block-start: var(--rule-width) solid var(--rule);
+  }
+
+  .detail__notes {
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  .detail__link {
+    margin-block-end: 0;
+  }
+
+  .detail__anchor {
+    font-size: var(--size-sm);
+  }
+
+  /* A shape, not a colour: the outbound signal survives greyscale printing and
+     any form of colour vision deficiency. Same convention as ArticleCard. */
+  .detail__link-marker {
+    display: inline-block;
+    margin-inline-start: var(--space-1);
+    font-size: var(--size-sm);
+    text-decoration: none;
+  }
+
+  .detail__back {
+    margin-block-start: var(--space-4);
+    margin-block-end: 0;
+  }
+
+  .detail__back-link {
+    font-size: var(--size-sm);
+  }
+</style>

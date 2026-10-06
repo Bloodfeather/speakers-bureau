@@ -53,6 +53,24 @@
 
 import datasetJson from '../../data/articles.json' with { type: 'json' }
 
+// THE MONTH TABLE IS NOT HERE, and the reason it is not is the whole reason
+// src/lib/months.ts exists. This module reads the dataset at module scope, so a
+// validator or a script that wanted one month name would have to load every
+// article to get it - and a checker that fails because an unrelated JSON file is
+// missing is a checker whose failure reason lies.
+//
+// This module used to declare its own identical copy, held in step only by a
+// test that compared the two arrays. That guard cost a test run on every commit
+// to protect against a difference one import removes, and it compared a thing to
+// a copy of itself, so it could only ever fail for a reason nobody could act on.
+//
+// `.ts` ON THE SPECIFIER: bare Node cannot resolve an extensionless relative
+// import, and `node --test` imports this module. tsconfig extends
+// astro/tsconfigs/strict, which sets allowImportingTsExtensions, so the explicit
+// extension is legal TypeScript too. Same convention, same reason, as in
+// events-schema.ts, calendar.ts and months.ts.
+import { MONTHS } from './months.ts'
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -164,35 +182,8 @@ export const generatedAt: string = dataset.generatedAt
 // because the month names come from ICU data, not from the spec. The GH Pages
 // runner is not this machine. A twelve-element table has no runtime dependency,
 // no locale negotiation and no ICU version to drift, and it is trivially
-// assertable in a test - which matters more than saving twelve lines.
-//
-// KNOWN DUPLICATION, GUARDED RATHER THAN HIDDEN. src/lib/months.ts carries an
-// identical MONTHS table for the events feature, because that code must import a
-// month name without pulling this module's dataset import in with it. So there
-// are two copies on the site. That is a real cost and it is not left to chance:
-// test/events.test.mjs compares the two tables and fails the suite if they ever
-// differ, so a drift is a red build rather than a date that quietly renders one
-// way on the reading room and another way on the events page.
-//
-// Collapsing it means moving this module's data import behind a function so the
-// pure helpers can be imported on their own. That is worth doing, and it is not
-// being done inside a phase whose brief is the reading room, because it touches
-// the one module every other module depends on.
-
-const MONTHS = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December'
-]
+// assertable in a test - which matters more than saving twelve lines. The table
+// itself is MONTHS, imported from src/lib/months.ts at the top of this file.
 
 /**
  * Format an ISO UTC timestamp as `1 October 2026`.

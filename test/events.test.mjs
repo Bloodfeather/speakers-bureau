@@ -35,6 +35,7 @@ import {
   EVENT_TYPES,
   eventTypesPresent,
   formatEventDate,
+  formatEventDateSpan,
   formatEventTime,
   formatEventZone,
   groupByMonth,
@@ -151,17 +152,46 @@ test('the committed data/events.json is valid and is not empty', async (t) => {
     true,
     `the committed dataset must be valid, got:\n  ${result.problems.map((p) => `${p.reason}: ${p.detail}`).join('\n  ')}`
   );
-  assert.ok(result.events.length >= 7, `positive control: expected at least 7 events, got ${result.events.length}`);
+  // The floor was 7 while the data was seven placeholder events, one per type. It
+  // is 5 now because the real calendar has six events covering three types, and a
+  // number lower than the data would make this control vacuous - which is the one
+  // job it has. The exact count is asserted on the next line against the file
+  // itself, so nothing here depends on this floor being right.
+  assert.ok(
+    result.events.length >= 5,
+    `positive control: the validator must accept a dataset with real content, got ${result.events.length} events`
+  );
   assert.equal(result.events.length, REAL_DOC.events.length, 'every event must survive validation');
   assert.equal(result.reviewedOn, '2026-10-05', 'reviewedOn must be read back from the file');
 
-  // And every one of the seven closed types is exercised, so the sample dataset
-  // actually documents the vocabulary rather than three of it.
+  // WHAT REPLACED "every type is exercised by the sample data", and why.
+  //
+  // That assertion was true of the placeholders and is now FALSE of the real
+  // calendar, because real events cover three of the eight types and no amount of
+  // editing will change that. It was also the wrong thing to assert: "the shipped
+  // data happens to use every value in an array" is a fact about the sample, not a
+  // property of the vocabulary, and it silently turned a data change into a test
+  // failure.
+  //
+  // The invariant that actually matters, and survives real data, is ORDER:
+  // `eventTypesPresent` must return the present types in EVENT_TYPES order, because
+  // that array is what a filter row renders in. Full-vocabulary coverage now lives
+  // in the fixtures further down this file, which is where a property about the
+  // vocabulary belongs.
   const present = eventTypesPresent(result.events).map((row) => row.type);
+  const expectedOrder = EVENT_TYPES.filter((type) => present.includes(type));
+  t.diagnostic(`types present in the real data: ${present.join(', ')}`);
+
+  assert.ok(present.length > 0, 'positive control: the real data must exercise at least one type');
   assert.deepEqual(
     present,
-    [...EVENT_TYPES],
-    `the sample data should cover every type exactly as EVENT_TYPES orders them, got ${JSON.stringify(present)}`
+    [...expectedOrder],
+    `eventTypesPresent must return types in EVENT_TYPES order, got ${JSON.stringify(present)}`
+  );
+  assert.deepEqual(
+    present.filter((type) => !EVENT_TYPES.includes(type)),
+    [],
+    'the data must not contain a type outside EVENT_TYPES'
   );
 });
 
@@ -180,38 +210,158 @@ test('every image the dataset references exists on disk', async () => {
   assert.deepEqual(missing, [], `referenced images that do not exist under public/: ${missing.join(', ')}`);
 });
 
-test('the events page has a selection rule for every event in the data', async (t) => {
-  // THE TEST THAT CATCHES THE EXPENSIVE MISTAKE.
+test('every DATE in the dataset has a selection rule in the page', async (t) => {
+  // THE TEST THAT CATCHES THE EXPENSIVE MISTAKE, restated for the calendar.
   //
-  // The panel for an event is shown by a hand-written `html:has(#event-input-<id>:checked)`
-  // selector, because Astro scopes component CSS and there is no way to generate one from
-  // the data. So adding an event to data/events.json WITHOUT adding its selector produces
-  // a page where the row is selectable and nothing happens - the radio checks, the panel
-  // stays hidden, and no error is raised anywhere. A green build, a working-looking page,
-  // and a feature that silently does nothing.
+  // THE SELECTION UNIT IS A DAY, not an event. A calendar cell is a date and two
+  // events can share one, so the radio group is over DISTINCT DATES and the page
+  // carries three hand-written selector blocks per date:
   //
-  // This test is the answer to "if this were broken, how would I find out?".
+  //     html:has(#day-<key>:checked)   :global([data-panel='<key>'])   -> show the panel
+  //     html:has(#day-<key>:checked)   :global([data-day='<key>'])     -> mark it selected
+  //     html:has(#day-<key>:focus-visible) :global([data-day='<key>']) -> ring the focus
+  //
+  // CSS cannot relate a label to a control it merely names, so these cannot be
+  // generated from the data. Adding a date WITHOUT adding its selectors produces a
+  // page where the cell is clickable and nothing happens - the radio checks, the
+  // panel stays hidden, and no error is raised anywhere. A green build, a
+  // working-looking page, and a feature that silently does nothing.
+  //
+  // All THREE blocks are checked, not just the visibility one. A missing focus
+  // rule is exactly the defect this page already shipped once.
   const page = await readFile(EVENTS_PAGE, 'utf8');
   const result = validateEvents(REAL_DOC);
   assert.ok(result.events.length > 0, 'positive control: the dataset must yield events to check');
 
-  const missingSelector = [];
-  const missingPanel = [];
-  for (const event of result.events) {
-    if (!page.includes(`#event-input-${event.id}:checked`)) missingSelector.push(event.id);
-    if (!page.includes(`[data-panel='${event.id}']`)) missingPanel.push(event.id);
+  // Distinct dates, which is the real unit. Derived from the validated events
+  // rather than hardcoded, so the test follows the data.
+  const keys = [...new Set(result.events.map((event) => event.startsAt.slice(0, 10)))].sort();
+
+  // The per-day selectors are no longer hand-written in events.astro: they are
+  // GENERATED from the same `days` array into an `is:inline` block. So this test
+  // asserts against the BUILT page, not the source, which is both stronger (it
+  // sees what a browser receives) and correct about the new design.
+  //
+  // It is asserted on the built HTML rather than by running Astro, because the
+  // build is a separate step; when dist is absent the test builds nothing and says
+  // so rather than passing silently. See the skip note below.
+  const builtPath = resolve(dirname(EVENTS_PAGE), '..', '..', 'dist', 'events', 'index.html');
+  const built = await readFile(builtPath, 'utf8').catch(() => null);
+
+  assert.ok(
+    built !== null,
+    `positive control: the built page must exist at ${builtPath}. Run \`npm run build\` before this suite; a source-only check cannot see generated CSS.`
+  );
+
+  // The inline block is unscoped, so the selectors appear WITHOUT `:global()`.
+  // That difference is the whole reason this assertion had to move: the source
+  // form is `html:has(#day-X:checked) [data-panel='X']` and the old string, with
+  // its `:global(...)` wrapper, no longer exists anywhere.
+  const missing = { panel: [], checked: [], focus: [] };
+  for (const key of keys) {
+    if (!built.includes(`#day-${key}:checked) [data-panel='${key}']`)) missing.panel.push(key);
+    if (!built.includes(`#day-${key}:checked) [data-day='${key}']`)) missing.checked.push(key);
+    if (!built.includes(`#day-${key}:focus-visible) [data-day='${key}']`)) missing.focus.push(key);
   }
 
-  t.diagnostic(`checked ${result.events.length} event(s) against the page's selection CSS`);
+  t.diagnostic(`checked ${keys.length} distinct date(s) against the BUILT page's generated selection CSS`);
+  assert.ok(keys.length > 0, 'positive control: at least one date must be derived from the data');
+
   assert.deepEqual(
-    missingSelector,
+    missing.panel,
     [],
-    `these events have no "html:has(#event-input-<id>:checked)" rule in src/pages/events.astro, so their panel can never be shown: ${missingSelector.join(', ')}`
+    `these dates have no "html:has(#day-<key>:checked) [data-panel='<key>']" rule in the built page, ` +
+      `so selecting them can never show a panel: ${missing.panel.join(', ')}`
   );
   assert.deepEqual(
-    missingPanel,
+    missing.checked,
     [],
-    `these events have no [data-panel='<id>'] selector in src/pages/events.astro: ${missingPanel.join(', ')}`
+    `these dates are never marked as selected anywhere: ${missing.checked.join(', ')}`
+  );
+  assert.deepEqual(
+    missing.focus,
+    [],
+    `these dates have no focus rule, so a keyboard user selecting them gets NO visible focus indicator: ${missing.focus.join(', ')}`
+  );
+});
+
+test('the page derives its day radios from the data, one per distinct date', async (t) => {
+  // The radio group is rendered ONCE in the page, from the distinct dates, and BOTH
+  // views point at it with `label for`. If the count ever drifts from the data - a
+  // date duplicated, or a date missing - the calendar and the list can silently
+  // disagree, and there is no script to catch it.
+  //
+  // Asserted on the GENERATOR rather than one literal per date. The page renders the
+  // group in a `.map()`, so its source contains a single id template, not one line
+  // per date; asserting per-date literals here would be asserting the absence of the
+  // very loop that makes this maintainable. The per-DATE coverage is proved
+  // separately by the test above, which checks all three selector blocks.
+  const page = await readFile(EVENTS_PAGE, 'utf8');
+  const live = stripAstroComments(page);
+  const result = validateEvents(REAL_DOC);
+  assert.ok(result.events.length > 0, 'positive control: the dataset must yield events');
+
+  const keys = [...new Set(result.events.map((event) => event.startsAt.slice(0, 10)))].sort();
+  assert.ok(keys.length > 0, 'positive control: at least one date must be derived from the data');
+
+  // The generated selectors live in the BUILT page, not the source.
+  const builtPath = resolve(PROJECT_ROOT, 'dist', 'events', 'index.html');
+  const built = await readFile(builtPath, 'utf8').catch(() => null);
+  assert.ok(
+    built !== null,
+    `positive control: the built page must exist at ${builtPath}. Run \`npm run build\` before this suite.`
+  );
+
+  // The radios are generated from the day list, in one map, not hand-listed.
+  assert.ok(
+    live.includes('id={`day-${day.key}`}'),
+    'the page must generate each day radio as id={`day-${day.key}`} from the day list'
+  );
+  assert.ok(
+    live.includes('aria-controls={`panel-${day.key}`}'),
+    'each day radio must point at its own panel with aria-controls={`panel-${day.key}`}'
+  );
+
+  // Exactly one checked, or the CSS would try to show two panels at once.
+  assert.equal(
+    (live.match(/checked=\{day\.key === selectedKey\}/g) || []).length,
+    1,
+    'the page must mark exactly one day as checked on first paint'
+  );
+
+  // And the generated selectors must be EXACTLY the set the data implies: one per
+  // date in each of the two :checked blocks, one per date in the :focus-visible
+  // block, and not one more. This catches a STALE date left behind after an event
+  // is removed, which the missing-line check above cannot see - that one only
+  // fails on absence.
+  //
+  // Counted in the BUILT page because that is where the selectors now live.
+  const checkedCount = (built.match(/#day-\d{4}-\d{2}-\d{2}:checked\)/g) || []).length;
+  const focusCount = (built.match(/#day-\d{4}-\d{2}-\d{2}:focus-visible\)/g) || []).length;
+
+  t.diagnostic(`dates in data: ${keys.length}; :checked selectors: ${checkedCount}; :focus-visible selectors: ${focusCount}`);
+  assert.equal(
+    checkedCount,
+    keys.length * 2,
+    `the two :checked selector blocks must hold one selector per date (${keys.length} dates, so ${keys.length * 2}), got ${checkedCount}`
+  );
+  assert.equal(
+    focusCount,
+    keys.length,
+    `the :focus-visible block must hold one selector per date (${keys.length}), got ${focusCount}`
+  );
+
+  // No selector may name a date the data does not contain. GENERATED CSS cannot go
+  // stale this way, so this is now near-vacuous by construction - which is the
+  // point of generating it. Kept anyway, as a cheap guard against someone
+  // reintroducing a hand-written block with a frozen date in it.
+  const stale = [...built.matchAll(/#day-(\d{4}-\d{2}-\d{2})[:)]/g)]
+    .map((match) => match[1])
+    .filter((key) => !keys.includes(key));
+  assert.deepEqual(
+    [...new Set(stale)],
+    [],
+    `these selectors name dates that are not in data/events.json, so they are dead CSS left behind by a removed event: ${[...new Set(stale)].join(', ')}`
   );
 });
 
@@ -514,7 +664,16 @@ test('a root key one edit from reviewedOn is suggested, and one resembling an ev
     false,
     `"note" is not a legal ROOT key and must not be suggested anything, got: ${detail}`
   );
-  assert.match(detail, /accepts only "events" and "reviewedOn"/, 'the error must still state the legal root keys');
+  // The legal-root-key list is now GENERATED from ROOT_KEYS rather than typed into
+  // the message, so it cannot fall out of step when a key is added - which is how
+  // this assertion was worded before "pageNote" existed and it started failing on a
+  // correct message. Asserting each legal key appears is the durable form.
+  for (const legal of ['events', 'reviewedOn', 'pageNote']) {
+    assert.ok(
+      detail.includes(`"${legal}"`),
+      `the error must state that "${legal}" is a legal root key, got: ${detail}`
+    );
+  }
 
   // And the other direction, named explicitly: "event" must be sent to "events",
   // which is legal, and must never be suggested back to itself.
@@ -809,6 +968,107 @@ test('a same-day all-day event sorts before a timed one that morning', () => {
   );
 });
 
+test('a comparator can never return NaN, whatever the timestamp looks like', (t) => {
+  // THE NaN THIS EXISTS TO KILL. wallClockToSortable splits on 'T' and on ':' and
+  // hands the pieces to Number(). An offset-bearing wall clock splits into a third
+  // time field of `00-05`, so the whole string is refused and the function returned
+  // NaN:
+  //
+  //     wallClockToSortable('2026-11-14T18:30:00-05:00')  //  NaN, before
+  //
+  // That is not "sorts badly". sortEvents is EXPORTED from src/lib/events.ts and
+  // feeds the value straight into a comparator as `a - b`, and a NaN comparator
+  // result is UNSPECIFIED: the engine keeps whatever order it had. The built HTML
+  // then depends on the sort implementation and the input order rather than on the
+  // data, which is ROADMAP design rule 8 broken in the one place the page would
+  // look correct while being wrong.
+  //
+  // Upstream validation rejects offsets, so this is not reachable from
+  // data/events.json today. That is not a guard: this function and sortEvents are
+  // public API, and "the input cannot currently happen" is how the next caller
+  // finds out the hard way.
+  const hostile = [
+    '2026-11-14T18:30:00-05:00',
+    '2026-11-14T18:30:00+0530',
+    '2026-11-14T18:30:00Z',
+    '2026-11-14',
+    '2026-11-14T18:30',
+    '2026-11-14T18:30:00',
+    '',
+    'nonsense',
+    '2026-13-45T99:99',
+    '2026-11-14T',
+    '2026-11-14T18:'
+  ];
+
+  for (const value of hostile) {
+    const sortable = wallClockToSortable(value);
+    assert.ok(
+      Number.isFinite(sortable),
+      `wallClockToSortable(${JSON.stringify(value)}) returned ${sortable}; a comparator must never produce NaN`
+    );
+    // POSITIVE CONTROL on the control: a real timestamp must still sort as it
+    // always did, so "always returns 0" cannot pass this.
+    assert.equal(wallClockToSortable('2026-11-14T18:30:00'), 20261114183000, 'a real wall clock is unchanged');
+    assert.equal(wallClockToSortable('2026-11-14T20:00'), 20261114200000, 'and a minute-width one too');
+  }
+  t.diagnostic(`checked ${hostile.length} timestamp shapes; none produced a non-finite sort key`);
+
+  // And the comparator itself, which is where a NaN would actually do damage.
+  // Deliberately NOT going through expectValid: these events are invalid on
+  // purpose, and sortEvents is exported public API that must survive being called
+  // with them.
+  const mixed = [
+    goodEvent({ id: 'z-offset', startsAt: '2026-11-14T18:30:00-05:00' }),
+    goodEvent({ id: 'y-plain', startsAt: '2026-11-14T18:30' }),
+    goodEvent({ id: 'x-early', startsAt: '2026-09-01T09:00' })
+  ];
+
+  let sorted;
+  assert.doesNotThrow(
+    () => {
+      sorted = sortEvents(mixed);
+    },
+    'sortEvents must not throw on an offset-bearing startsAt'
+  );
+
+  assert.ok(Array.isArray(sorted), 'sortEvents must return an array');
+  assert.equal(sorted.length, 3, 'positive control: every event survives the sort - nothing is dropped');
+
+  // Reproducible, and independent of the input order. With a NaN in the
+  // comparator this is the property that fails, and it fails SILENTLY: the array
+  // is still three events long and still looks like a list.
+  assert.deepEqual(
+    sortEvents([...mixed].reverse()).map((e) => e.id),
+    sorted.map((e) => e.id),
+    'the sort order must not depend on the input order'
+  );
+  assert.deepEqual(
+    sortEvents(mixed).map((e) => e.id),
+    sorted.map((e) => e.id),
+    'sorting the same input twice must give the same order'
+  );
+
+  // And the guard did not turn into "everything is equal". The two REAL events keep
+  // their own chronological order, and the unusable one lands where the documented
+  // 0 puts it: before every real date, because 0 is smaller than any YYYYMMDDHHMMSS.
+  //
+  // Which end it lands on is arbitrary and the doc says so. What is not arbitrary
+  // is that it lands on the SAME end every time, on every engine - which is the
+  // property the NaN was destroying.
+  assert.deepEqual(
+    sorted.slice(0, 2).map((e) => e.id),
+    ['z-offset', 'x-early'],
+    'an unusable value sorts as 0, i.e. before every real date, and the two real events keep their own order'
+  );
+  assert.equal(sorted[2].id, 'y-plain', 'the later real event must still sort after the earlier one');
+  assert.equal(
+    wallClockToSortable('2026-11-14T18:30:00-05:00'),
+    0,
+    'the guard is documented as 0, so the offset-bearing value must sort first rather than being dropped'
+  );
+});
+
 test('groupByMonth derives its headings from the data', () => {
   const groups = groupByMonth([
     goodEvent({ id: 'dec', startsAt: '2026-12-02T19:00' }),
@@ -1037,8 +1297,13 @@ test('the events page styles no class that belongs to another component', async 
   //      comment, which proves the comment-stripping is doing real work and that
   //      this test is not passing merely because the file was scrubbed.
   assert.ok(css.length > 500, `positive control: the extracted <style> block should be substantial, got ${css.length} characters`);
+  // `.events__layout` is this page's own class, so it must survive extraction.
+  // `html:has(#day-` used to be checked here too, but the per-day selectors moved
+  // to a separate `is:inline` block when they were generated from the data, and
+  // `styleBlockOf` reads the scoped block only. Their presence is asserted against
+  // the BUILT page in the selector tests above, which is the right place for them.
   assert.ok(
-    css.includes('.calendar') && css.includes('html:has(#event-input-'),
+    css.includes('.events__layout'),
     'positive control: the extracted CSS must still contain this page\'s own rules, or the extraction is wrong'
   );
   const rawStyle = page.match(/<style>([\s\S]*?)<\/style>/)[1];
@@ -1048,36 +1313,56 @@ test('the events page styles no class that belongs to another component', async 
   );
 
   t.diagnostic(`style block after comment-stripping: ${css.length} characters (raw ${rawStyle.length})`);
-  for (const foreign of ['.row', '.events__item', '.events__radio']) {
+
+  // The class list below is not a style preference. Each entry is a class prefix
+  // owned by a DIFFERENT component, and anything this page wrote against one would
+  // compile with the wrong scope id.
+  //
+  //   .row      src/components/EventRow.astro     (also .row-item, .row__*)
+  //   .cal      src/components/EventCalendar.astro (also .cal__*)
+  //   .detail   src/components/EventDetail.astro  (also .detail__*)
+  //
+  // `.row` is the trap specifically because it is the shortest and shares no letters
+  // with `.events__list` or `.events__month` - it is the easiest to type without
+  // noticing.
+  const foreignClasses = [
+    ['.row', 'src/components/EventRow.astro'],
+    ['.cal', 'src/components/EventCalendar.astro'],
+    ['.detail', 'src/components/EventDetail.astro']
+  ];
+  for (const [foreign, owner] of foreignClasses) {
     assert.equal(
       css.includes(foreign),
       false,
-      `src/pages/events.astro's <style> block names "${foreign}", which belongs to src/components/EventRow.astro. ` +
+      `src/pages/events.astro's <style> block names "${foreign}", which belongs to ${owner}. ` +
         'Astro appends THIS component\'s scope id to the last compound of a selector, so the rule would compile to ' +
-        `${foreign}[data-astro-cid-<events.astro>] and match nothing. Style the row from EventRow.astro's own scoped block instead.`
+        `${foreign}[data-astro-cid-<events.astro>] and match nothing. Style it from that component's own scoped block instead.`
     );
   }
 
-  // The other half of the same class of mistake: any `:global()` at all in this
-  // page is a hand-written bet against the scope id, and every one of them so far
-  // has been a losing bet.
+  // The other half of the same class of mistake: a `:global()` CLASS selector here is
+  // a hand-written bet against the scope id, and it is a losing bet. A `:global()`
+  // ATTRIBUTE selector is a different thing entirely and is REQUIRED by the page -
+  // see the test on the noscript fallback, which explains why the two forms are
+  // treated differently rather than one being banned outright.
   assert.equal(
-    css.includes(':global('),
+    /:global\(\s*\./.test(css),
     false,
-    'src/pages/events.astro uses a :global() selector. `:global()` un-scopes only what is to its LEFT; Astro still ' +
+    'src/pages/events.astro uses a :global() CLASS selector. `:global()` un-scopes only what is to its LEFT; Astro still ' +
       'appends this component\'s scope id to the last compound, so the rule silently matches nothing.'
   );
 
-  // `:has()` IS allowed, and must be: it is how the page selects a panel, and it
-  // says nothing about scope. Stated so the assertion above cannot be satisfied by
-  // deleting the selection mechanism, which would break the page to pass a test.
+  // `:has()` IS allowed, and must be: it is how the page selects a panel and how it
+  // switches views, and it says nothing about scope. Stated so the assertion above
+  // cannot be satisfied by deleting the selection mechanism, which would break the
+  // page to pass a test.
   assert.ok(
     css.includes(':has('),
     'positive control: the page must still use :has() to show the selected panel; if that changed, update this test rather than deleting it'
   );
 });
 
-test('the events page ships no <noscript> fallback and no :global() escape hatch', async (t) => {
+test('the events page ships no <noscript> fallback, and no :global() CLASS selector', async (t) => {
   // A DEAD FALLBACK SHIPPED HERE ONCE. Every row carried a "Details for X" anchor
   // inside a <noscript>, plus a page-level one telling the reader to use those links
   // when scripting is off. Both did nothing:
@@ -1092,26 +1377,42 @@ test('the events page ships no <noscript> fallback and no :global() escape hatch
   //     and changed nothing. It was described in a comment as "a link that works,
   //     not a disabled control". It was not a link that worked.
   //
-  // So there is no fallback, and this test is what keeps it that way. It asserts
-  // on the MARKUP, not on the comments: this file's header comment legitimately
-  // mentions <noscript> at length when explaining the removal, so the text is
-  // stripped of comments first. Asserting on the raw file would fail on the
-  // explanation of the rule.
+  // So there is no fallback, and this test is what keeps it that way.
+  //
+  // THE :global() HALF IS NOW A DISTINCTION, NOT A BAN, AND THE REASON IS WORTH
+  // RECORDING. The page now legitimately uses `:global([data-day='...'])` and
+  // `:global([data-panel='...'])`, because a calendar cell and a list row are
+  // rendered by DIFFERENT components from the radio they select. CSS cannot relate
+  // a label to a control it merely names, so marking a selected date requires one
+  // selector per date, and the whole trailing compound must be unscoped for it to
+  // match. Written that way it works, and is verified working in a browser.
+  //
+  // What must stay banned is `:global(.` - a CLASS selector. That is the exact
+  // shape of the bug that shipped with no focus ring: `:global(.events__item ...)
+  // .row` un-scopes only what is to its LEFT, so Astro still appended the page's
+  // scope id to `.row`, which is rendered by EventRow with a different one, and the
+  // rule matched NOTHING. Silently. Attribute selectors have no such trap, which is
+  // why one form is banned and the other is required.
   const page = await readFile(EVENTS_PAGE, 'utf8');
   const live = stripAstroComments(page);
 
   // POSITIVE CONTROL ON THE STRIPPER, in three parts. A stripper that removed too
   // much would make every assertion below pass vacuously, and a stripper that
   // removed too little would make them fail on prose.
-  assert.ok(live.length > 2000, `positive control: the stripped page should still be substantial, got ${live.length} characters`);
   assert.ok(
-    live.includes('id="events-list"') && live.includes('data-panel={event.id}'),
-    'positive control: the stripped text must still contain the page\'s live markup, or the comment stripper ate the template'
+    live.length > 2000,
+    `positive control: the stripped page should still be substantial, got ${live.length} characters`
   );
   assert.ok(
-    page.includes('<noscript') || page.includes(':global('),
-    'positive control: the RAW page is expected to mention at least one of these inside its explanatory comments; ' +
-      'if it no longer does, this test may be checking nothing'
+    live.includes('id="events-calendar"') && live.includes('data-panel={day.key}'),
+    "positive control: the stripped text must still contain the page's live markup, or the comment stripper ate the template"
+  );
+  // Positive control on the control below. `:global()` is the thing being asserted
+  // ABSENT, so the check needs positive evidence that the stripper is working -
+  // otherwise a stripper that ate the entire file would make this test pass.
+  assert.ok(
+    stripAstroComments(page).length < page.length,
+    'positive control: comment-stripping must actually remove something, or the :global() check below is vacuous'
   );
 
   t.diagnostic(`page after comment-stripping: ${live.length} characters (raw ${page.length})`);
@@ -1124,10 +1425,35 @@ test('the events page ships no <noscript> fallback and no :global() escape hatch
       ':target rule, so it did nothing while a comment described it as a working link.'
   );
   assert.equal(
-    live.includes(':global('),
+    /:global\(\s*\./.test(live),
     false,
-    'src/pages/events.astro uses :global() in its style block, which cannot reach another component\'s elements. ' +
-      'See the test above for the full explanation; this one exists so the escape hatch is also caught at the markup level.'
+    "src/pages/events.astro uses a :global() CLASS selector, which cannot reach another component's elements: Astro " +
+      'still appends the page scope id to the last compound, so the rule matches nothing and fails SILENTLY. That is how ' +
+      'this page shipped with no keyboard focus ring at all. Attribute selectors (:global([...])) are fine and are required ' +
+      'for the per-day selection rules.'
+  );
+
+  // And the selection mechanism really is present, because a test that only bans
+  // things would happily pass on a page where the mechanism had been deleted
+  // outright along with the :global() calls.
+  //
+  // The per-day selectors are no longer in the page SOURCE: they are generated
+  // into an `is:inline` block, which is why this reads the BUILT page. Asserted
+  // here as the positive control for the :global()-class ban above, and
+  // exhaustively in the selector tests near the top of this file.
+  const builtHtml = await readFile(
+    resolve(PROJECT_ROOT, 'dist', 'events', 'index.html'),
+    'utf8'
+  ).catch(() => null);
+  assert.ok(
+    builtHtml !== null,
+    'positive control: the built page must exist. Run `npm run build` before this suite.'
+  );
+  assert.ok(
+    /html:has\(#day-\d{4}-\d{2}-\d{2}:checked\)\s*\[data-panel=/.test(builtHtml),
+    'positive control on the rule above: the built page is expected to carry the generated per-day panel selectors, ' +
+      'so the calendar CAN mark a selected date. If they are missing, the selection mechanism was deleted, not merely ' +
+      'cleaned up.'
   );
 
   // And the dependency is still stated in the markup rather than left implicit, so
@@ -1138,6 +1464,104 @@ test('the events page ships no <noscript> fallback and no :global() escape hatch
     live.includes('events-note'),
     'the page must keep its prose note about selecting an event; deleting the only stated dependency to make this ' +
       'section quieter is the same class of silent removal this test exists for'
+  );
+});
+
+test('no calendar cell claims to be aria-current, and the state is carried twice instead', async (t) => {
+  // THE ATTRIBUTE THAT WAS LYING. EventCalendar.astro rendered
+  //
+  //     aria-current={cell.day.key === selectedKey ? 'true' : undefined}
+  //
+  // on each event-day cell, from a `selectedKey` prop. That prop is a BUILD-TIME
+  // constant: events.astro picks the first upcoming day ONCE, while rendering, and
+  // hands the same string to every cell. The attribute is therefore baked into the
+  // HTML and can never change. Select a different date and the CSS `:checked`
+  // styling moves - while the accessibility tree goes on reporting the OLD cell as
+  // current. A cell that is not current, marked as current, in the document a
+  // screen reader is reading, is worse than no signal at all.
+  //
+  // It is invisible in review because the markup is correct as written. The
+  // attribute only becomes false after the reader acts, which no reviewer and no
+  // snapshot test does.
+  //
+  // There is no fix inside a no-JS design. CSS cannot write an ARIA attribute, and
+  // an attribute's value cannot be a selector. Maintaining it needs script, and
+  // this page has none by design - which is the whole reason the removal is
+  // correct rather than a loss.
+  const component = await readFile(resolve(PROJECT_ROOT, 'src', 'components', 'EventCalendar.astro'), 'utf8');
+  const page = await readFile(EVENTS_PAGE, 'utf8');
+  const liveComponent = stripAstroComments(component);
+  const livePage = stripAstroComments(page);
+
+  assert.equal(
+    /aria-current/.test(liveComponent),
+    false,
+    'src/components/EventCalendar.astro renders aria-current again. It is rendered from a build-time constant, so it ' +
+      'reports the wrong cell as current after the reader selects another. The selected cell is marked by the page\'s ' +
+      'generated per-day selectors and announced by the radio and the aria-live panel.'
+  );
+  assert.equal(
+    /aria-current/.test(livePage),
+    false,
+    'src/pages/events.astro renders aria-current again, with the same defect: no script on this page can update it.'
+  );
+
+  // The prop that fed it is gone too, rather than left in the interface where the
+  // next person reconnects it. events.astro computes selectedKey for the RADIO's
+  // `checked`, which is real platform state, and that use is asserted elsewhere.
+  assert.equal(
+    /selectedKey/.test(liveComponent),
+    false,
+    'EventCalendar.astro still takes a `selectedKey` prop. Nothing in the calendar can act on it: the only thing it ' +
+      'ever fed was the aria-current attribute. Pass it to the radio in events.astro, which uses it for `checked`.'
+  );
+  assert.equal(
+    /selectedKey=\{selectedKey\}/.test(livePage),
+    false,
+    'events.astro still passes selectedKey to <EventCalendar>. Remove the prop rather than leave a constant wired to ' +
+      'a component that cannot keep it true.'
+  );
+
+  // THE CLAIM THE REMOVAL RESTS ON, verified in the markup rather than asserted in
+  // a comment. If either of these were false the removal would cost a real
+  // announcement, and the honest response would be to keep the attribute and say
+  // so rather than to delete it silently.
+  //
+  // 1. The day radios: real inputs, named, one of them checked on first paint.
+  const builtPath = resolve(PROJECT_ROOT, 'dist', 'events', 'index.html');
+  const built = await readFile(builtPath, 'utf8').catch(() => null);
+  assert.ok(
+    built !== null,
+    `positive control: the built page must exist at ${builtPath}. Run \`npm run build\` before this suite.`
+  );
+
+  const radios = [...built.matchAll(/<input[^>]*class="events__day"[^>]*>/g)].map((m) => m[0]);
+  assert.ok(radios.length > 0, 'positive control: the built page must render the day radios');
+  assert.equal(
+    radios.filter((tag) => /\schecked/.test(tag)).length,
+    1,
+    'exactly one day radio is checked on first paint'
+  );
+  for (const tag of radios) {
+    assert.match(tag, /aria-label="[^"]+,\s*\d+\s+events?"/, `every day radio must carry an aria-label naming the date and its count: ${tag}`);
+    assert.match(tag, /aria-controls="panel-/, `every day radio must point at its own panel: ${tag}`);
+  }
+  t.diagnostic(`day radios in the built page: ${radios.length}, each with an aria-label and aria-controls`);
+
+  // 2. The panel: an aria-live region, so a change of what is visible inside it is
+  // announced.
+  assert.match(
+    built,
+    /<aside[^>]*class="events__panel"[^>]*aria-live="polite"/,
+    'the panel must be an aria-live region; without it, removing aria-current would remove the only announcement of a change'
+  );
+
+  // 3. And no cell carries a current-state attribute of any kind, in the built
+  // HTML rather than the source.
+  assert.equal(
+    /aria-current/.test(built),
+    false,
+    'the built page still contains aria-current. It is a build-time constant baked into the HTML and cannot track the selection.'
   );
 });
 
@@ -1184,39 +1608,225 @@ test('the page meta description makes no per-row claim about every row', async (
     );
   }
 
-  // POSITIVE CONTROL ON THE CLAIM ITSELF, from the data rather than from the prose:
-  // it is only a lie because those rows really lack the fields, so the absence is
-  // asserted against the committed dataset. If every event gained an artwork field
-  // tomorrow this test would still pass, which is correct - the sentence would
-  // then be true.
-  const withArtwork = REAL_DOC.events.filter((e) => e.thumbnail).length;
-  const withBanner = REAL_DOC.events.filter((e) => e.banner).length;
-  t.diagnostic(`events with a thumbnail: ${withArtwork}/${REAL_DOC.events.length}; with a banner: ${withBanner}/${REAL_DOC.events.length}`);
-  assert.ok(
-    withArtwork < REAL_DOC.events.length && withBanner < REAL_DOC.events.length,
-    'positive control: this test is only meaningful while some rows lack artwork; if every row now has both, update the test to assert the data rather than the prose'
+  // POSITIVE CONTROL, REWRITTEN, following its own failure message.
+  //
+  // It used to assert that SOME events lacked artwork, because that is what made
+  // "each row carries a thumbnail" a lie. Every one of the six real events now has
+  // both a thumbnail and a banner, so that condition is gone - and the control said
+  // in its own message: "update the test to assert the data rather than the prose".
+  // This is that update.
+  //
+  // The durable property is not "some rows are missing something". It is that the
+  // description is DERIVED FROM THE DATA, so it cannot go stale when the data
+  // changes - which is the actual cause of the defect this test exists for. A
+  // hand-typed sentence about a calendar is a lie the moment the calendar changes,
+  // whether or not every row happens to have artwork today.
+  const literals = description
+    .replace(/\$\{[^}]*\}/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  t.diagnostic(`description literals once interpolations are removed: ${literals}`);
+
+  // Every interpolating slot is present, so "derived" means derived rather than
+  // "happens to mention a number".
+  for (const slot of ['eventCount', 'firstDate', 'lastDate', 'days.length']) {
+    assert.ok(
+      description.includes(slot),
+      `positive control: the description must interpolate ${slot}, or it is not derived from the data. Got: ${description}`
+    );
+  }
+
+  // And it names no individual event. A description that hard-codes one event's
+  // title is per-row prose in the same sense the original defect was: true of that
+  // row and quietly wrong about the rest.
+  const namedInProse = REAL_DOC.events.map((event) => event.name).filter((name) => literals.includes(name));
+  assert.deepEqual(
+    namedInProse,
+    [],
+    `the description's literal text names individual events, which makes it a per-row claim: ${namedInProse.join(', ')}`
   );
 });
 
-test('months.ts and articles.ts carry the same month table', async () => {
-  // src/lib/months.ts documents that articles.ts still has its own copy, and that a
-  // refactor of articles.ts is a one-line change left to whoever owns that file. Two
-  // copies of a table that decides how every date on the site reads WILL drift unless
-  // something fails when they do. This is that something.
+test('articles.ts imports the month table rather than declaring its own', async () => {
+  // THIS REPLACED A TEST THAT COMPARED THE TWO TABLES, and the old one is worth
+  // remembering. articles.ts carried a private MONTHS array identical to the one in
+  // months.ts, and the guard against drift was a test that extracted both arrays
+  // with a regex and compared them. That test could only ever fail after somebody
+  // had already edited one table and not the other - which is a red suite at the
+  // END of the change rather than a reason not to make it. Two copies of the same
+  // twelve strings, held in step by a test that reads both, is one import.
+  //
+  // So the assertion is now on the STRUCTURE: articles.ts must not declare a
+  // MONTHS array, and must import MONTHS from months.ts. If someone re-adds a local
+  // table this fails at the moment of the edit, which is the whole point.
+  //
+  // POSITIVE CONTROL FIRST: months.ts must actually still HAVE the table. Without
+  // it, a stub months.ts that exported nothing would satisfy "articles.ts declares
+  // no table" and every date on the site would render as "undefined".
   const monthsSource = await readFile(MONTHS_MODULE, 'utf8');
+  const monthsMatch = monthsSource.match(/MONTHS\s*=\s*\[([\s\S]*?)\]/);
+  assert.ok(monthsMatch, 'positive control: src/lib/months.ts must declare the MONTHS table');
+  const months = monthsMatch[1].match(/'([^']+)'/g).map((quoted) => quoted.slice(1, -1));
+  assert.equal(months.length, 12, `positive control: the table must hold twelve month names, got ${months.length}`);
+  assert.equal(months[0], 'January', 'positive control: the table must start at January');
+  assert.equal(months[11], 'December', 'positive control: the table must end at December');
+
   const articlesSource = await readFile(resolve(PROJECT_ROOT, 'src', 'lib', 'articles.ts'), 'utf8');
+  const live = stripAstroComments(articlesSource);
 
-  const extract = (source) => {
-    const match = source.match(/MONTHS\s*=\s*\[([\s\S]*?)\]/);
-    assert.ok(match, 'could not find a MONTHS array; if it moved, update this test rather than deleting it');
-    return match[1].match(/'([^']+)'/g).map((quoted) => quoted.slice(1, -1));
-  };
-
-  assert.deepEqual(
-    extract(monthsSource),
-    extract(articlesSource),
-    'the two MONTHS tables have drifted apart; a date would render differently on the events page than on the reading room'
+  assert.equal(
+    /MONTHS\s*=\s*\[/.test(live),
+    false,
+    'src/lib/articles.ts declares its own MONTHS array again. It must import MONTHS from src/lib/months.ts: ' +
+      'one table for the site, not two copies held in step by a test.'
   );
+  assert.match(
+    live,
+    /import\s*\{\s*MONTHS\s*\}\s*from\s*'\.\/months\.ts'/,
+    "src/lib/articles.ts must import MONTHS from './months.ts'. The specifier carries the extension because " +
+      'bare Node - which `node --test` uses - cannot resolve an extensionless relative import.'
+  );
+
+  // And the zero-padding rule is the same story: one implementation, in months.ts.
+  // `monthKeyPart` used to take a ZERO-based index while the private twoDigits in
+  // calendar.ts took the value as given, and the difference between them was an
+  // off-by-one month that renders as a plausible wrong date rather than an error.
+  assert.match(
+    monthsSource,
+    /export function twoDigits\(/,
+    'src/lib/months.ts must export twoDigits(), the single zero-padding implementation'
+  );
+  assert.equal(
+    /padStart\(/.test(stripAstroComments(await readFile(resolve(PROJECT_ROOT, 'src', 'lib', 'calendar.ts'), 'utf8'))),
+    false,
+    'src/lib/calendar.ts calls padStart directly again. It must use twoDigits() from src/lib/months.ts, so ' +
+      'there is one place that decides how a number is padded.'
+  );
+});
+
+test('an event day and an empty day differ by a NON-COLOUR property', async (t) => {
+  // A COLOUR-ONLY DIFFERENCE IS A SIGNAL THAT DISAPPEARS WHERE IT IS NEEDED.
+  //
+  // The unselected calendar cell had exactly one thing telling an event day from an
+  // empty one: the numeral's text colour, `var(--text-muted)` on an empty day and
+  // `var(--text)` on a day with something on. No background, no weight, no shape.
+  // A hue is the one thing forced-colours mode, greyscale print and every colour
+  // vision deficiency remove, so the distinction a reader most needs - "which
+  // dates are worth selecting" - was carried by the one channel that cannot be
+  // relied on to carry it.
+  //
+  // The fix is a SHAPE: a small ring rendered beside the numeral on event days only.
+  // Drawn with a BORDER rather than a background, because forced-colours mode
+  // overrides `background-color` to the canvas colour - a dot painted that way is
+  // invisible exactly where it was added to help - while border-width and
+  // border-style are not overridden, so the ring keeps its shape and its size.
+  //
+  // The test asserts on the BUILT page, not the source, so it checks what a
+  // browser receives. It reads the compiled CSS out of the built HTML rather than
+  // trying to resolve styles, and it asserts the PRESENCE of a non-colour property
+  // on the marker rather than a particular value, so restyling the ring to a
+  // different size or weight does not fail a test about colour-independence.
+  const builtPath = resolve(PROJECT_ROOT, 'dist', 'events', 'index.html');
+  const built = await readFile(builtPath, 'utf8').catch(() => null);
+  assert.ok(
+    built !== null,
+    `positive control: the built page must exist at ${builtPath}. Run \`npm run build\` before this suite.`
+  );
+
+  // POSITIVE CONTROL 1: the built page really does contain both kinds of cell, so a
+  // page that had somehow stopped rendering event days could not pass the "they
+  // differ" assertions below by having nothing to compare.
+  const eventCells = [...built.matchAll(/<label[^>]*class="cal__day"[^>]*>/g)].map((m) => m[0]);
+  const bareCells = [...built.matchAll(/<span[^>]*class="cal__day cal__day--bare"[^>]*>/g)].map((m) => m[0]);
+  assert.ok(eventCells.length > 0, 'positive control: the built page must render at least one event day');
+  assert.ok(bareCells.length > 0, 'positive control: the built page must render at least one empty day');
+  t.diagnostic(`built page: ${eventCells.length} event day(s), ${bareCells.length} empty day(s)`);
+
+  // The marker element. Presence of the ELEMENT is the signal, so it cannot be
+  // lost to a palette, and an empty day simply does not have one.
+  // The compiled rules for this component are NOT in the HTML: Astro extracts them
+  // into an external stylesheet under dist/_astro/. So the marker rule is read out
+  // of the stylesheet the built page actually links to, found by following the
+  // <link rel="stylesheet"> rather than by guessing the hashed filename - a
+  // guessed name would break on every unrelated build and teach people to ignore
+  // the failure.
+  const hrefs = [...built.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(hrefs.length > 0, 'positive control: the built page must link at least one stylesheet');
+  t.diagnostic(`stylesheets linked by the built page: ${hrefs.join(', ')}`);
+
+  const sheets = [];
+  for (const href of hrefs) {
+    // dist/events/index.html is the page, so a root-relative href resolves against
+    // dist/ - which is where _astro/ lives. No filesystem assumptions beyond that.
+    const rel = href.replace(/^\//, '');
+    sheets.push(await readFile(resolve(PROJECT_ROOT, 'dist', rel), 'utf8').catch(() => ''));
+  }
+  const css = sheets.join('\n');
+  assert.ok(css.length > 500, `positive control: the linked stylesheets must be readable and substantial, got ${css.length} characters`);
+
+  const markerRule = css.match(/\.cal__mark[^{]*\{([^}]*)\}/);
+  assert.ok(
+    markerRule,
+    'positive control: the built page\'s stylesheet must carry a compiled rule for .cal__mark, or the marker is unstyled ' +
+      'and the assertions below would be checking a selector that matches nothing'
+  );
+
+  const declarations = markerRule[1]
+    .split(';')
+    .map((d) => d.trim())
+    .filter(Boolean);
+  t.diagnostic(`.cal__mark declarations: ${declarations.join(' | ')}`);
+
+  // Properties whose PRESENCE is a non-colour signal: the ring's geometry and its
+  // stroke. `color` and `background` are excluded deliberately - those are exactly
+  // what forced-colours mode overrides.
+  const NON_COLOUR = /^(width|height|border|border-width|border-style|border-color|border-radius|outline|box-shadow|font-weight|text-decoration|text-underline-offset)\s*:/;
+  const nonColour = declarations.filter((d) => NON_COLOUR.test(d));
+  assert.ok(
+    nonColour.length > 0,
+    `.cal__mark must be given at least one NON-COLOUR property (width, height, border, outline, weight). ` +
+      `Got only: ${declarations.join('; ')} - a marker defined purely in colour is invisible in forced-colours mode.`
+  );
+
+  // And the geometry has to be real: a marker with no size is a marker with no
+  // shape, which is the original defect wearing a new class name.
+  assert.match(
+    markerRule[1],
+    /width\s*:\s*\d/,
+    `the ring needs a real width to be a shape at all, got: ${markerRule[1].trim()}`
+  );
+  assert.match(
+    markerRule[1],
+    /height\s*:\s*\d/,
+    `the ring needs a real height to be a shape at all, got: ${markerRule[1].trim()}`
+  );
+
+  // POSITIVE CONTROL 2, and the half that is easy to get wrong: it must NOT be
+  // `background`. A dot painted with `background: currentColor` is overridden to
+  // the canvas colour in forced-colours mode, so it disappears exactly where it
+  // was added. Asserting its absence here is what stops somebody "simplifying" the
+  // ring into a filled dot later.
+  assert.equal(
+    /background(-color)?\s*:/.test(markerRule[1]),
+    false,
+    '.cal__mark must be drawn with a border, not a background. Forced-colours mode overrides background-color to the ' +
+      'canvas colour, so a background-painted marker is invisible in the mode it exists for. Border-width and ' +
+      'border-style survive the override.'
+  );
+
+  // The last link in the chain, counted rather than pattern-matched on one cell:
+  // there must be EXACTLY as many markers in the built HTML as there are event
+  // days, and no more. One per event day is the signal; one per empty day, or one
+  // on every cell, would make it meaningless.
+  const markerCount = (built.match(/class="cal__mark"/g) || []).length;
+  assert.equal(
+    markerCount,
+    eventCells.length,
+    `every event day must carry exactly one marker and no empty day may carry one: ${markerCount} marker(s) for ` +
+      `${eventCells.length} event day(s) and ${bareCells.length} empty day(s)`
+  );
+  assert.ok(markerCount > 0, 'positive control: at least one marker must be rendered');
 });
 
 test('data/events.schema.md documents every field the code validates, at the lengths the code enforces', async (t) => {
@@ -1332,10 +1942,17 @@ test('every file this feature added is pure ASCII, and the dataset has no BOM', 
     'src/lib/events.ts',
     'src/lib/events-schema.ts',
     'src/lib/months.ts',
+    'src/lib/calendar.ts',
+    'src/lib/articles.ts',
     'src/pages/events.astro',
     'src/components/EventRow.astro',
+    'src/components/EventCalendar.astro',
+    'src/components/EventDetail.astro',
     'scripts/check-events.mjs',
-    'test/events.test.mjs'
+    'scripts/lib/bom.mjs',
+    'scripts/make-placeholders.mjs',
+    'test/events.test.mjs',
+    'test/calendar.test.mjs'
   ];
 
   const offenders = [];
@@ -1386,4 +2003,264 @@ test('a byte order mark in the dataset is rejected with a diagnosis, not a myste
       'which is a UTF-8 BOM. Save the dataset as UTF-8 without one.'
   );
   assert.equal(bytes[0], 0x7b, `data/events.json must start with "{" (0x7b), got 0x${bytes[0].toString(16)}`);
+});
+
+// ---------------------------------------------------------------------------
+// The multi-day span, added when early voting arrived
+// ---------------------------------------------------------------------------
+
+test('a multi-day all-day event renders as a SPAN, not as its start date', () => {
+  // THE GAP THIS CLOSED, AND WHY NO TEST CAUGHT IT BEFORE.
+  //
+  // The schema has always accepted an all-day `endsAt` - and the `ends-before-starts`
+  // check was specifically repaired to work for all-day pairs - but the RENDERER only
+  // ever printed `startsAt`. Every sample event had been a single day, so the code
+  // path was correct for all of them and wrong for none.
+  //
+  // Then early voting arrived: a two-week window ending 31 October. With the old
+  // renderer the panel would have said the start date alone - true, and missing
+  // the only number a voter actually needs. A fortnight of voting announced as a
+  // single day.
+  //
+  // The dates here are a FIXTURE, chosen by this test and unrelated to what any
+  // real event says. The real early-voting window is checked against the dataset
+  // below; keeping the two apart is what stops a correction to the real data from
+  // breaking an unrelated formatter test, which is exactly what happened when this
+  // assertion was written against the then-current real dates.
+  assert.equal(
+    formatEventDateSpan('2026-10-15', '2026-10-31'),
+    '15 - 31 October 2026',
+    'a multi-day all-day span must render both ends'
+  );
+
+  // POSITIVE CONTROL on the fixture: the same start with NO end must collapse to the
+  // single date, or the function could pass for the wrong reason - for example by
+  // always printing something range-shaped.
+  assert.equal(
+    formatEventDateSpan('2026-10-15', null),
+    '15 October 2026',
+    'positive control: with no endsAt the span must collapse to one date'
+  );
+
+  // And the real data goes through the same formatter, because the real data is the
+  // thing that has to work.
+  const earlyVoting = REAL_DOC.events.find((event) => event.id === 'early-voting');
+  assert.ok(earlyVoting, 'positive control: the real dataset must contain early-voting');
+  // The expectation is DERIVED from the dataset rather than written out. The
+  // literal used to be spelled here as '15 - 31 October 2026', so correcting the
+  // start date to the real one (19 October, per scvotes.gov - the data had said
+  // the 15th) failed a test that was asserting the old, wrong value. The
+  // invariant worth protecting is that it renders as a SPAN of the right length;
+  // whether the dates themselves are correct is a question about the world, and
+  // it is recorded in data/events.schema.md, not pinned here.
+  const earlyStartDay = Number(earlyVoting.startsAt.slice(8, 10));
+  const earlyEndDay = Number(earlyVoting.endsAt.slice(8, 10));
+  assert.equal(
+    formatEventDateSpan(earlyVoting.startsAt, earlyVoting.endsAt),
+    `${earlyStartDay} - ${earlyEndDay} October 2026`,
+    'the real early-voting entry must render as a span naming the start and end day'
+  );
+  assert.ok(
+    earlyEndDay > earlyStartDay,
+    'early voting must end after it starts; a one-day early-voting window would be a serious civic error'
+  );
+});
+
+test('a span covers a month and a year boundary without inventing a month', () => {
+  assert.equal(
+    formatEventDateSpan('2026-10-30', '2026-11-02'),
+    '30 October - 2 November 2026',
+    'a span crossing a month boundary must name both months'
+  );
+  assert.equal(
+    formatEventDateSpan('2026-12-28', '2027-01-03'),
+    '28 December 2026 - 3 January 2027',
+    'a span crossing a year boundary must name both years'
+  );
+
+  // POSITIVE CONTROL: the same-month case really is shorter, so the branches are
+  // distinguishable and the assertion above is not passing for free.
+  const sameMonth = formatEventDateSpan('2026-10-15', '2026-10-31');
+  const crossMonth = formatEventDateSpan('2026-10-30', '2026-11-02');
+  assert.ok(
+    sameMonth.length < crossMonth.length,
+    `positive control: a same-month span must be shorter than a cross-month one, got "${sameMonth}" and "${crossMonth}"`
+  );
+});
+
+test('a TIMED pair never becomes a span', () => {
+  // THE CASE THAT WOULD READ AS NONSENSE. A debate running 7:00 pm to 9:00 pm on
+  // one day must not be rendered by the month-crossing branch as
+  // "18:30 - 31 October 2026". So a span exists only between two ALL-DAY dates, and
+  // `formatEventTime` prints the clock range separately.
+  assert.equal(
+    formatEventDateSpan('2026-10-06T19:00', '2026-10-06T21:00'),
+    '6 October 2026',
+    'a same-day timed pair must render one date'
+  );
+  assert.equal(
+    formatEventTime('2026-10-06T19:00', '2026-10-06T21:00'),
+    '7:00 pm - 9:00 pm',
+    'positive control: the clock range is still printed, by formatEventTime'
+  );
+
+  // The mixed pair - an all-day start with a timed end - must degrade to the start
+  // date rather than produce an inverted range.
+  assert.equal(
+    formatEventDateSpan('2026-10-15', '2026-10-31T17:00'),
+    '15 October 2026',
+    'a mixed all-day/timed pair must degrade to the start date, not print an inverted range'
+  );
+});
+
+test('an unparseable span degrades to an empty string rather than printing nonsense', () => {
+  assert.equal(formatEventDateSpan('not-a-date', '2026-10-31'), '', 'a bad start must yield the empty string');
+  assert.equal(
+    formatEventDateSpan('2026-10-15', 'not-a-date'),
+    '15 October 2026',
+    'a bad end must fall back to the start date'
+  );
+  // POSITIVE CONTROL: the empty string is a decision about bad input, not the
+  // function returning nothing for everything.
+  assert.notEqual(
+    formatEventDateSpan('2026-10-15', null),
+    '',
+    'positive control: a good value must still render'
+  );
+});
+
+// ---------------------------------------------------------------------------
+// pageNote: the optional closing block of prose
+// ---------------------------------------------------------------------------
+
+test('a well-formed pageNote is validated, read back, and survives to the result', () => {
+  const doc = goodDoc(
+    {},
+    { pageNote: { heading: 'Ongoing campaign activity', paragraphs: ['First paragraph.', 'Second paragraph.'] } }
+  );
+  const result = validateEvents(doc);
+
+  assert.equal(result.ok, true, `fixture must validate, got ${JSON.stringify(result.problems)}`);
+  assert.deepEqual(
+    result.pageNote,
+    { heading: 'Ongoing campaign activity', paragraphs: ['First paragraph.', 'Second paragraph.'] },
+    'the note block must be read back exactly'
+  );
+});
+
+test('pageNote is genuinely optional, and absent means null rather than an empty section', () => {
+  // A page with no note is the ordinary case. It must validate clean AND yield null,
+  // so the page renders nothing at all instead of a heading over nothing.
+  const absent = validateEvents(goodDoc());
+  assert.equal(absent.ok, true, 'a document with no pageNote must be valid');
+  assert.equal(absent.pageNote, null, 'an absent pageNote must read back as null');
+
+  // Explicit null is the same thing, not a mistake.
+  const explicitNull = validateEvents(goodDoc({}, { pageNote: null }));
+  assert.equal(explicitNull.ok, true, 'pageNote: null must be valid');
+  assert.equal(explicitNull.pageNote, null, 'pageNote: null must read back as null');
+});
+
+test('a misspelled key inside pageNote is rejected with a suggestion, not ignored', () => {
+  // THE REASON THIS BLOCK IS VALIDATED AT ALL. `paragraph` instead of `paragraphs`
+  // would otherwise render a heading and a rule with no words under them, which on a
+  // finished-looking page reads as a decision rather than as a typo.
+  const result = expectReason(
+    goodDoc({}, { pageNote: { heading: 'A heading', paragraph: 'One string, not a list.' } }),
+    'unknown-key',
+    'a misspelled pageNote key'
+  );
+  const detail = result.problems.find((problem) => problem.reason === 'unknown-key').detail;
+  assert.match(detail, /paragraphs/, `the error must name the legal key, got: ${detail}`);
+  assert.match(detail, /Did you mean "paragraphs"\?/, `a one-edit typo must be suggested, got: ${detail}`);
+});
+
+test('a pageNote with a heading and no paragraphs is REJECTED, not rendered empty', () => {
+  // This is the case that matters: the validator accepts an absent block silently, so
+  // "no note at all" and "a note containing nothing" must not be expressible the same
+  // way. Otherwise the page grows a section header with an empty body.
+  const result = expectReason(
+    goodDoc({}, { pageNote: { heading: 'A heading', paragraphs: [] } }),
+    'pageNote-paragraphs-empty',
+    'a heading with an empty paragraphs array'
+  );
+  assert.match(
+    result.problems.find((problem) => problem.reason === 'pageNote-paragraphs-empty').detail,
+    /Delete the whole pageNote block/,
+    'the error must tell the author how to express "no note at all"'
+  );
+
+  // POSITIVE CONTROL: a one-paragraph block is fine, so this is not a rule against
+  // short notes.
+  assert.equal(
+    validateEvents(goodDoc({}, { pageNote: { heading: 'H', paragraphs: ['One.'] } })).ok,
+    true,
+    'positive control: a single paragraph must be accepted'
+  );
+});
+
+test('a pageNote problem fails the whole file and never leaves a partial block', () => {
+  // Two problems at once, COLLECTED rather than short-circuited - consistent with the
+  // event loop, and for the same reason: an assistant fixing this file should see
+  // everything that is wrong in one run, not one build at a time.
+  const result = expectReason(
+    goodDoc({}, { pageNote: { heading: '', paragraphs: ['Real text.', ''] } }),
+    'pageNote-heading-empty',
+    'an empty heading plus an empty paragraph'
+  );
+
+  const reasons = result.problems.map((problem) => problem.reason);
+  assert.ok(
+    reasons.includes('pageNote-paragraph-empty'),
+    `both problems must be reported in one run, got ${JSON.stringify(reasons)}`
+  );
+
+  // The partial-object guard: one paragraph was valid, but the whole block is null,
+  // so a caller that forgets to check `ok` cannot render a heading with a hole in it.
+  assert.equal(result.pageNote, null, 'a rejected pageNote must never come back partially filled');
+  assert.deepEqual(result.events, [], 'positive control: a rejected document yields no events either');
+});
+
+test('the real dataset carries the campaign note, and the page reads it from the data', async () => {
+  assert.ok(REAL_DOC.pageNote, 'positive control: the committed dataset must carry a pageNote');
+  assert.ok(REAL_DOC.pageNote.heading.length > 0, 'positive control: its heading must be non-empty');
+  assert.ok(REAL_DOC.pageNote.paragraphs.length > 0, 'positive control: it must have paragraphs');
+
+  // The page consumes the exported value rather than hardcoding the prose, which is
+  // the entire reason this block lives in the data file.
+  const page = await readFile(EVENTS_PAGE, 'utf8');
+  const live = stripAstroComments(page);
+  assert.ok(live.includes('pageNote'), 'src/pages/events.astro must read the note from the data');
+  assert.ok(live.includes('closing__heading'), 'src/pages/events.astro must render the note heading');
+  assert.equal(
+    live.includes('Ongoing campaign activity'),
+    false,
+    'the campaign prose must NOT be hardcoded in the page: it belongs in data/events.json so one file holds it all'
+  );
+});
+
+test('Meeting is in the vocabulary, and it is not an alias for Forum', () => {
+  // The type was added when the real events replaced the placeholders, because a party
+  // quarterly meeting is a scheduled gathering rather than a moderated Q&A - and the
+  // chip is the first thing a reader scans. Filing it under Forum would make a filter
+  // lie about its contents.
+  assert.ok(EVENT_TYPES.includes('Meeting'), 'Meeting must be a legal event type');
+
+  // POSITIVE CONTROL: the vocabulary is non-empty and every entry is distinct, so
+  // "includes" above is not passing on a one-element array.
+  assert.ok(EVENT_TYPES.length >= 8, `positive control: expected at least 8 types, got ${EVENT_TYPES.length}`);
+  assert.equal(
+    new Set(EVENT_TYPES).size,
+    EVENT_TYPES.length,
+    'the type vocabulary must not contain duplicates'
+  );
+
+  // And the closed set still holds: an invented type is rejected with the list.
+  assert.equal(isEventType('Meeting'), true, 'Meeting must be accepted by isEventType');
+  assert.equal(isEventType('meeting'), false, 'the check must stay case-sensitive');
+  assert.equal(
+    isEventType('Committee meeting'),
+    false,
+    'an invented type must still be rejected'
+  );
 });

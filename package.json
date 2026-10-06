@@ -10,6 +10,7 @@
     "astro": "astro",
     "fetch": "node scripts/fetch-feeds.mjs",
     "events:check": "node scripts/check-events.mjs",
+    "events:placeholders": "node scripts/make-placeholders.mjs",
     "test": "node --test \"test/*.test.mjs\""
   },
   "engines": {

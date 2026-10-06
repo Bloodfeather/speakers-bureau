@@ -40,9 +40,16 @@ import PageShell from '../components/PageShell.astro'
 import ArticleFeed from '../components/ArticleFeed.astro'
 import TopicNav from '../components/TopicNav.astro'
 import { articles, formatUtcDate, summarise, topics } from '../lib/articles'
+import {
+  eventCount,
+  events,
+  formatEventDate,
+  isPast,
+  reviewedOn,
+} from '../lib/events'
 import { SITE_INTRO, SITE_WINDOW_NOTE, withBase } from '../lib/site'
 
-// The whole window, newest first. On the current dataset: 23 articles.
+// The whole window, newest first. On the current dataset: 43 articles.
 const feed = articles
 const topicList = topics(feed)
 const stats = summarise(feed)
@@ -50,6 +57,12 @@ const stats = summarise(feed)
 // Real numbers, computed. If the dataset changes these strings change with it.
 const newestLabel = formatUtcDate(stats.newest)
 const oldestLabel = formatUtcDate(stats.oldest)
+
+// The next dated thing, for the signpost section below. `events` arrives
+// newest-first from the loader, and `isPast` splits on `reviewedOn` rather than
+// the clock, so this is the same rule the events page uses. First match wins,
+// which is the earliest thing still to come.
+const nextEvent = events.find((event) => !isPast(event, reviewedOn)) ?? null
 
 // The home page shows a short, deliberately-chosen "start here" run and links
 // out to the full window. A front door that dumps all 43 cards is a list, not a
@@ -161,7 +174,54 @@ const description =
     />
   </section>
 
-  <section class="publications" aria-labelledby="publications-heading">
+  {/*
+    THE EVENTS DOOR.
+
+    Added 2026-10-05. Until this existed the calendar was reachable from exactly
+    one place on the whole site: the header. A browser audit reported "0
+    occurrences of November, debate or election" in the home page's rendered text,
+    which is the honest way to say a reader has to already know the feature exists.
+
+    The home page is a front door, so a door that leads nowhere is not a door. Three
+    lines, no new component, no new styles: the next dated thing, and a link.
+
+    WHY THE NEXT DATED THING rather than a list of them. The events page is the
+    place to browse; this is a signpost, and its whole job is to answer "is there
+    anything coming up?" in one glance. It also has to respect the same honesty
+    rule as the article window: an event that has already happened is not news, so
+    this is the next one that has NOT.
+
+    `upcoming` is computed from `reviewedOn`, not from the clock, exactly as the
+    events page does it. A build that rendered differently on different days would
+    be design rule 8 broken.
+*/}
+{
+  nextEvent && (
+    <section class="next-event" aria-labelledby="next-event-heading">
+      <h2 class="label next-event__heading" id="next-event-heading">
+        Coming up
+      </h2>
+      <p class="next-event__line">
+        <span class="next-event__when">
+          <time datetime={nextEvent.startsAt}>{formatEventDate(nextEvent.startsAt)}</time>
+        </span>
+        <span class="next-event__name">{nextEvent.name}</span>
+      </p>
+      <p class="next-event__note">
+        {eventCount} dated {eventCount === 1 ? 'entry' : 'entries'} on the{' '}
+        <a href={withBase('/events/')}>events calendar</a>
+        {reviewedOn && (
+          <>
+            , last reviewed {formatEventDate(reviewedOn)}
+          </>
+        )}
+        . Every listing links to the notice it came from.
+      </p>
+    </section>
+  )
+}
+
+<section class="publications" aria-labelledby="publications-heading">
     <h2 class="label publications__heading" id="publications-heading">
       Where this writing comes from
     </h2>
@@ -229,6 +289,54 @@ const description =
   }
 
   .section-head__aside {
+    margin-block-end: 0;
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
+  /* ------------------------------------------------------------------------
+   * THE EVENTS SIGNPOST
+   *
+   * Styled to match `.publications` directly below rather than inventing a third
+   * treatment: same heavy rule above, same muted small text, same measure. A new
+   * visual idiom on the front page would read as a different organisation.
+   *
+   * The date is set in the display serif at the larger size, because it is the
+   * thing being scanned for. The event name follows in body text, not serif: it is
+   * a description, not a headline, and one serif emphasis per block is the whole
+   * budget on this page.
+   * --------------------------------------------------------------------- */
+  .next-event {
+    margin-block-start: var(--space-7);
+    padding-block-start: var(--space-5);
+    border-block-start: var(--rule-width-strong) solid var(--rule-strong);
+  }
+
+  .next-event__heading {
+    margin-block-end: var(--space-3);
+  }
+
+  .next-event__line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    margin-block-end: var(--space-3);
+  }
+
+  .next-event__when {
+    font-family: var(--font-display);
+    font-size: var(--size-lg);
+    font-weight: var(--weight-bold);
+    white-space: nowrap;
+  }
+
+  .next-event__name {
+    font-size: var(--size-md);
+  }
+
+  .next-event__note {
+    max-width: var(--measure);
     margin-block-end: 0;
     font-size: var(--size-sm);
     color: var(--text-muted);

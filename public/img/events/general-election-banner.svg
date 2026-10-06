@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 600" width="1600" height="600">
+  <title>Placeholder artwork for General Election: a typographic plate, not a photograph</title>
+  <desc>A warm paper plate carrying the event name &quot;General Election&quot; and the date 3 NOVEMBER 2026. It stands in for artwork that does not exist yet and must be replaced with a real photograph.</desc>
+  <rect width="1600" height="600" fill="#faf6ef"/>
+  <rect x="48" y="48" width="1504" height="504" fill="none" stroke="#ded3c2" stroke-width="2"/>
+  <text x="112" y="291.45" font-family="Iowan Old Style, Palatino Linotype, Palatino, Charter, Georgia, Cambria, Times New Roman, serif" font-size="92" fill="#201c17" xml:space="preserve">
+    <tspan x="112" y="291.45">General Election</tspan>
+  </text>
+  <text x="112" y="452" font-family="Iowan Old Style, Palatino Linotype, Palatino, Charter, Georgia, Cambria, Times New Roman, serif" font-size="42" letter-spacing="4" fill="#57504a">3 NOVEMBER 2026</text>
+  <text x="112" y="516" font-family="Iowan Old Style, Palatino Linotype, Palatino, Charter, Georgia, Cambria, Times New Roman, serif" font-size="26" letter-spacing="4" fill="#7d2a12">PLACEHOLDER</text>
+</svg>

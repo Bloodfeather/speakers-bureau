@@ -2,131 +2,194 @@
 // src/pages/events.astro - the events calendar.
 //
 // ---------------------------------------------------------------------------
-// WHY THERE IS NO <noscript> FALLBACK, CORRECTING AN EARLIER VERSION OF THIS FILE
+// THE SHAPE OF THE PAGE, AND WHY
 // ---------------------------------------------------------------------------
 //
-// The first version of this page carried a <noscript> block in every row - a
-// "Details for X" anchor - plus a page-level <noscript> telling the reader to
-// use those links when JavaScript is off. Both are gone, and the reason matters
-// more than the removal:
+// Two columns on a wide screen: a real month-grid CALENDAR on the left, and an
+// info PANEL on the right for whatever is selected in it. On a phone they stack -
+// calendar first, panel UNDER it.
 //
-//   THE PREMISE WAS FALSE. The original comment said "without scripting the
-//   radios do nothing useful". Radios are not scripting. `:checked` is a CSS
-//   pseudo-class and `:has()` is a CSS selector, so the whole selection
-//   mechanism works with scripting disabled - which was the entire design goal.
+// THE PANEL IS UNDER THE CALENDAR ON A PHONE, not above it. The first version of
+// this page pinned the panel to the top of the viewport, and the result was a
+// 594px banner occupying 71% of an 844px screen - the banner was "too big to be
+// sticking to the top". Pinning it was the mistake, not the size, and putting it
+// under the calendar removes the problem structurally instead of shrinking a
+// decoration until it is no longer worth showing. The banner is ALSO capped
+// (see EventDetail.astro), because a cap is right on both sides of the
+// breakpoint.
 //
-//   AND THE FALLBACK WAS DEAD ANYWAY. The anchor pointed at the event's panel
-//   element, and that panel is `display: none` unless its radio is `:checked`.
-//   There was no `:target` rule anywhere, so the link scrolled to a hidden
-//   element and did nothing. It was a dead control described in a comment as
-//   "a link that works, not a disabled control".
-//
-// A review caught both. So there is no fallback, and instead the real
-// dependency is stated plainly below: this page needs `:has()`, which is
-// Baseline from Chrome 105, Safari 15.4 and Firefox 121 (late 2022 / early
-// 2023). That is OLDER than `light-dark()`, which src/styles/themes.css already
-// depends on for the theme system, so it is not a new floor for this site - and
-// a browser too old for it could not have rendered the themes either.
-// ---------------------------------------------------------------------------
+// Feedback for a tap does not depend on the panel being visible: the selected
+// cell in the calendar shows that date's event NAME inline, immediately. The panel
+// is the detail, not the confirmation.
 //
 // ---------------------------------------------------------------------------
-// THE INTERACTION, AND WHY THERE IS NO SCRIPT ON THIS PAGE
+// THE SELECTION UNIT IS A DAY
 // ---------------------------------------------------------------------------
 //
-// The list of events is a radio group (see src/components/EventRow.astro for why
-// a radio rather than buttons). Selecting one reveals that event's panel - its
-// large banner image, its description and its notes - beside the list on a wide
-// screen, and above the list on a phone.
+// A calendar cell is a date, and two events can share a date. So the radio group
+// is over DAYS, one input per distinct date, rendered once in a hidden group -
+// and both the calendar cells and the list rows are `<label for>` pointing at
+// them. Selecting from either view moves the same radio, so the two views can
+// never disagree, and there is no JavaScript keeping them in sync.
 //
-// Every panel for every event is rendered into the page, and exactly one is
-// visible. Visibility is decided by CSS alone:
+// Selecting a date shows EVERY event on it, stacked in the panel, each with its
+// own banner. No event is hidden and no banner is picked arbitrarily.
 //
-//     html:has(#event-input-<id>:checked) [data-panel='<id>'] { ... shown ... }
+// ---------------------------------------------------------------------------
+// WHY THERE IS NO SCRIPT ON THIS PAGE
+// ---------------------------------------------------------------------------
 //
-// with the default rule hiding all of them. That is the same `:has()` mechanism
-// the theme switcher already uses in src/styles/themes.css, for the same reason:
-// a control that repaints through CSS cannot flash, cannot desync from its own
-// state, and keeps working with scripting off.
+// Both mechanisms are CSS, exactly as the theme switcher already is:
 //
-// Rendering N panels rather than swapping one is the deliberate trade. The cost
-// is markup proportional to the number of events. The benefit is that the whole
-// feature has no moving parts: no state, no handler, nothing to keep in sync,
-// and it behaves identically with the script blocked. A page of forty events is
-// a few tens of kilobytes of HTML, which is not a cost worth optimising away for
-// a mechanism that cannot drift.
+//   view switch   html:has(#view-list:checked) .events__view--list { ... }
+//   day selection html:has(#day-<key>:checked) :global([data-panel='<key>']) { ... }
 //
-// Only ONE `checked` radio is rendered into the markup - the first upcoming event
-// - so there is always a panel showing on first paint. Selecting a different
-// radio moves the `:checked` state and the CSS follows. A reader with scripting
-// off gets the <noscript> anchor on each row instead, which jumps to the same
-// panel.
+// Which cannot flash, cannot desync from its own state, and works with scripting
+// off. The cost is a per-day selector list, which is honest and test-enforced
+// rather than hidden. See "THE PER-DAY SELECTORS" further down, including the
+// point at which this design should be reconsidered.
 //
-// WHY NO FILTERING BY TYPE HERE, DESPITE TYPE BEING A FIELD. A type filter needs
-// to know which rows to show, and that means either scripting or URL state. Both
-// are out of scope for a page whose whole point is to work without either. The
-// type is rendered on every row and as a chip in the panel, and the calendar is
-// short enough to read. The schema already derives the set of types present from
-// the data, so a filter is a later change to this page, not a new data contract.
+// The one real dependency is `:has()`, Baseline from Chrome 105, Safari 15.4 and
+// Firefox 121. That is OLDER than the `light-dark()` src/styles/themes.css already
+// relies on, so it raises no new floor for this site.
 // ---------------------------------------------------------------------------
 
 import PageShell from '../components/PageShell.astro'
+import EventCalendar from '../components/EventCalendar.astro'
+import EventDetail from '../components/EventDetail.astro'
 import EventRow from '../components/EventRow.astro'
+import {
+  eventDays,
+  dayKey,
+  dayRadioLabel,
+  monthGrids
+} from '../lib/calendar'
 import {
   eventCount,
   events,
   formatEventDate,
-  formatEventTime,
-  formatEventZone,
+  formatEventDateSpan,
   groupByMonth,
   isPast,
-  machineDateTime,
+  pageNote,
   reviewedOn,
   sortEvents
 } from '../lib/events'
-import { withBase } from '../lib/site'
 
 // ---------------------------------------------------------------------------
-// The split, decided BY THE DATA and not by the clock
+// Derive everything from the data. Nothing here is typed by hand.
 // ---------------------------------------------------------------------------
-//
-// See `reviewedOn` in src/lib/events-schema.ts. Calling new Date() here would make
-// the built HTML depend on the day the build ran, which is ROADMAP design rule 8
-// broken in the most literal way available: commit once, build on two different
-// days, get two different pages. The date a human last reviewed the list is in
-// the file, so the split is reproducible and the reader can be told when it was
-// last checked.
 
 const ordered = sortEvents(events)
-const past = reviewedOn === null ? [] : ordered.filter((event) => isPast(event, reviewedOn))
-const upcoming = reviewedOn === null ? ordered : ordered.filter((event) => !isPast(event, reviewedOn))
 
-// The first UPCOMING event is the one shown on first paint. When there is no
-// upcoming event the first of whatever exists is, because a calendar whose panel
-// is empty on arrival is a page that has not rendered.
-const initial = upcoming[0] ?? ordered[0]
+/** One entry per distinct date, ascending, each holding its events. */
+const days = eventDays(ordered)
 
-// Grouped only for the upcoming list. The past list is short by construction and
-// reads better as one flat run under a single heading than as four near-empty
-// month headings.
-const upcomingGroups = groupByMonth(upcoming)
+/** Month grids, derived from those days - never a hardcoded month list. */
+const months = monthGrids(days)
 
-// The headline states the real range rather than implying permanence. A calendar
-// of dated events that says "upcoming events" with no window is the same class of
-// claim the reading room refuses to make about a 20-item feed.
-const firstDate = ordered.length > 0 ? formatEventDate(ordered[0].startsAt) : '';
-const lastDate = ordered.length > 0 ? formatEventDate(ordered[ordered.length - 1].startsAt) : '';
+/**
+ * Dates already past, taken from the data rather than from the clock.
+ *
+ * A day's first event decides it, which is unambiguous: every event on a date
+ * starts on that date, so they cannot disagree about whether it has passed.
+ */
+const pastKeys = new Set(
+  days
+    .filter((day) => day.events.length > 0 && isPast(day.events[0], reviewedOn))
+    .map((day) => day.key)
+)
 
-// EVERY CLAIM IN HERE IS DERIVED. The first version of this sentence said "Each
-// row carries a thumbnail; select one to see its details and banner", and a
-// review checked it against the data: `election-day` has no thumbnail, and both
-// it and `winter-open-lecture` have no banner, so three of seven rows
-// contradicted the page's own metadata. That is the exact failure this project
-// exists to prevent, expressed in prose instead of in a field - so the sentence
-// now says only what is true of every row.
+/**
+ * The day selected on first paint: the first UPCOMING one, falling back to the
+ * first of any kind. A calendar whose panel is empty on arrival is a page that
+ * has not rendered.
+ *
+ * Note what is NOT consulted: the clock. The split between past and upcoming comes
+ * from `reviewedOn`, a date a human puts in the file. Calling new Date() would make
+ * the built HTML depend on the day the build ran, which is ROADMAP design rule 8
+ * broken in its most literal way. See `reviewedOn` in src/lib/events-schema.ts.
+ */
+const selectedKey = (days.find((day) => !pastKeys.has(day.key)) ?? days[0])?.key ?? ''
+
+// ---------------------------------------------------------------------------
+// THE PER-DAY SELECTORS, GENERATED
+// ---------------------------------------------------------------------------
+//
+// WHY THIS IS NOW A STRING BUILT IN CODE. It used to be three hand-written blocks
+// of one line per date, and a test enforced that every date in the data appeared
+// in all three. That test did its job - it is the reason this was caught - but
+// the design underneath was wrong, and adding a seventh event proved it.
+//
+// The contract asked whoever edits the data to ALSO hand-edit CSS in an .astro
+// file. That is a manual step with no compiler behind it, guarded only by a test
+// that fires after the build already broke. A page whose interactivity is derived
+// from its own data cannot go stale, so the coupling is removed rather than
+// policed.
+//
+// WHY GENERATED CSS AT ALL, since the alternative is a script. A calendar cell and
+// a list row are rendered by DIFFERENT components from the radio they select, and
+// a panel is a sibling of both. CSS has no way to relate a label to a control it
+// merely names, so the only way to say "this date is selected" is one selector per
+// date. That is the price of zero JavaScript.
+//
+// Emitted into a separate `is:inline` block because that is the only Astro style
+// block that takes a runtime string. The trade is real and worth naming: inline
+// styles are NOT scoped, so every selector below must be written as it will
+// appear in the document, with no page-scope class. That is also why `:global()`
+// is absent here while the hand-written block above uses it - opposite mechanisms,
+// opposite requirements. See the note on the hand-written block below.
+//
+// SCALING. This stays linear in the number of dates, which is fine at tens of
+// events and honest to say is not fine at hundreds. At that point the right trade
+// is one small inline script setting a data attribute on the selected cell, and
+// the calendar should stop pretending otherwise.
+const dayKeys = days.map((day) => day.key)
+
+const selectorFor = (attr: string, pseudo: string) =>
+  dayKeys.map((key) => `html:has(#day-${key}:${pseudo}) [data-${attr}='${key}']`).join(',\n  ')
+
+const perDayCss = [
+  `/* 1. The panel for the selected date becomes visible. */\n  ${selectorFor('panel', 'checked')} {\n    display: block;\n  }`,
+  `/* 2. The selected date is marked on its calendar cell AND its list row. Marked by\n     a rule and a background, never by colour alone: a tint is the one signal that\n     disappears in forced-colours mode. */\n  ${selectorFor('day', 'checked')} {\n    background: var(--chip-bg);\n    border-inline-start: var(--rule-width-strong) solid var(--accent);\n  }`,
+  `/* 3. The focus ring, on the same targets. The radio is clip-path: inset(50%), so\n     it cannot paint a ring on itself; the reader must SEE the label in the other\n     component highlighted. Absence of this rule cost the page its focus ring once. */\n  ${selectorFor('day', 'focus-visible')} {\n    outline: var(--focus-width) solid var(--focus);\n    outline-offset: calc(-1 * var(--focus-width));\n  }`,
+].join('\n\n  ')
+
+// The list view keeps the month grouping it had before, reusing the same helper
+// the reading room uses so both pages order dates identically.
+const upcomingGroups = groupByMonth(ordered.filter((event) => !isPast(event, reviewedOn)))
+const pastEvents = ordered.filter((event) => isPast(event, reviewedOn))
+
+const firstEvent = ordered[0]
+const lastEvent = ordered[ordered.length - 1]
+
+// Spans, not single dates, on both ends. The last date is early voting's END, not
+// its start: the reader asking "how late can I vote in person" is looking for the
+// 31st, and a meta description that stops on the 3rd of November understates the
+// window by more than three weeks.
+const firstDate = firstEvent ? formatEventDateSpan(firstEvent.startsAt, firstEvent.endsAt) : ''
+const lastDate = lastEvent
+  ? formatEventDateSpan(lastEvent.startsAt, lastEvent.endsAt)
+  : ''
+
+// EVERY CLAIM IN HERE IS DERIVED FROM THE DATA. An earlier version said "Each row
+// carries a thumbnail" and three of seven rows had none. See the note in the
+// first commit of this file.
 const description =
   `The events calendar: ${eventCount} dated events` +
   (firstDate && lastDate ? ` between ${firstDate} and ${lastDate}` : '') +
-  ', grouped by month and ordered soonest first. Select an event to see its details.'
+  ` across ${days.length} dates. Choose a date to see what is on.`
+
+/** Render one row for an event, with the flags the list view needs. */
+const rowFlags = (event: (typeof ordered)[number]) => {
+  const key = dayKey(event.startsAt)
+  const day = days.find((candidate) => candidate.key === key)
+  return {
+    dayKey: key,
+    past: pastKeys.has(key),
+    sharesDay: (day?.count ?? 0) > 1
+  }
+}
 ---
 
 <PageShell title="Events" description={description}>
@@ -134,225 +197,240 @@ const description =
     <h1 class="page-head__title">Events</h1>
 
     <p class="page-head__note">
-      This calendar is written by hand and reviewed rather than generated, so it says
-      exactly what is on it and no more.
+      Choose a date to see what is on. The calendar and the list are two views of
+      the same dates, and either one selects them.
       {
         reviewedOn && (
           <span class="page-head__reviewed">
             {' '}
-            Last reviewed <strong>{formatEventDate(reviewedOn)}</strong>. Dates are shown in
-            each venue's own local time.
+            Last reviewed{' '}
+            <strong>
+              <time datetime={reviewedOn}>{formatEventDate(reviewedOn)}</time>
+            </strong>
+            . Times are shown in each venue's own local time.
           </span>
         )
       }
     </p>
+
+    {/*
+      THE PROVENANCE NOTE. Added 2026-10-05 after an audit of this page's data.
+
+      The page states when it was last reviewed and that times are local, and said
+      nothing about where any of it came from. On a page of real election dates,
+      real candidates and real polling jurisdictions, that is the wrong omission:
+      "Last reviewed" reads as a quality signal, and a reader has no way to tell a
+      figure we checked against the organiser's own notice from one we guessed.
+
+      Every event carries a `url` to the source it came from, so the reader can
+      check rather than trust. The note says so, and says plainly that a date or
+      venue can move after we last looked - which is true of any published schedule
+      and is the reader's own due diligence to skip at their peril.
+
+      Deliberately NOT added: a claim about who reviewed it. There is no named
+      person or organisation behind this list yet, and inventing an attribution
+      would be exactly the kind of unsupported assertion this project exists to
+      avoid. When there is an owner, this is where it goes.
+    */}
+    <p class="page-head__source">
+      Every listing links to the notice it was taken from, so you can check it rather
+      than take our word for it. Schedules do move: confirm a date or venue with the
+      organiser, and confirm polling details with your own county.
+    </p>
   </div>
 
   {/*
-    NO EMPTY STATE, AND THAT IS A DELIBERATE COUPLING.
+    THE VIEW SWITCH, and why a checkbox rather than two radios.
 
-    An earlier version wrapped this in `eventCount === 0 ? <empty state> : ...`.
-    That branch was UNREACHABLE: validateEvents rejects an empty `events` array
-    with reason `events-empty`, src/lib/events.ts throws on any rejection, and so
-    this page never rendered with zero events. A guard for a state the schema
-    forbids is the "written but never read" shape - it reads as a supported case
-    and documents one that cannot occur.
+    The brief asked for a Boolean switch, and a checkbox with role="switch" is
+    that: one control, one tab stop, Space toggles it, and the state is announced
+    as on/off rather than as "one of two buttons". Two radios would model the
+    choice more precisely and cost one extra tab stop; the single control wins
+    because there is nothing to choose BETWEEN at the moment of toggling.
 
-    The rule that replaces it lives in the schema, where it belongs: an events
-    page with no events is a page claiming to have a calendar, so the honest
-    response is to fail the build and delete the page rather than render an empty
-    one. If that rule is ever relaxed, THIS TEMPLATE MUST GAIN AN EMPTY STATE -
-    the two are coupled and the coupling is deliberate.
+    It is a real <input type="checkbox">, visually replaced by the track and thumb
+    below, and it stays focusable and in the accessibility tree.
   */}
-  <div class="calendar">
-        {/*
-          THE PANEL. One region, one announced name, and one panel per event
-          inside it - only one of which is visible at a time.
-
-          aria-live="polite" is what makes the panel usable rather than merely
-          correct: selecting a radio moves the :checked state, and CSS alone
-          cannot tell a screen reader that the region below now describes a
-          different event. Without it the selection is silent.
-
-          The comment about not setting aria-atomic is a real constraint, not an
-          omission: with atomic set, every selection would re-announce the whole
-          region including the banner's alt text, which is long and is repeated
-          from the row's own name. Polite plus non-atomic announces the change.
-        */}
-        <aside
-          class="calendar__panel"
-          id="event-panel"
-          aria-label="Highlighted event"
-          aria-live="polite"
-        >
-          {
-            ordered.map((event) => (
-              <article
-                class="panel"
-                id={`event-${event.id}`}
-                data-panel={event.id}
-                aria-labelledby={`event-name-${event.id}`}
-              >
-                {event.banner ? (
-                  <div class="panel__banner">
-                    <img
-                      class="panel__image"
-                      src={withBase(event.banner)}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      width="1600"
-                      height="600"
-                    />
-                  </div>
-                ) : (
-                  <div class="panel__banner panel__banner--absent">
-                    <p class="panel__banner-absent">
-                      No banner image has been supplied for this event.
-                    </p>
-                  </div>
-                )}
-
-                <p class="panel__meta">
-                  <span class="chip">{event.type}</span>
-                  <time class="panel__when" datetime={machineDateTime(event.startsAt)}>
-                    {formatEventDate(event.startsAt)}
-                    {formatEventTime(event.startsAt, event.endsAt) && (
-                      <span class="panel__time">
-                        {', '}
-                        {formatEventTime(event.startsAt, event.endsAt)}
-                      </span>
-                    )}
-                  </time>
-                  {formatEventZone(event.timezone) && (
-                    <span class="panel__zone">{formatEventZone(event.timezone)}</span>
-                  )}
-                </p>
-
-                <h2 class="panel__name" id={`event-name-${event.id}`}>
-                  {event.name}
-                </h2>
-
-                <p class="panel__event">{event.event}</p>
-
-                <p class="panel__location">
-                  <span class="label panel__location-label">Where</span>
-                  <span class="panel__location-text">{event.location}</span>
-                </p>
-
-                {event.notes && <p class="panel__notes">{event.notes}</p>}
-
-                {event.url && (
-                  <p class="panel__link">
-                    <a
-                      class="panel__anchor"
-                      href={event.url}
-                      rel="external noopener noreferrer"
-                      target="_blank"
-                    >
-                      <span>Event details</span>
-                      <span class="panel__link-marker" aria-hidden="true">
-                        &#8599;
-                      </span>
-                      <span class="visually-hidden">(external link, opens in a new tab)</span>
-                    </a>
-                  </p>
-                )}
-
-                {/*
-                  The return link is INSIDE the panel, so it is subject to the same
-                  visibility rule as the rest of it and cannot be focused while
-                  hidden. A hidden-but-focusable link is the classic keyboard trap,
-                  and adding tabindex="-1" would only hide the trap from the very
-                  screen reader most likely to land in it.
-                */}
-                <p class="panel__back">
-                  <a class="panel__back-link" href="#events-list">
-                    Back to the list
-                  </a>
-                </p>
-              </article>
-            ))
-          }
-        </aside>
-
-        {/*
-          id="events-list" is the target of the "Back to the list" link in every
-          panel. It has to be a real element with that id, not a scroll-margin
-          hack: an anchor whose target does not exist does nothing at all, and it
-          would be a dead control that looks fine.
-        */}
-        <div class="calendar__list" id="events-list">
-          {
-            past.length > 0 && (
-              <section class="events-section events-section--past" aria-labelledby="events-past">
-                <h2 class="events-section__title" id="events-past">
-                  Already held
-                </h2>
-                <ul class="events__list">
-                  {past.map((event) => (
-                    <EventRow
-                      event={event}
-                      selected={initial !== undefined && initial.id === event.id}
-                      past
-                    />
-                  ))}
-                </ul>
-              </section>
-            )
-          }
-
-          {
-            upcoming.length > 0 ? (
-              <section class="events-section" aria-labelledby="events-upcoming">
-                <h2 class="events-section__title" id="events-upcoming">
-                  Upcoming
-                </h2>
-                {upcomingGroups.map((group) => (
-                  <div class="events-month">
-                    <h3 class="events-month__title">{group.label}</h3>
-                    <ul class="events__list">
-                      {group.events.map((event) => (
-                        <EventRow
-                          event={event}
-                          selected={initial !== undefined && initial.id === event.id}
-                          past={false}
-                        />
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </section>
-            ) : (
-              past.length > 0 && (
-                <p class="events-none">
-                  Nothing upcoming is listed at the moment. Past events are above, and
-                  new dates appear here as they are confirmed.
-                </p>
-              )
-            )
-          }
-        </div>
-      </div>
+  <fieldset class="switch">
+    <legend class="label">View</legend>
+    <label class="switch__option" for="view-list">
+      <input type="checkbox" role="switch" id="view-list" class="switch__input" />
+      <span class="switch__track" aria-hidden="true">
+        <span class="switch__thumb"></span>
+      </span>
+      <span class="switch__text">List view</span>
+    </label>
+  </fieldset>
 
   {/*
-    Stated as ordinary prose rather than in a <noscript>, because it is not a
-    scripting caveat: the calendar's selection works with scripting OFF, being
-    pure CSS. The one real dependency is `:has()` support, and it is older than
-    the `light-dark()` that src/styles/themes.css already relies on, so a browser
-    too old for this page could not have rendered the themes either. See the
-    header comment.
+    THE DAY RADIOS. One per distinct date, rendered ONCE, here.
+
+    They are the single source of the selection, which is what lets the calendar
+    and the list share it without any script. They are visually hidden rather than
+    `display: none`, because a hidden input is removed from keyboard navigation
+    and from the accessibility tree - and this control is the only way to reach
+    every event on the page.
+
+    `aria-label` is set explicitly rather than relying on an associated <label>.
+    A radio here is pointed at by MANY labels - one calendar cell plus one list row
+    per event on that date - and with several labels a browser concatenates them
+    all into an unreadable accessible name. Naming it directly makes the name the
+    same in both views, which is correct, because both views select DATES.
   */}
+  <div class="events__inputs">
+    {
+      days.map((day) => (
+        <input
+          class="events__day"
+          type="radio"
+          name="sb-day"
+          id={`day-${day.key}`}
+          value={day.key}
+          checked={day.key === selectedKey}
+          aria-controls={`panel-${day.key}`}
+          aria-label={dayRadioLabel(day)}
+        />
+      ))
+    }
+  </div>
+
+  <div class="events__layout">
+    {/*
+      THE NAVIGATION COLUMN: calendar and list are two views of one thing, and
+      exactly one is displayed. Both are rendered, so flipping the switch is a
+      repaint and not a fetch or a re-render.
+    */}
+    <section class="events__nav" id="events-calendar" aria-label="Choose a date">
+      <div class="events__view events__view--calendar">
+        <EventCalendar months={months} pastKeys={[...pastKeys]} />
+      </div>
+
+      <div class="events__view events__view--list">
+        {
+          pastEvents.length > 0 && (
+            <section class="events-section events-section--past" aria-labelledby="events-past">
+              <h2 class="events-section__title" id="events-past">
+                Already held
+              </h2>
+              <ul class="events__list">
+                {pastEvents.map((event) => (
+                  <EventRow event={event} {...rowFlags(event)} />
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        {
+          upcomingGroups.length > 0 ? (
+            <section class="events-section" aria-labelledby="events-upcoming">
+              <h2 class="events-section__title" id="events-upcoming">
+                Upcoming
+              </h2>
+              {upcomingGroups.map((group) => (
+                <div class="events-month">
+                  <h3 class="events-month__title">{group.label}</h3>
+                  <ul class="events__list">
+                    {group.events.map((event) => (
+                      <EventRow event={event} {...rowFlags(event)} />
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </section>
+          ) : (
+            pastEvents.length > 0 && (
+              <p class="events-none">
+                Nothing upcoming is listed at the moment. Dates appear here as they are
+                confirmed.
+              </p>
+            )
+          )
+        }
+      </div>
+    </section>
+
+    {/*
+      THE PANEL. One region, one announced name, one block per DAY inside it -
+      only one of which is visible. A day with several events renders several
+      EventDetail blocks, stacked.
+
+      aria-live="polite" is what makes it usable rather than merely correct:
+      selecting a date moves the :checked state, and CSS alone cannot tell a screen
+      reader that the region now describes a different day. Deliberately NOT
+      aria-atomic: with atomic set, every selection would re-announce the whole
+      region including the banner alt text, and the day name - which is what
+      actually changed.
+    */}
+    <aside class="events__panel" aria-label="Selected date" aria-live="polite">
+      {
+        days.map((day) => (
+          <div class="panel" id={`panel-${day.key}`} data-panel={day.key} aria-label={day.label}>
+            {pastKeys.has(day.key) && <p class="panel__flag">Already held</p>}
+            {day.events.map((event, index) => (
+              <EventDetail
+                event={event}
+                headingLevel={index === 0 ? 'h2' : 'h3'}
+                showBackLink={index === day.events.length - 1}
+                backTargetId="events-calendar"
+              />
+            ))}
+          </div>
+        ))
+      }
+    </aside>
+  </div>
+
+  {/* ------------------------------------------------------------------------
+      THE CLOSING NOTE.
+
+      Rendered from `pageNote` in data/events.json, at the very bottom, after the
+      calendar and before the usage note. It is the client's prose about ongoing
+      campaign activity, which is deliberately NOT a dated event: putting it on the
+      calendar would tell a reader it happens on a date, and it does not.
+
+      The heading is a real `<h2>` and the section is labelled by it, so the block
+      appears in the document outline as what it is - a section of the page - rather
+      than as trailing text belonging to whatever precedes it.
+
+      RENDERED ONLY WHEN THE BLOCK IS ABSENT-FREE. `pageNote` is null when the file
+      has no block, and the schema rejects an empty paragraphs array, so there is no
+      path here that produces a heading with nothing under it.
+  */}
+  {
+    pageNote && (
+      <section class="closing" aria-labelledby="closing-heading">
+        <h2 class="closing__heading" id="closing-heading">
+          {pageNote.heading}
+        </h2>
+        <div class="closing__body">
+          {pageNote.paragraphs.map((text) => (
+            <p class="closing__text">{text}</p>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
   <p class="events-note">
-    Selecting an event swaps the banner without reloading the page, and works with
-    scripting switched off. Use the arrow keys to move between events.
+    Choosing a date swaps the panel without reloading the page, and works with
+    scripting switched off. Use the arrow keys to move between dates.
   </p>
 </PageShell>
+
+{/*
+  The per-day selectors, generated from `days`. This block is `is:inline` because
+  that is the only Astro style block that accepts a runtime string, and inline
+  means UNSCOPED: the selectors below are written exactly as they appear in the
+  document. See the long note in the scoped <style> below for why the three rules
+  exist at all, and why `:global()` is absent here but present there.
+*/}
+<style is:inline set:html={perDayCss} />
 
 <style>
   .page-head {
     padding-block-end: var(--space-5);
-    margin-block-end: var(--space-5);
+    margin-block-end: var(--space-4);
     border-block-end: var(--rule-width) solid var(--rule);
   }
 
@@ -373,231 +451,209 @@ const description =
     margin-block-start: var(--space-2);
   }
 
+  /* The provenance note. Muted and ruled off like the note above it, so it reads
+     as standing advice rather than as another headline. */
+  .page-head__source {
+    max-width: var(--measure);
+    margin-block-start: var(--space-3);
+    padding-inline-start: var(--space-4);
+    border-inline-start: var(--rule-width-strong) solid var(--rule-strong);
+    font-size: var(--size-sm);
+    color: var(--text-muted);
+  }
+
   /* ------------------------------------------------------------------------
-   * THE LAYOUT
-   *
-   * One column by default. Above 64rem it becomes list + panel side by side, and
-   * the panel is sticky so it stays beside the list as the reader scrolls rather
-   * than being stranded at the top of a long column.
-   *
-   * `order: -1` on the panel puts it FIRST on a phone. That is the answer to
-   * "or below on a phone", chosen over a panel below the list for one reason: a
-   * reader who taps an event near the top of a long list gets no visible feedback
-   * at all if the panel is off the bottom of the screen, and the tap reads as
-   * broken. Above the list, and stuck to the top of the viewport, the selection
-   * is always in view. It costs vertical space, and the banner is cropped short
-   * on a narrow screen to keep that cost small.
+   * THE VIEW SWITCH
    * --------------------------------------------------------------------- */
-  .calendar {
+  .switch {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-block-end: var(--space-5);
+    padding: 0;
+    border: 0;
+  }
+
+  .switch__option {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    cursor: pointer;
+    font-size: var(--size-sm);
+  }
+
+  /* Visually hidden, but still focusable and still in the accessibility tree.
+     `display: none` would remove it from keyboard navigation, which is the one
+     thing it must never lose - the same reasoning the theme switcher uses. */
+  .switch__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .switch__track {
+    position: relative;
+    display: inline-block;
+    width: 2.75rem;
+    height: 1.5rem;
+    background: var(--chip-bg);
+    border: var(--rule-width) solid var(--rule-strong);
+    border-radius: var(--radius-pill);
+  }
+
+  .switch__thumb {
+    position: absolute;
+    top: var(--space-1);
+    inset-inline-start: var(--space-1);
+    width: 1.125rem;
+    height: 1.125rem;
+    background: var(--text-muted);
+    border-radius: var(--radius-pill);
+  }
+
+  /* The thumb MOVES when the switch is on. That is the whole reason this is a
+     switch and not a styled checkbox: the state is a position, not a colour, so
+     it survives greyscale printing and any form of colour vision deficiency. */
+  .switch__option:has(.switch__input:checked) .switch__thumb {
+    inset-inline-start: calc(100% - 1.125rem - var(--space-1));
+    background: var(--accent);
+  }
+
+  .switch__option:has(.switch__input:checked) .switch__track {
+    border-color: var(--accent);
+  }
+
+  /* The focus ring is painted on the TRACK, because the input it belongs to is
+     clipped to nothing and cannot paint one itself. Both elements are rendered by
+     this file, so one scope id covers them and the selector is plain - see the
+     note in EventCalendar.astro about why that is not automatic. */
+  .switch__option:has(.switch__input:focus-visible) .switch__track {
+    outline: var(--focus-width) solid var(--focus);
+    outline-offset: var(--focus-width);
+  }
+
+  .switch__text {
+    color: var(--text);
+  }
+
+  /* ------------------------------------------------------------------------
+   * THE DAY RADIOS
+   * --------------------------------------------------------------------- */
+  .events__inputs {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .events__day {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ------------------------------------------------------------------------
+   * THE TWO COLUMNS
+   *
+   * ONE COLUMN BY DEFAULT, panel UNDER the calendar. Above 64rem they become
+   * side by side, with the panel sticky in its column.
+   *
+   * `grid-row: 1` on BOTH items is load-bearing and was a bug once already: with
+   * only `grid-column` set, auto-placement put the two items in DIFFERENT rows,
+   * leaving them diagonal with a large empty block. Measured, not guessed.
+   * --------------------------------------------------------------------- */
+  .events__layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-5);
     align-items: start;
   }
 
-  .calendar__panel {
-    order: -1;
-    position: sticky;
-    top: var(--space-2);
-    z-index: 1;
-    background: var(--bg);
-  }
-
   @media (min-width: 64rem) {
-    .calendar {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+    .events__layout {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
       gap: var(--space-6);
     }
 
-    /*
-     * BOTH ITEMS ARE PINNED TO ROW 1, and that is a bug fix, not a style choice.
-     *
-     * The panel comes FIRST in the DOM (so it stacks above the list on a phone and
-     * so a screen reader reaches the detail before the list of choices), and it is
-     * assigned `grid-column: 2`. With the default `grid-auto-flow: row`, that is
-     * enough on its own to make auto-placement put the panel in row 1 and push the
-     * list into row 2 column 1 - so the two ended up DIAGONAL, with a large empty
-     * block filling the left of the panel's row and the list stranded far below it.
-     *
-     * A browser check found this, not a test: node --test cannot see layout, and
-     * every assertion in test/events.test.mjs passed against a page whose entire
-     * desktop arrangement was wrong. Stating `grid-row: 1` on both items is what
-     * actually makes "beside" mean beside.
-     *
-     * `align-items: start` on .calendar is what makes the sticky panel work: it
-     * keeps the panel at its natural height inside a row as tall as the list, so
-     * sticky has room to travel down the column instead of being pinned to a row
-     * exactly its own height.
-     *
-     * TAB ORDER, AND THE TRADE THIS MAKES. The panel is FIRST in the DOM, so on a
-     * phone - where it is also visually first - DOM order and visual order agree
-     * exactly. On a wide screen the panel is visually second, so a keyboard reader
-     * reaches the panel's two or three links before the radio group. That is
-     * accepted rather than engineered away, because the alternatives are worse: the
-     * radio group is the primary control on this page and one Tab press should
-     * reach it, and the panel is sticky and on screen at the top right, so it is
-     * not a spatial surprise to arrive there first. Reversing the DOM order would
-     * simply move the mismatch to the phone breakpoint, where it would be worse -
-     * there the panel sits directly above the reader's thumb.
-     */
-    .calendar__panel {
-      order: 0;
-      grid-column: 2;
-      grid-row: 1;
-      top: var(--space-4);
-    }
-
-    .calendar__list {
+    .events__nav {
       grid-column: 1;
       grid-row: 1;
+    }
+
+    .events__panel {
+      grid-column: 2;
+      grid-row: 1;
+      position: sticky;
+      top: var(--space-4);
     }
   }
 
   /* ------------------------------------------------------------------------
-   * SELECTION
+   * THE TWO VIEWS
    *
-   * Both halves are needed and neither is enough alone. The `display: none`
-   * default is what removes the other N-1 panels from the accessibility tree and
-   * from tab order; the `:has()` rule is what shows the selected one. Without
-   * the default, every panel is visible and every panel's links are focusable.
-   *
-   * The `html:has(...)` selectors are written out longhand rather than generated,
-   * so that what the browser matches is readable in DevTools by a human who has
-   * never seen this file.
+   * The calendar is the default, so the list is the one hidden by default. The
+   * switch then flips which is which. Both are always in the DOM, so toggling is
+   * a repaint.
    * --------------------------------------------------------------------- */
-  .panel {
+  .events__view--list {
     display: none;
   }
 
-  html:has(#event-input-county-budget-debate:checked) [data-panel='county-budget-debate'],
-  html:has(#event-input-harvest-dinner-fundraiser:checked) [data-panel='harvest-dinner-fundraiser'],
-  html:has(#event-input-election-day:checked) [data-panel='election-day'],
-  html:has(#event-input-school-board-rally:checked) [data-panel='school-board-rally'],
-  html:has(#event-input-riverside-water-forum:checked) [data-panel='riverside-water-forum'],
-  html:has(#event-input-records-workshop:checked) [data-panel='records-workshop'],
-  html:has(#event-input-winter-open-lecture:checked) [data-panel='winter-open-lecture'] {
+  html:has(#view-list:checked) .events__view--calendar {
+    display: none;
+  }
+
+  html:has(#view-list:checked) .events__view--list {
     display: block;
   }
 
   /* ------------------------------------------------------------------------
    * THE PANEL
    * --------------------------------------------------------------------- */
-  .panel__banner {
-    aspect-ratio: 16 / 7;
-    overflow: hidden;
-    background: var(--chip-bg);
-    border: var(--rule-width) solid var(--rule);
-    border-radius: var(--radius-sm);
-  }
-
-  .panel__image {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  /*
-   * THE ABSENT-BANNER SLOT.
-   *
-   * A panel whose event has no banner keeps the same frame and the same height
-   * as one that does, and says so in words inside it. The alternative - collapsing
-   * the slot - was rejected for a specific reason rather than on taste: on a phone
-   * the panel is sticky at the top of the viewport, and a panel that changes height
-   * when the reader selects a different event makes the content underneath jump
-   * under their finger. A stable frame also means the layout does not depend on
-   * which images happen to exist in the dataset, so the page cannot be reshaped by
-   * a data change.
-   */
-  .panel__banner--absent {
-    display: grid;
-    place-items: center;
-    background: var(--chip-bg);
-  }
-
-  .panel__banner-absent {
-    margin: 0;
-    padding-inline: var(--space-4);
-    max-width: none;
-    font-size: var(--size-sm);
-    text-align: center;
-    color: var(--text-muted);
-  }
-
-  .panel__meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--space-2) var(--space-3);
-    margin-block: var(--space-4) var(--space-3);
-    font-size: var(--size-sm);
-    color: var(--text-muted);
-  }
-
-  .panel__meta > * + *::before {
-    content: '\00b7';
-    margin-inline-end: var(--space-3);
-    color: var(--rule-strong);
-  }
-
-  .panel__zone {
-    font-size: var(--size-xs);
-  }
-
-  .panel__name {
-    font-size: var(--size-xl);
-  }
-
-  .panel__event {
-    font-size: var(--size-md);
-    line-height: var(--leading-snug);
-  }
-
-  .panel__location {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    margin-block-end: var(--space-4);
-    padding-block-start: var(--space-3);
-    border-block-start: var(--rule-width) solid var(--rule);
-  }
-
-  .panel__location-text {
-    font-family: var(--font-body);
-  }
-
-  .panel__notes {
-    font-size: var(--size-sm);
-    color: var(--text-muted);
-  }
-
-  .panel__link {
-    margin-block-end: var(--space-4);
-  }
-
-  .panel__anchor {
-    font-size: var(--size-sm);
-  }
-
-  /* A shape, not a colour: the outbound signal has to survive greyscale printing
-     and any form of colour vision deficiency. Same convention as ArticleCard. */
-  .panel__link-marker {
-    display: inline-block;
-    margin-inline-start: var(--space-1);
-    font-size: var(--size-sm);
-    text-decoration: none;
-  }
-
-  .panel__back {
-    margin-block-end: 0;
-  }
-
-  .panel__back-link {
-    font-size: var(--size-sm);
+  .panel {
+    display: none;
   }
 
   /* ------------------------------------------------------------------------
-   * THE LIST
+   * THE PER-DAY SELECTORS ARE NOT HERE, AND THAT IS THE POINT
+   *
+   * They used to be. Three hand-written blocks, one line per date, with a test
+   * failing the build if a date in data/events.json was missing from any of them.
+   * The test was doing its job - it is how the seventh event was caught - but the
+   * design under it was wrong: it asked whoever edits the data to also hand-edit
+   * CSS in this file, which is a manual step with no compiler behind it.
+   *
+   * They are now generated from the same `days` array the markup renders, into an
+   * `is:inline` block below. A new event needs no CSS edit and cannot go stale.
+   *
+   * WHY THEY EXIST AT ALL, since this remains the least obvious thing about the
+   * page. A calendar cell and a list row are rendered by DIFFERENT components from
+   * the radio they select, and the panel is a sibling of both. CSS cannot relate a
+   * label to a control it merely names, so the only way to say "this date is
+   * selected" is one selector per date. That is the price of zero JavaScript.
+   *
+   * Note the `:global()` that is NOT used in the generated block: an `is:inline`
+   * style is not scoped at all, so `:global()` is neither needed nor meaningful
+   * there. The hand-written rules that remain in this block are scoped and do use
+   * it. The earlier bug here was `:global(.events__item ...) .row`, where only the
+   * LEFT of the selector was unscoped and Astro still appended the page's scope id
+   * to `.row`, matching nothing - which cost the page its focus ring. The rule:
+   * scope the WHOLE trailing compound, or emit the selector unscoped on purpose.
+   * --------------------------------------------------------------------- */
+
+  /* ------------------------------------------------------------------------
+   * THE LIST VIEW
    * --------------------------------------------------------------------- */
   .events-section {
     margin-block-end: var(--space-6);
@@ -610,8 +666,8 @@ const description =
 
   .events-month__title {
     margin-block: var(--space-5) var(--space-3);
-    font-size: var(--size-md);
     font-family: var(--font-body);
+    font-size: var(--size-md);
     font-weight: var(--weight-medium);
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
@@ -625,26 +681,43 @@ const description =
     max-width: none;
   }
 
+  .panel__flag {
+    margin-block-end: var(--space-3);
+    font-size: var(--size-xs);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
   /* ------------------------------------------------------------------------
-   * THE SELECTED ROW IS NOT STYLED HERE, AND THAT IS CORRECT
-   *
-   * The accent rule and the focus ring for a selected row live in
-   * EventRow.astro's scoped block, because the scope id Astro appends to a
-   * selector is per COMPONENT: a rule in this file can only match elements this
-   * file renders, and `.row` is rendered by EventRow. A review caught the
-   * obvious version of this - `:global(.events__item:has(...)) .row` written
-   * here - compiling to a selector whose scope id matched nothing at all, which
-   * silently removed the focus ring from the entire page. See the long note in
-   * EventRow.astro.
-   *
-   * `:global()` un-scopes only what is to its LEFT; Astro still appends the
-   * page's scope id to the last compound. That is the trap, and it fails
-   * silently.
-   *
-   * NOTHING in this block may name `.row`, `.events__item` or `.events__radio`.
-   * test/events.test.mjs fails the suite if one does, because no assertion in it
-   * can see a scope id.
+   * THE CLOSING NOTE
    * --------------------------------------------------------------------- */
+
+  /* A rule above rather than a heading treatment, because this block is prose
+     sitting under a calendar and should read as the page's footer commentary
+     rather than competing with the page title for attention. */
+  .closing {
+    max-width: var(--measure);
+    margin-block-start: var(--space-6);
+    padding-block-start: var(--space-5);
+    border-block-start: var(--rule-width) solid var(--rule);
+  }
+
+  .closing__heading {
+    margin-block-end: var(--space-4);
+    font-size: var(--size-lg);
+  }
+
+  .closing__text {
+    margin-block-end: var(--space-4);
+    line-height: var(--leading-relaxed);
+  }
+
+  /* The last paragraph must not leave a trailing margin the page then has to
+     collapse, which is how a stray 16px of dead space ends up under a footer. */
+  .closing__text:last-child {
+    margin-block-end: 0;
+  }
 
   .events-none,
   .events-note {
@@ -658,9 +731,4 @@ const description =
     padding-block-start: var(--space-4);
     border-block-start: var(--rule-width) solid var(--rule);
   }
-
-  /* The `.events-empty` rules that used to live here were deleted with the empty
-     state they styled. They were the same kind of dead code as the markup: a
-     branch the schema makes unreachable, still carrying CSS. See the note in the
-     markup about the deliberate coupling. */
 </style>

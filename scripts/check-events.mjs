@@ -29,6 +29,10 @@ import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { validateEvents, EVENT_TYPES } from '../src/lib/events-schema.ts';
+// The BOM stripper lives in scripts/lib/bom.mjs, shared with
+// scripts/make-placeholders.mjs. Both CLIs read the same hand-edited
+// data/events.json, so both need it, and the note there explains the whole thing.
+import { stripBom } from './lib/bom.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(HERE, '..');
@@ -93,30 +97,18 @@ NOTES
   still renders; the build applies the same rules and fails loudly.`;
 
 /**
- * Remove a leading UTF-8 byte order mark, decoded as U+FEFF.
- *
- * FOUND BY A PROBE, NOT BY THEORY. Windows PowerShell 5.1's `Out-File -Encoding
- * utf8` and Notepad both write a BOM by default, so a hand-edited events.json on
- * this machine very plausibly arrives with one. JSON.parse rejects it outright,
- * and the resulting error - "Unexpected token ''" pointing at the opening brace -
- * says nothing about the actual cause, which is the worst shape a data error can
- * take: the author goes looking for a syntax error in their JSON.
- *
- * The character is BUILT FROM ITS CODE POINT rather than typed, because U+FEFF is
- * invisible and this project is ASCII-only in authored files. Nothing is trimmed
- * beyond the mark itself: leading whitespace before it would still fail, and
- * hiding that would be dishonest.
- */
-function stripBom(text) {
-  return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
-}
-
-/**
- * The same function, exported for the test that asserts this behaviour.
+ * The shared BOM stripper, re-exported for the test that asserts this behaviour.
  *
  * Exported rather than reimplemented in the test on purpose: a test with its own
  * copy of the stripping logic would keep passing after the real one was deleted,
  * which is the shape of an assertion that has quietly stopped testing anything.
+ *
+ * This function used to BE the implementation, with the whole explanation of why
+ * a BOM stripper exists attached to it. It is now a one-line delegation to
+ * scripts/lib/bom.mjs, which is shared with scripts/make-placeholders.mjs - the
+ * other CLI that reads the same hand-edited data/events.json. The explanation
+ * moved with the code, because a comment about one copy of a duplicated function
+ * is a comment about the wrong thing.
  */
 export function stripBomForTest(text) {
   return stripBom(text);

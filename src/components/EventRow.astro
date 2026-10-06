@@ -1,85 +1,57 @@
 ---
-// src/components/EventRow.astro - one event in the calendar list.
+// src/components/EventRow.astro - one event in the LIST view.
 //
 // ---------------------------------------------------------------------------
-// WHY A RADIO, AND WHY THAT IS NOT A DETAIL
+// WHAT CHANGED, AND WHY IT IS BETTER
 // ---------------------------------------------------------------------------
 //
-// The brief is "an image should display to the side when an event is
-// highlighted". "Highlighted" has to MEAN something, and it has to mean it on a
-// page with scripting switched off - the requirement this whole site works to.
+// Previously this component owned a radio input and its accessible name was the
+// event's. It no longer does. The selection unit is now a DAY, and the day radios
+// live in ONE hidden group in the page - so the same date can be selected from
+// either the calendar or the list, and both stay in sync with no JavaScript.
 //
-// A radio input per event, inside one radio group, gives four things at once:
+// The consequence worth stating: this row is now a `<label for>` pointing at a
+// shared radio, so its accessible name comes from the DAY's radio, not from the
+// event's own text. `dayRadioLabel()` in src/lib/calendar.ts names each radio
+// "14 November 2026, 1 event", which is correct in both views because both views
+// select days. The event name is right there in the row, visually, and the panel
+// gives the full detail.
 //
-//   1. Zero JavaScript. Selection is a `:checked` state, and the panel is shown
-//      with `html:has(#event-input-<id>:checked)` in events.astro's scoped
-//      style. There is no script in this project that can break, and no
-//      flash-of-wrong-panel bug to reason about.
-//   2. Real keyboard support, from the platform. ONE tab stop for the whole
-//      group; the arrow keys move between events. A grid of 40 <div
-//      onclick> buttons would need 40 tab stops and a roving-tabindex
-//      implementation to behave as well, hand-written.
-//   3. Native announced state. A screen reader announces "selected" from the
-//      input itself, not from an aria-pressed attribute this file would have to
-//      keep in sync by hand.
-//   4. No fallback is needed, and an earlier version of this file was wrong to
-//      add one. It carried a <noscript> "Details for X" anchor on the premise
-//      that "without scripting the radios do nothing useful". Radios are not
-//      scripting - `:checked` and `:has()` are both CSS - so the premise was
-//      false, and the anchor was dead anyway: it pointed at the event's panel,
-//      which is `display: none` unless its radio is `:checked`, and there was no
-//      `:target` rule to reveal it. A review caught both. The anchor is gone
-//      rather than repaired, because the honest answer is that there was never
-//      a fallback to provide.
+// If two events share a date, both of their rows target the SAME radio, and both
+// therefore show as selected together. That is honest: the panel is showing that
+// day, and both events are on it.
 //
-//      The row also contains no links at all, for the reason in the next
-//      section: a link inside a <label> is a control inside a control.
-//
-// ---------------------------------------------------------------------------
-// WHY THE ROW CONTAINS NO LINKS
-// ---------------------------------------------------------------------------
-//
-// A link inside a <label> is a control inside a control. Clicking the link both
-// follows it and toggles the radio, which is a genuinely confusing way to lose
-// your place, and it puts an interactive element inside the accessible name of
-// the radio, so the announcement becomes whatever the link's text was. Every
-// outbound link for an event therefore lives in the panel, which is the one
-// place it can be read in context anyway.
-// ---------------------------------------------------------------------------
+// WHY THE SELECTED AND FOCUSED RULES ARE NOT HERE: the day radio this label names
+// lives in events.astro, and CSS cannot relate a label to a control it merely
+// names. Those rules are generated per date there - see "THE PER-DAY SELECTORS",
+// including why they must stay UNSCOPED, and the test that fails if a class owned
+// by this component appears in that page's scoped <style>.
 
 import type { EventRecord } from '../lib/events'
-import { formatEventDate, formatEventTime, machineDateTime } from '../lib/events'
+import { formatEventDateSpan, formatEventTime, machineDateTime } from '../lib/events'
 import { withBase } from '../lib/site'
 
 interface Props {
   event: EventRecord
-  /** True for the event the panel is showing on first paint. */
-  selected?: boolean
-  /** Rendered on the row for the event that is currently past. */
+  /** The `YYYY-MM-DD` this row selects. */
+  dayKey: string
+  /** Rendered on rows for days that are already past. */
   past?: boolean
+  /** True for the second and later rows sharing one date. */
+  sharesDay?: boolean
 }
 
-const { event, selected = false, past = false } = Astro.props
+const { event, dayKey, past = false, sharesDay = false } = Astro.props
 
-const dateLabel = formatEventDate(event.startsAt)
+// The span, for the same reason as in EventDetail.astro: a seventeen-day early
+// voting window must not be labelled with its first day.
+const dateLabel = formatEventDateSpan(event.startsAt, event.endsAt)
 const timeLabel = formatEventTime(event.startsAt, event.endsAt)
 const machine = machineDateTime(event.startsAt)
-const panelId = `event-${event.id}`
-const inputId = `event-input-${event.id}`
 ---
 
-<li class="events__item">
-  <input
-    class="events__radio"
-    type="radio"
-    name="sb-event"
-    id={inputId}
-    value={event.id}
-    checked={selected}
-    aria-controls={panelId}
-  />
-
-  <label class="row" for={inputId} data-past={past ? 'true' : undefined}>
+<li class="row-item">
+  <label class="row" for={`day-${dayKey}`} data-day={dayKey}>
     {
       event.thumbnail && (
         <span class="row__thumb">
@@ -99,22 +71,23 @@ const inputId = `event-input-${event.id}`
     <span class="row__body">
       <span class="row__top">
         <span class="chip row__type">{event.type}</span>
-        {
-          past && (
-            <span class="row__past-flag">
-              <span aria-hidden="true">- </span>already held
-            </span>
-          )
-        }
+        {past && <span class="row__flag">already held</span>}
+        {sharesDay && <span class="row__flag">also on this date</span>}
       </span>
 
       <span class="row__name">{event.name}</span>
 
       <span class="row__meta">
-        <time class="row__when" datetime={machine}>
-          {dateLabel}
-          {timeLabel && <span class="row__time">{timeLabel}</span>}
-        </time>
+        <!--
+          ONE LINE, ON PURPOSE, and the comma lives here rather than in a
+          `::before`. Both approaches were tried against the same defect: JSX
+          collapses the line break between two expressions into a space, so a
+          separate span produced "6 October 2026 , 7:00 pm" - a space before the
+          comma, measured in the browser rather than assumed. Emitting the comma in
+          the markup with no whitespace around it is the only version that cannot
+          drift. See the same comment in EventDetail.astro.
+        -->
+        <time class="row__when" datetime={machine}>{dateLabel}{timeLabel && <span class="row__time">{`, ${timeLabel}`}</span>}</time>
         <span class="row__location">{event.location}</span>
       </span>
     </span>
@@ -122,24 +95,8 @@ const inputId = `event-input-${event.id}`
 </li>
 
 <style>
-  .events__item {
+  .row-item {
     border-block-start: var(--rule-width) solid var(--rule);
-  }
-
-  /* The radio stays in the accessibility tree and stays focusable; only its
-     painting is replaced. `display: none` on an input would remove it from
-     keyboard navigation, which is the one thing it must never lose - the same
-     reasoning the theme switcher uses for its radios. */
-  .events__radio {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-    border: 0;
   }
 
   .row {
@@ -182,10 +139,10 @@ const inputId = `event-input-${event.id}`
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2) var(--space-3);
   }
 
-  .row__past-flag {
+  .row__flag {
     font-size: var(--size-xs);
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
@@ -210,55 +167,7 @@ const inputId = `event-input-${event.id}`
   }
 
   /* The clock time is set apart from the date so a reader scanning for "is that
-     an evening event" can find it without reading the month. */
-  .row__time::before {
-    content: ', ';
-  }
-
-  /* The `.row__noscript` rule that used to live here has been deleted along with
-     the <noscript> anchor it styled. The header comment records why, which is the
-     right place for that note - a placeholder class name would just be dead code
-     wearing a comment. */
-
-  /* ------------------------------------------------------------------------
-   * THE SELECTED ROW, AND WHY THESE RULES LIVE HERE AND NOT IN events.astro
-   *
-   * A REVIEW CAUGHT THE OBVIOUS PLACEMENT BEING WRONG. They were originally
-   * written in events.astro as:
-   *
-   *     :global(.events__item:has(.events__radio:checked)) .row { ... }
-   *
-   * `:global()` un-scopes only the part to its LEFT. Astro still appends the
-   * page's scope id to the FINAL compound, so that compiled to
-   * `.events__item:has(...) .row[data-astro-cid-<events.astro>]` - while `.row`
-   * is rendered by THIS component and carries `data-astro-cid-<EventRow>`. The
-   * rule matched zero elements.
-   *
-   * Consequence, which is why this is written down rather than quietly fixed:
-   * THE FOCUS RING NEVER APPEARED. The radio is clipped to nothing
-   * (`clip-path: inset(50%)`) so it cannot paint a ring itself, and the rule
-   * meant to paint it on this label matched nothing. A keyboard user had no
-   * visible focus indicator on this page at all, and every test passed.
-   *
-   * The lesson is the general one: Astro's scope id is per COMPONENT, so a
-   * component's scoped CSS can only style elements that component renders.
-   * Styling another component's classes from here needs a deliberate mechanism,
-   * not a `:global()` that only half-works.
-   *
-   * These three elements - `.events__item`, `.events__radio` and `.row` - are
-   * ALL rendered by this component, so one scope id covers all of them and the
-   * selector is plain.
-   * --------------------------------------------------------------------- */
-  .events__item:has(.events__radio:checked) .row {
-    padding-inline-start: var(--space-4);
-    border-inline-start: var(--rule-width-strong) solid var(--accent);
-  }
-
-  /* The focus ring has to be painted on the row, because the input it belongs
-     to is clipped to nothing and cannot paint one itself. */
-  .events__item:has(.events__radio:focus-visible) .row {
-    outline: var(--focus-width) solid var(--focus);
-    outline-offset: var(--focus-width);
-    border-radius: var(--radius-sm);
-  }
+     an evening event" can find it without reading the month. The comma before it
+     is in the markup, not here: a `::before` cannot remove the whitespace JSX
+     already emitted between the two spans. */
 </style>
