@@ -241,9 +241,10 @@ const lastDate = lastEvent
   ? formatEventDateSpan(lastEvent.startsAt, lastEvent.endsAt)
   : ''
 
-// EVERY CLAIM IN HERE IS DERIVED FROM THE DATA. An earlier version said "Each row
-// carries a thumbnail" and three of seven rows had none. See the note in the
-// first commit of this file.
+// EVERY CLAIM IN HERE IS DERIVED FROM THE DATA, including this description. An
+// earlier version said "Each row carries a thumbnail" and three of seven rows had
+// none, so a sentence asserting a property of the rows is not safe to write by
+// hand here; a count is only trustworthy if it is computed.
 //
 // `selectableDays.length`, NOT `days.length`, and the difference is thirteen
 // against six on the shipped data. `days` also holds the twelve dates inside the
@@ -273,33 +274,26 @@ const rowFlags = (event: (typeof ordered)[number]) => {
     <h1 class="page-head__title">Events</h1>
 
     {/*
-      WHAT WAS CUT FROM THIS HEADER, client decision 2026-10-05, and WHY ONE
-      SENTENCE SURVIVED.
+      THIS HEADER BAR CARRIES THE REVIEW DATE AND NOTHING ELSE.
 
-      Removed: "Choose a date to see what is on. The calendar and the list are
-      two views of the same dates, and either one selects them." That is a
-      description of the control sitting directly below it. The switch is
-      labelled "List view", it is a real switch, and it is one tab stop away -
-      a reader does not need a sentence explaining that a switch switches, and
-      the sentence was slop that had escaped from a code comment into the page.
+      Two other sentences used to sit here and were cut.
 
-      Removed: the provenance paragraph. Also my copy, also second-hand, and the
-      audit that prompted it is recorded in build-log.md where it belongs. It
-      asserted a property that is now VISIBLE instead: every event row links to
-      the source it came from, which a reader can check by looking. A page that
+      The first described the view switch sitting directly below it: that the
+      calendar and the list are two views of the same dates and either one selects
+      them. The switch is labelled "List view", it is a real switch, and it is one
+      tab stop away. A reader does not need a sentence explaining that a switch
+      switches.
+
+      The second was a provenance paragraph asking the reader to check our sources.
+      It asserted a property that is now visible instead: every event row links to
+      the notice it came from, and a reader can check that by looking. A page that
       says "check our sources" while not obviously having them is worse than one
       that simply has them.
 
-      KEPT, and this is the one judgement call in the cut. The bare provenance
-      note read "Last reviewed 5 October 2026." It is six words, it is not
-      instruction, and it is the only thing on the page telling a reader when the
-      dates were last checked against a source. Deleting it would leave published
-      election dates with no review date on them at all, which is a real loss
-      rather than a tidying gain. Reduced to that and nothing else - the
-      "times are shown in each venue's local time" clause went, since every
-      timed row already carries its own zone.
-
-      If you want the review date gone too, it is one element and one test away.
+      The review date stays because it is the only thing on the page telling a
+      reader when these dates were last checked against a source, and published
+      election dates with no review date on them at all is a real loss rather than
+      a tidying gain.
     */}
     {
       reviewedOn && (
@@ -360,12 +354,11 @@ const rowFlags = (event: (typeof ordered)[number]) => {
       slash-star" and move on. test/no-comment-leak.test.mjs now fails the build if
       a delimiter appears inside comment prose anywhere in src/.
 
-      TRIMMED 2026-10-05. It was three sentences explaining that a rule means the
-      event continues. Cut to one clause, because the second sentence was teaching
-      the reader how to use the calendar when the thing it describes - the mark -
-      is right there. The test asserts this element exists and says what the mark
-      means, and it still passes: the assertion is about the mark being explained,
-      not about how many sentences it takes.
+      It was three sentences once. It is one now, because the extra sentences were
+      teaching the reader how to use the calendar when the thing they describe - the
+      mark - is right there. The test asserts this element exists and says what the
+      mark means, so the assertion is about the mark being explained, not about how
+      many sentences it takes.
     */}
     {
       coveredOnlyDays.length > 0 && (
@@ -377,33 +370,28 @@ const rowFlags = (event: (typeof ordered)[number]) => {
     }
 
     {/*
-      THE PROVENANCE PARAGRAPH IS GONE, client decision 2026-10-05, and the
-      reason is worth keeping because it is the general rule.
+      A PROVENANCE PARAGRAPH USED TO SIT HERE, and the reason it was removed is the
+      general rule worth keeping.
 
-      It read: "Every listing links to the notice it was taken from, so you can
-      check it rather than take our word for it. Schedules do move: confirm a date
-      or venue with the organiser, and confirm polling details with your own
-      county."
+      It asked the reader to check our sources: "Every listing links to the notice
+      it was taken from, so you can check it rather than take our word for it."
+      That reasoning was sound - a page of real election dates should say where
+      they came from - but by then every event carried a `url`, so the paragraph
+      was describing a property the page DEMONSTRATES. Every row has an outbound
+      link to scvotes.gov, to the organiser, or to the party notice. A reader can
+      see the sourcing rather than take the site's word that sourcing exists, and
+      prose asserting "check our sources" is worth less than sources a reader can
+      actually click.
 
-      It was added earlier the same day, by me, after an audit found four
-      factual errors in this data. Its reasoning was sound: a page of real
-      election dates should say where they came from. But having now added the
-      `url` to all seven events, the paragraph was describing a property the page
-      now DEMONSTRATES. Every row carries an outbound link to scvotes.gov, to the
-      organiser, to the party notice. A reader can see the sourcing rather than
-      take the site's word that sourcing exists, and prose asserting "check our
-      sources" is worth less than sources a reader can actually click.
-
-      What is lost, and it is a real loss: the explicit warning that a schedule
+      What that costs, and it is a real cost: the explicit warning that a schedule
       may have moved since the date above. That remains true and is no longer
-      stated in the header. It is recorded in build-log.md and in
-      data/events.schema.md, where it belongs - neither is read by a visitor. If
-      a future version of this page needs that caveat back, this is where it goes,
-      and it should be one clause rather than a paragraph.
+      stated in the header. It is recorded in data/events.schema.md, which is where
+      a rule about the data belongs. If this page ever needs that caveat back, this
+      is where it goes, and it should be one clause rather than a paragraph.
 
-      Deliberately NOT added, still: a claim about who curates or reviewed the
-      list. There is now a curator, and the footer credits one by name, so that
-      attribution exists once, in one place, without being asserted twice.
+      There is deliberately still no claim here about who curates or reviewed the
+      list. The footer credits the curator, so that attribution exists once, in one
+      place, without being asserted twice.
     */}
   </div>
 

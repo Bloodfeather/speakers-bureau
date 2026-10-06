@@ -1,19 +1,19 @@
 ---
-// src/pages/about.astro - PLACEHOLDER.
+// src/pages/about.astro - who the SC Speakers Bureau is, and what this site does.
 //
-// What this page should eventually say is a real editorial decision, so it is
-// deliberately not written here. Inventing an origin story, a mission statement
-// or a founding date would put invented claims on the site under the guise of a
-// placeholder, and a placeholder is only useful while it is obviously one.
+// ORDER IS THE POINT. The Bureau comes first and in full, because that is the
+// organisation the reader came for. Everything about the reading room comes
+// after, under its own heading, and is short: it is mechanism, not identity.
 //
-// What IS here is everything the page can state truthfully today: how the
-// collection works, where the articles come from, what the window actually is,
-// and how to reach the publications. Those are facts the dataset and the
-// pipeline already establish.
+// The two sections are kept visibly separate because they answer different
+// questions and have different authority. "Who are you" is answered by the
+// Bureau's own words. "What is this page and why does it only hold recent
+// posts" is answered from the dataset, so its numbers are computed rather than
+// typed and cannot drift away from the articles actually on the site.
 //
-// Phase 5 replaces the placeholder section with the client's own words, removes
-// `data-provisional` from this file, and drops the notice in the body.
-//
+// Nothing on this page is a stand-in for copy that has not arrived. If a fact is
+// not in data/events.schema.md, data/articles.json or a constant in src/lib/site.ts,
+// it is not stated here.
 
 import PageShell from '../components/PageShell.astro'
 import { articles, formatUtcDate, publicationNames, summarise, topics } from '../lib/articles'
@@ -23,48 +23,54 @@ const feed = articles
 const stats = summarise(feed)
 const publications = publicationNames(feed)
 const topicList = topics(feed)
-const fetchedOn = formatUtcDate(stats.newest)
 
 const description =
-  `How ${SITE_NAME} works: which publications it reads, where the articles are written, and ` +
-  `what the window of recent writing on this site does and does not contain.`
+  `The SC Speakers Bureau is a 501(c)(3) nonprofit that brings speakers on tour to ` +
+  `inform and educate local citizens. Its reading room collects and links the most ` +
+  `recent writing from independent publications.`
 ---
 
 <PageShell title="About" description={description}>
   <div class="page-head">
     <p class="label page-head__label">About</p>
-    <h1 class="page-head__title">About {SITE_NAME}</h1>
+    <h1 class="page-head__title">The SC Speakers Bureau</h1>
   </div>
 
   <div class="prose">
-    <section aria-labelledby="about-placeholder">
-      <h2 id="about-placeholder">This page is a placeholder</h2>
+    <section aria-labelledby="about-bureau">
+      <h2 id="about-bureau">About the Bureau</h2>
       <p>
-        The organisation's own story, its purpose and the names of the people behind it
-        have not been supplied yet. Nothing has been written in their place, because
-        inventing a mission statement and marking it "draft" is how a draft becomes a
-        published claim. This section is replaced in the handover phase with the real
-        text.
+        The SC Speakers Bureau is a 501(c)(3) nonprofit founded in South Carolina.
       </p>
       <p>
-        Everything below it, however, is not placeholder. It describes how this site
-        actually works, and it is derived from the data rather than typed.
+        It began with a few Carolinians who saw a need: to bring speakers on tours,
+        so that people could be given the education those events make possible.
+        After the first speaking tour it became clear that the events really did
+        influence the people who attended them, and the founders of the Bureau
+        carried on with the work of making sure there would be future tours.
+      </p>
+      <p>
+        The Bureau now brings speakers to South Carolina, Georgia and North
+        Carolina, to inform and educate local citizens on topics important to
+        maintaining a constitutional republic in South Carolina and the United
+        States.
       </p>
     </section>
 
     <hr />
 
-    <section aria-labelledby="about-how">
-      <h2 id="about-how">How this site works</h2>
+    <section aria-labelledby="about-site">
+      <h2 id="about-site">About {SITE_NAME}</h2>
       <p>
-        A scheduled job reads the RSS feed of each publication listed in the site's own
-        configuration, checks that each response really is a feed, normalises the posts
-        into one dataset, and rebuilds this site. If a feed fails to validate, the job
-        fails loudly and the site is not rebuilt on stale data.
+        This is the Bureau's reading room. A scheduled job reads the RSS feed of
+        each publication listed in the site's own configuration, checks that each
+        response really is a feed, normalises the posts into one dataset, and
+        rebuilds the site. If a feed fails to validate, the job fails loudly and
+        the site is not rebuilt on stale data.
       </p>
       <p>
-        Articles are not copied here. Each one links out to the publication that wrote
-        it, and it opens on that publication's own site in a new tab.
+        Articles are not copied here. Each one links out to the publication that
+        wrote it, and it opens on that publication's own site in a new tab.
       </p>
     </section>
 
@@ -87,14 +93,15 @@ const description =
         .
       </p>
       <p>
-        Of those, <strong>{stats.withByline}</strong> carry an individual author's name
-        and <strong>{stats.suppressedByline}</strong> report the publication itself as
-        the author, which is not printed as though it were a person.
+        Of those, <strong>{stats.withByline}</strong> carry an individual author's
+        name and <strong>{stats.suppressedByline}</strong> report the publication
+        itself as the author, which is not printed as though it were a person.
       </p>
       <p>
-        A publication that stops publishing will quietly age out of this window, and so
-        will an article that ages out of its feed. If a source here has been silent for a
-        long time, that is a fact about the source, not a gap in the collection.
+        A publication that stops publishing will quietly age out of this window,
+        and so will an article that ages out of its feed. If a source here has
+        been silent for a long time, that is a fact about the source, not a gap
+        in the collection.
       </p>
     </section>
 
@@ -103,8 +110,8 @@ const description =
     <section aria-labelledby="about-sources">
       <h2 id="about-sources">Where the writing comes from</h2>
       <p>
-        These publications are independent and are not affiliated with this site. They are
-        linked to, not reproduced.
+        These publications are independent and are not affiliated with the SC
+        Speakers Bureau or with this site. They are linked to, not reproduced.
       </p>
       <ul>
         {publications.map((name) => <li>{name}</li>)}
@@ -114,13 +121,6 @@ const description =
           <p>
             {topicList.length === 1 ? 'One topic tag is' : `${topicList.length} topic tags are`} in
             use: {topicList.map((topic) => topic.label.toLowerCase()).join(', ')}.
-          </p>
-        )
-      }
-      {
-        fetchedOn && (
-          <p>
-            The feeds were last checked on <strong>{fetchedOn}</strong>.
           </p>
         )
       }

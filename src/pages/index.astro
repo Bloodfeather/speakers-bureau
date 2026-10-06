@@ -30,10 +30,10 @@
 //
 // A search field over 23 items is theatre: it cannot find anything a reader
 // cannot already see by scrolling, and it is the one control on the site that
-// would be useless with JavaScript disabled. The client's decision was a curated
-// reading feed, not a searchable library, so there is no search. If full-text
-// search is ever wanted it needs a real index (Phase 4/5), not a filter over
-// titles that are already on screen.
+// would be useless with JavaScript disabled. The site's job is a curated reading
+// feed, not a searchable library, so there is no search. If full-text search is
+// ever wanted it needs a real index, not a filter over titles that are already on
+// screen.
 //
 
 import PageShell from '../components/PageShell.astro'
@@ -49,7 +49,7 @@ import {
 } from '../lib/events'
 import { SITE_INTRO, SITE_WINDOW_NOTE, withBase } from '../lib/site'
 
-// The whole window, newest first. On the current dataset: 43 articles.
+// The whole window, newest first.
 const feed = articles
 const topicList = topics(feed)
 const stats = summarise(feed)
@@ -65,22 +65,20 @@ const oldestLabel = formatUtcDate(stats.oldest)
 const nextEvent = events.find((event) => !isPast(event, reviewedOn)) ?? null
 
 // The home page shows a short, deliberately-chosen "start here" run and links
-// out to the full window. A front door that dumps all 43 cards is a list, not a
+// out to the full window. A front door that dumps every card is a list, not a
 // front door. The count is stated so the reader knows exactly what is behind the
 // link rather than clicking to find out.
 //
 // ---------------------------------------------------------------------------
-// WHY THIS IS NOT A PLAIN SLICE - the bug that produced this comment
+// WHY THIS IS NOT A PLAIN SLICE
 // ---------------------------------------------------------------------------
 //
-// The original version was `feed.slice(0, 6)` over the newest-first list. That
-// looked reasonable with 2 feeds and broke the moment a third arrived:
-//
-//   Malone News publishes DAILY. United Patriots publishes roughly weekly and
-//   Evan's Substack last wrote in February 2025. So the 6 newest items were 6
-//   Malone posts, and the front door - the one page whose job is to introduce an
-//   organisation and the writers behind it - displayed exactly ONE publication.
-//   Two of the three were invisible on the home page.
+// `feed.slice(0, 6)` over the newest-first list looks reasonable with two feeds
+// and breaks the moment a third arrives, because publications do not publish at
+// the same rate. On the current dataset one publication posts daily, one posts
+// roughly weekly, and one last wrote in February 2025 - so the six newest items
+// were six posts from a single publication, and the front door displayed one
+// writer out of three. Two of them were invisible.
 //
 // The bug is not the constant, it is the assumption: that a "latest N" run
 // samples the publications. It only does when they publish at similar rates.
@@ -177,13 +175,10 @@ const description =
   {/*
     THE EVENTS DOOR.
 
-    Added 2026-10-05. Until this existed the calendar was reachable from exactly
-    one place on the whole site: the header. A browser audit reported "0
-    occurrences of November, debate or election" in the home page's rendered text,
-    which is the honest way to say a reader has to already know the feature exists.
-
-    The home page is a front door, so a door that leads nowhere is not a door. Three
-    lines, no new component, no new styles: the next dated thing, and a link.
+    The calendar is otherwise reachable from exactly one place on the whole site:
+    the header. The home page is a front door, and a door that leads nowhere is
+    not a door, so the next dated thing gets three lines here. No new component
+    and no new styles.
 
     WHY THE NEXT DATED THING rather than a list of them. The events page is the
     place to browse; this is a signpost, and its whole job is to answer "is there
@@ -209,13 +204,8 @@ const description =
       </p>
       <p class="next-event__note">
         {eventCount} dated {eventCount === 1 ? 'entry' : 'entries'} on the{' '}
-        <a href={withBase('/events/')}>events calendar</a>
-        {reviewedOn && (
-          <>
-            , last reviewed {formatEventDate(reviewedOn)}
-          </>
-        )}
-        . Every listing links to the notice it came from.
+        <a href={withBase('/events/')}>events calendar</a>. Every listing links to
+        the notice it came from.
       </p>
     </section>
   )

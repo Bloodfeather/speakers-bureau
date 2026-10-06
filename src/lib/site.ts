@@ -2,18 +2,17 @@
 // deployment base path.
 //
 // ---------------------------------------------------------------------------
-// PLACEHOLDER CONTENT - READ BEFORE SHIPPING
+// WHAT IS STILL UNRESOLVED, and it is not a string in this file
 // ---------------------------------------------------------------------------
 //
-// SITE_NAME and SITE_CURATOR_ATTRIBUTION were CHOSEN by the client on 2026-10-05
-// and are no longer placeholders. SITE_TAGLINE, SITE_INTRO and SITE_WINDOW_NOTE
-// are still written for this project rather than supplied by the client, and the
-// `site` value in astro.config.mjs is still https://example.org.
+// Every string in this file is either supplied by the client or stated from the
+// dataset. Nothing here is a stand-in waiting to be replaced: a reader cannot tell
+// a placeholder from a real claim, so a placeholder that ships is a lie with a
+// disclaimer attached.
 //
-// A placeholder is only useful while it is obviously one. The name and byline were
-// written plainly as placeholders so nobody would ship them by accident; now that
-// they are real, the remaining provisional values keep that property until the
-// client replaces them too.
+// The `site` value in astro.config.mjs is still https://example.org. That must be
+// set to the real domain before publication, or canonical and social URLs point at
+// example.org.
 //
 // ---------------------------------------------------------------------------
 // THE BASE PATH IS NOT A CONSTANT
@@ -30,9 +29,8 @@
 // ---------------------------------------------------------------------------
 
 /**
- * The publication's name, chosen by the client 2026-10-05. This was the
- * placeholder "Speakers Bureau"; the apostrophe in "Citizen's" is an ASCII `'` and
- * the string uses double quotes because of it.
+ * The publication's name. The apostrophe in "Citizen's" is an ASCII `'` and the
+ * string uses double quotes because of it.
  *
  * NOT the same thing as the organisation. `SITE_CURATOR_ATTRIBUTION` names the
  * body that produces the collection, which the client described as "the SC
@@ -46,10 +44,9 @@ export const SITE_NAME = "The Citizen's Reading Room";
 /**
  * The curator credit, shown ONCE, in the site footer only.
  *
- * Client decision 2026-10-05: the client is the curator AND the webmaster, and does
- * not want the title in the masthead. An earlier version of this file kept a second
- * value here for an eyebrow above the masthead name; that element is gone, so there
- * is now one credit in one place rather than a name repeated twice on every page.
+ * The client is the curator AND the webmaster and does not want the title in the
+ * masthead, so there is one credit in one place rather than a name repeated on
+ * every page.
  *
  * Pre-worded here rather than assembled by the footer, so there is exactly one
  * sentence to change if the credit ever changes.
@@ -59,12 +56,16 @@ export const SITE_CURATOR_ATTRIBUTION =
 
 /**
  * One line of positioning, shown under the name in the masthead.
- * PROVISIONAL - see the note above. The name is now chosen; this line is not.
+ *
+ * Cut down from the Bureau's own sentence - "the SC Speakers Bureau creates
+ * engaging and educational events with speakers who inform and educate local
+ * citizens" - because a masthead line has to be one line. It is the client's
+ * wording, not project copy, which is why it carries no provisional marker.
  */
-export const SITE_TAGLINE = 'A front door to independent writing.';
+export const SITE_TAGLINE = 'Speakers who inform and educate local citizens.';
 
 /**
- * The short honest paragraph on the home page. PROVISIONAL - see above.
+ * The short honest paragraph on the home page.
  *
  * The honesty constraint, stated once so it is not restated badly later:
  * publication feeds return only each publication's most recent posts, so this
@@ -109,3 +110,9 @@ export function withBase(path: string): string {
 
 /** Human-readable publication of this site, for <title> suffixes. */
 export const SITE_TITLE_SUFFIX = SITE_NAME;
+
+// NOTE: SITE_TITLE_SUFFIX is currently imported by nothing. It was written for
+// page titles that read "Latest writing - The Citizen's Reading Room", and no page
+// ended up doing that. It is kept because a page title on this site should name
+// the site somewhere, and adding the suffix is a one-line change per page. If a
+// title ever does need it, that is the moment to delete this note.

@@ -2,9 +2,7 @@
 // src/layouts/Layout.astro - the HTML shell and the ONE place theme
 // JavaScript is allowed to exist.
 //
-// PHASE 2.5: the theme foundation. Before this file the site had its colours as
-// hex literals in a component's <style>, which meant "add a theme" was a
-// rewrite. Now every colour, type size and spacing step is a custom property in
+// Every colour, type size and spacing step is a custom property in
 // src/styles/themes.css, and the theme is a single attribute on <html>.
 //
 // WHY THE STYLES ARE IMPORTED HERE AND NOT INLINED. An inline <style> in a
@@ -22,7 +20,10 @@ interface Props {
 
 const {
   title,
-  description = 'A speakers bureau aggregating independent publications.'
+  // Every page passes its own description. This default is a backstop for a page
+  // added without one, and it names the organisation rather than the aggregator,
+  // because that is who the site belongs to.
+  description = 'The SC Speakers Bureau is a 501(c)(3) nonprofit that brings speakers on tour to inform and educate local citizens.'
 } = Astro.props
 
 // The allowlist for a persisted theme. Shared with the inline script below, so
