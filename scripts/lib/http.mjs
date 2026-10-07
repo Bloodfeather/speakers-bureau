@@ -9,6 +9,7 @@
 // site and invites a silent `catch {}`.
 
 import { setTimeout as delay } from 'node:timers/promises';
+import { resolveFetchImpl } from './egress.mjs';
 
 // Identify ourselves honestly, with a contact URL. Some hosts 403 an anonymous
 // or absent User-Agent outright, so this is load-bearing, and the contact URL
@@ -45,7 +46,9 @@ function isRetryableStatus(status) {
  * @param {object} [options]
  * @param {number} [options.timeoutMs=15000] per-attempt timeout
  * @param {number} [options.retries=2]      extra attempts after the first
- * @param {Function} [options.fetchImpl]    injectable for tests; defaults to
+ * @param {Function} [options.fetchImpl]    injectable for tests; defaults to the
+ *                                          feed-egress Worker when
+ *                                          FEED_EGRESS_URL is set, otherwise
  *                                          globalThis.fetch
  * @param {string} [options.userAgent]
  * @returns {Promise<{ok:boolean,status:number,finalUrl:string,contentType:string,body:string,error:string|null}>}
@@ -54,9 +57,27 @@ export async function get(url, options = {}) {
   const {
     timeoutMs = DEFAULT_TIMEOUT_MS,
     retries = DEFAULT_RETRIES,
-    fetchImpl = globalThis.fetch,
+    // Resolved LAZILY, and only when the caller did not supply one. Two reasons,
+    // both learned the hard way.
+    //
+    // Lazily: reading the environment at module scope would make the choice
+    // impossible to change per call and impossible to test both paths in one
+    // process, since an import-time decision is fixed before any test runs.
+    //
+    // Only as a default: an explicitly injected fetchImpl must always win, or
+    // the test suite - which injects its own - would start making real network
+    // calls whenever the environment happened to be set.
+    fetchImpl = null,
     userAgent = USER_AGENT
   } = options;
+
+  // THE TRANSPORT IS THE ONLY THING THAT CHANGED. When FEED_EGRESS_URL is unset
+  // this is globalThis.fetch and every behaviour below is exactly what it was
+  // before the egress Worker existed: same validation, same retry policy, same
+  // definition of a failure. When it IS set, requests are relayed through the
+  // Worker because GitHub's runner network is refused by Cloudflare's managed
+  // challenge - see scripts/lib/egress.mjs for the measurement.
+  const doFetch = fetchImpl ?? resolveFetchImpl() ?? globalThis.fetch;
 
   const attempts = Math.max(1, retries + 1);
   let lastResult = null;
@@ -74,7 +95,7 @@ export async function get(url, options = {}) {
       // Node >=22, so no manual AbortController bookkeeping is needed. Note it
       // covers the headers AND the body read, because the timer keeps running
       // until the signal is garbage collected.
-      response = await fetchImpl(url, {
+      response = await doFetch(url, {
         redirect: 'follow',
         signal: AbortSignal.timeout(timeoutMs),
         headers: {

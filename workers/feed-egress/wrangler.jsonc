@@ -1,0 +1,19 @@
+{
+  // Config for the feed-egress Worker ONLY. This is not the site's config: the
+  // static site is published by the Worker named in the repository-root
+  // wrangler.jsonc, and the two must never be confused. Publishing this one
+  // would replace the egress proxy with the website, and publishing the other
+  // would replace the website with the proxy.
+  //
+  // Deployed from THIS directory on purpose, so `wrangler deploy` run at the
+  // repository root cannot pick this up by accident.
+  "name": "sb-feed-egress",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-07",
+  // No `assets` block: this Worker serves JSON and nothing else. There is no
+  // site to publish from it, and adding one would be the first step toward
+  // mistaking this for the website.
+  "observability": {
+    "enabled": true
+  }
+}

@@ -195,11 +195,49 @@ jobs:
         # package.json and package-lock.json disagree. A scheduled build that
         # silently resolves a new version is a build you cannot reproduce.
 
+      - name: require the feed egress credential
+        # Added 2026-10-07, and it exists because of a measured failure rather
+        # than a hypothetical one.
+        #
+        # GitHub's Actions runners CANNOT read these feeds. Every feed answers
+        # HTTP 403 with `cf-mitigated: challenge` and a body titled "Just a
+        # moment..." from that network, on every User-Agent including a desktop
+        # browser string, while example.com answers 200 from the same runner in
+        # 172ms. That is Cloudflare's Managed Challenge refusing GitHub's Azure
+        # egress range - not a Substack block, not a UA filter, and therefore
+        # not fixable by changing a header or adding retries.
+        #
+        # So the fetch is relayed through a small Worker on Cloudflare egress,
+        # which answers 200 in 28-135ms. This step checks the one secret that
+        # relay needs, and does it HERE rather than letting the fetch fail three
+        # steps later. A missing secret should read as a missing secret, which is
+        # the same rule the other two credential guards in this file follow.
+        run: |
+          if [ -z "${{ secrets.FEED_EGRESS_TOKEN }}" ]; then
+            echo "::error::FEED_EGRESS_TOKEN repository secret is not set, so the feeds cannot be read. GitHub's runner network is refused by Cloudflare's managed challenge, so this fetch must go through the feed-egress Worker. See docs/DEPLOY.md."
+            exit 1
+          fi
+          echo "Feed egress credential is present."
+
       - name: fetch feeds (fail loud)
+        env:
+          # The Worker that relays the request. It moves bytes and decides
+          # nothing: all parsing, validation and retry policy stay in scripts/,
+          # where they are covered by the test suite. See
+          # workers/feed-egress/worker.js for why it refuses to parse anything.
+          FEED_EGRESS_URL: https://sb-feed-egress.mstricklandtech.workers.dev
+          # Never interpolated into the command line. An `env:` block is what
+          # keeps it out of the log.
+          FEED_EGRESS_TOKEN: ${{ secrets.FEED_EGRESS_TOKEN }}
         run: npm run fetch
         # No continue-on-error. No `|| true`. No --allow-partial. A non-zero exit
         # here is the design working: the run goes red, nothing is committed,
         # and the deploy job below is skipped.
+        #
+        # Setting FEED_EGRESS_URL is the ONLY change to this step. Unset, the
+        # fetcher uses the network directly and behaves exactly as it always
+        # did - which is what still lets it run on a laptop, where the direct
+        # path works fine.
 
       - name: measure what actually changed in the dataset
         id: dataset
