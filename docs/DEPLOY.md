@@ -85,22 +85,39 @@ Your site is **built on GitHub** and **hosted at Cloudflare**. Both are needed:
 So there is no single company holding everything. That is normal for this kind
 of setup and costs nothing - both have generous free tiers.
 
-### The four settings the automation needs
+### The settings the automation needs
 
-You will create these across sections 4, 6, 7 and 8. Write them down. The
-automation looks for each one **by exact name**, and a name that is nearly right
-is treated as missing.
+| Name | Kind | What it is | State |
+| --- | --- | --- | --- |
+| `FEED_EGRESS_TOKEN` | Secret | Shared key that lets the fetch reach the feeds. **Already set.** | Done |
+| `PAT_TOKEN` | Secret | Lets the automation save the fetched articles back to GitHub. Section 4. | **Needed** |
+| `CLOUDFLARE_API_TOKEN` | Secret | Lets the automation publish the built site to Cloudflare. Section 7. | **Needed** |
+| `CLOUDFLARE_ACCOUNT_ID` | Secret | Tells Cloudflare which account is yours. Section 6. | **Needed** |
 
-| Name | Kind | What it is |
-| --- | --- | --- |
-| `PAT_TOKEN` | Secret | Lets the automation save the fetched articles back to GitHub. Section 4. |
-| `CLOUDFLARE_API_TOKEN` | Secret | Lets the automation publish the built site to Cloudflare. Section 7. |
-| `CLOUDFLARE_ACCOUNT_ID` | Secret | Tells Cloudflare which account is yours. Section 6. |
-| `CLOUDFLARE_PAGES_PROJECT` | Variable | The name of your Pages project. Section 5. |
+The first is **already set and you do not need to create it.** It was added on
+2026-10-07 to fix a problem you should know about, because it will look like
+something is broken otherwise.
 
-The first three are **secrets** and the fourth is a **variable**. That difference
-matters: secrets are for credentials, variables are for settings. The automation
-fails with a clear message naming whichever one is missing.
+### Why there is a Worker in the middle of the fetch
+
+GitHub's own servers cannot read these feeds. Every publication answers **HTTP
+403** to a request from a GitHub Actions runner, with a page titled "Just a
+moment...", while an ordinary website answers normally from the very same
+computer. That is an automated security check at the network level, reacting to
+the fact that the request comes from a datacentre rather than from a person. It
+is not a refusal by the publications, and it is not something you did wrong.
+
+So the request is made from a small helper of ours that runs on Cloudflare
+instead, and it passes. **This is already working** - the most recent scheduled
+run fetched all four publications successfully.
+
+If you ever see `HTTP 403 Forbidden` for every feed at once, this is why, and the
+fix is not to change anything in the project. Check that `FEED_EGRESS_TOKEN` is
+still set, and that the helper is still deployed.
+
+The helper deliberately fetches and returns the raw feed **without interpreting
+it**. Which articles appear on the site is still decided by the project's own
+code, which is tested. That separation is intentional and should be preserved.
 
 ---
 

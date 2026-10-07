@@ -128,6 +128,131 @@ check would otherwise pass trivially on an empty corpus.
 
 ---
 
+## 2026-10-07 - The 403 is fixed: the fetch now runs through a Cloudflare Worker
+
+The scheduled refresh had been failing for a week with HTTP 403 from every feed.
+It is fixed. Verified by a green run on a real runner, not by reasoning.
+
+**Verified:** run 37555138699, `refresh` job **green in 15s**, 4 sources, 0
+failed, all HTTP 200. The deploy job then failed only on the missing Cloudflare
+secrets, which is the expected remaining blocker. 258 tests pass (was 227). Local
+`npm run fetch` unchanged when the egress is not configured.
+
+### The diagnosis, and why it was not guessable
+
+`HTTP 403` on every feed, from GitHub's runners, while identical code returned
+200 from a laptop. A status code cannot distinguish a WAF refusal from an origin
+refusal from a bot policy, so `scripts/diagnose-feeds.mjs` probes every feed
+across four User-Agent variants plus two control hosts.
+
+On a real runner, egress `172.184.247.97` (SJC):
+
+| | Result |
+| --- | --- |
+| `example.com` | 200 in 172ms |
+| `api.github.com` | 200 in 64ms |
+| all 4 feeds x 4 User-Agents | **403 every time** |
+| `cf-mitigated` | **`challenge`** |
+| body | `<title>Just a moment...` |
+
+`cf-mitigated: challenge` is the answer: Cloudflare's Managed Challenge refusing
+GitHub's Azure egress range. **The User-Agent is irrelevant** - a desktop browser
+string fails identically, which is the proof. No header change and no retry
+count can fix it.
+
+Then, before designing anything: `wrangler dev --remote` fetching the same feeds
+from Cloudflare's edge returned **200 on all four in 28-135ms**. That made the
+fix viable rather than theoretical, and cost nothing to find out.
+
+### The fix, and how small it is on purpose
+
+`workers/feed-egress/worker.js` fetches and relays bytes. It does not parse,
+validate, retry, cache or normalise, and contains no content rules at all - it
+cannot decide what an article is. All of that stayed in `scripts/`, under test.
+The alternative, moving the whole pipeline into a Worker, would have put the
+rules deciding what appears on the site into two copies, one untested.
+
+`scripts/lib/egress.mjs` is a fetch-shaped transport, which `http.mjs` already
+accepted for injection. So this is a different transport, not a different
+fetcher, and every rule about validation and failure is untouched. With
+`FEED_EGRESS_URL` unset the fetcher uses the network exactly as before.
+
+A relayed 403 stays a 403. `test/egress.test.mjs` asserts a direct fetch and a
+relayed 403 produce the same verdict from `http.mjs`, because a transport that
+turned a refusal into a success would be the most dangerous thing this project
+could ship.
+
+### THE BUG THAT MATTERED MOST
+
+The first version of this did not work at all, and it was caught by the scheduled
+run going red at the same fetch step with the same 403, four minutes after the
+commit that was supposed to fix it.
+
+`fetch-feeds.mjs` called `collectSource(source, { fetchImpl: globalThis.fetch })`.
+`http.mjs` gives an injected `fetchImpl` priority over its own default -
+correctly, since that is what makes the suite injectable. So the relay was
+bypassed entirely and every request went out over the runner's network.
+
+**Why nothing caught it, which is the part worth keeping.** From a residential IP
+the direct path returns 200. The local "end to end" check reported 4 sources and
+49 items with exit 0 - with the relay bypassed - and demonstrated nothing,
+because both paths succeed from here. A green local run of a fix for a network
+problem is close to worthless unless the network problem is reproducible locally,
+and this one cannot be.
+
+`test/egress-wired-in.test.mjs` is written so that cannot recur: it replaces
+`globalThis.fetch` with a function that **refuses** to serve a feed URL and only
+answers the egress endpoint, so any path reaching the network directly throws
+instead of returning a plausible result. It asserts egress 1, direct 0, through
+`collectSource` with no injected `io` - the real default path rather than a
+description of it. A companion test covers the inverse, so the fix for a blocked
+network does not also break the only environment where anyone can debug it.
+
+### Three more bugs, all mine
+
+- The transport matched forwarded header names **case-sensitively** while
+  `http.mjs` sends `User-Agent`. The User-Agent would have been silently dropped
+  and the Worker would have fetched every feed while identifying itself as
+  nothing. Nothing else would have caught it: the fetch would still have
+  succeeded and the site would have been identical.
+- A module-scope `TOKEN` constant in the Worker. Worker secrets arrive on `env`,
+  so it could never have seen the real value - and a caller guessing the
+  placeholder would have been let straight in. Removed; it now fails closed.
+- The wiring guard matched `--allow-partial` and `echo $\{\{ secrets.` inside the
+  comments that **forbid** them, because it grepped a commented YAML file. A
+  guard over a commented config has to strip comments first or it will eventually
+  block a legitimate change on the strength of a warning about it. Its positive
+  control also used a different host extraction than the real check and read
+  `https:` as the hostname, passing for the wrong reason.
+
+### A refusal and a non-response are different
+
+`diagnose-feeds.mjs` first counted timeouts as refusals, and on a degraded link
+reported a feed as "USER-AGENT SENSITIVE" when two variants had merely run out
+the clock. Caught by noticing `example.com` took 7.9 seconds in the same run. It
+would have sent someone to change the User-Agent for no reason, while looking
+rigorous.
+
+---
+
+## 2026-10-07 - Home page post list doubled, 6 to 12
+
+`FEATURED_COUNT 6 -> 12`. One constant. The copy updates itself: "Showing the
+12 most recent. See all 49 in one page."
+
+Because the selection is round-robin and not a slice, the doubling widened every
+publication's share instead of adding depth to one. Measured on the built page
+and on the live origin: **12 cards, exactly 3 from each of the 4 publications.**
+A slice would have shown 12 from the fastest publisher and hidden the other
+three, which is the reason the round-robin exists and is now load-bearing.
+
+A first live check reported 6 cards and was wrong: it ran before the edge had
+picked up the new deploy. Local and live were then confirmed byte-identical by
+hash. Verification timing, not a site defect - but worth knowing that a check run
+seconds after a deploy can read the previous version.
+
+---
+
 ## 2026-10-06 - A fourth source, and the publication roster removed
 
 Two client requests. The first was mechanical. The second was an editorial
