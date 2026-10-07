@@ -110,8 +110,23 @@ async function fetchOne(url, requestHeaders) {
     // Only the headers the fetcher actually inspects are relayed. Dumping the
     // full header set would leak this Worker's own Cloudflare bookkeeping into
     // a place that has no use for it.
+    //
+    // `retry-after` is on this list because of a measured omission. The fetcher
+    // honours Retry-After when an origin sends it - it is the one piece of
+    // rate-limit guidance the server can give us, and it beats any schedule we
+    // invent. This relay did not forward it, so every 429 arrived stripped of
+    // the instruction to wait, and the fetcher fell back to guessing. The header
+    // most worth relaying for a rate-limited relay was the one it dropped.
+    const RELAYED = [
+      'content-type',
+      'x-sub',
+      'etag',
+      'last-modified',
+      'content-length',
+      'retry-after'
+    ];
     const relayed = {};
-    for (const name of ['content-type', 'x-sub', 'etag', 'last-modified', 'content-length']) {
+    for (const name of RELAYED) {
       const value = res.headers.get(name);
       if (value !== null) relayed[name] = value;
     }

@@ -30,13 +30,112 @@ const BACKOFF_MS = [750, 2000];
 
 // Status codes worth trying again.
 //   5xx - server-side problem, may be transient.
-//   429 - explicit rate limit; backoff and retry.
-// Everything in 4xx OTHER than 429 is deliberately NOT retried. A 403 or 404
-// is a stable answer: the publication does not exist or does not want us.
-// Retrying it just wastes the Action's time and hammers the host, which is how
-// a working fetch script gets a publisher's domain rate-limited or blocked.
+//   429 - explicit rate limit; back off and retry, and wait a good deal longer
+//         than for a 5xx. See the backoff schedules below for why these two are
+//         not treated the same.
 function isRetryableStatus(status) {
   return status === 429 || (status >= 500 && status <= 599);
+}
+
+// BACKOFF, AND WHY THERE ARE THREE SCHEDULES RATHER THAN ONE.
+//
+// The original design had a single 750ms/2000ms pair and was measurably wrong.
+// With every feed now arriving through one Worker, all scheduled traffic comes
+// from a small set of Cloudflare addresses, and the measured result was that the
+// origins served a residential IP 4 feeds out of 4 while refusing or throttling
+// the Worker 2 out of 4. Concentrating the egress concentrates the rate-limit
+// risk, and a 2-second gap does not outlast a throttle that lasts minutes.
+//
+// So the three retryable kinds are separated, because they mean different things:
+//
+//   429      the server told us how fast to go, or at least that we are going
+//            too fast. Waiting seconds is the whole point, so wait longer than we
+//            would for a server error.
+//   5xx      the server is broken or busy. Typically clears in seconds.
+//   network  no response at all. Usually a dropped connection, and a short gap
+//            is usually enough; a long one just wastes the runner's clock.
+//
+// WORST CASE, and it is bounded deliberately. Per feed: 3 attempts, each capped
+// at DEFAULT_TIMEOUT_MS, plus at most 10s + 45s of waiting for a 429. That is
+// roughly 100s for a throttled feed, and feeds are fetched one at a time, so a
+// run where every feed is throttled costs a few extra minutes. A scheduled job
+// that waits three minutes to avoid publishing stale data is a good trade; one
+// that waits three minutes and still fails teaches nothing.
+const BACKOFF_429_MS = [10_000, 45_000];
+const BACKOFF_5XX_MS = [1_000, 4_000];
+const BACKOFF_NETWORK_MS = [2_000, 8_000];
+
+// A server may TELL us how long to wait, in `Retry-After`, as either a number of
+// seconds or an HTTP date. When it does, that beats any schedule we invented:
+// guessing 45s when the server says 4s wastes the runner, and guessing 45s when
+// the server says 600s means retrying too early and getting throttled again.
+//
+// Honoring it through the egress relay required the Worker to pass the header
+// along, which it did not until this change: it relayed content-type, x-sub,
+// etag, last-modified and content-length, and nothing else. So the single most
+// useful header for this exact problem was being dropped on the floor by the
+// relay that exists to carry it.
+const RETRY_AFTER_CAP_MS = 120_000;
+
+/**
+ * How long to wait before the next attempt, given how the last one failed.
+ *
+ * @param {number} status  the last attempt's status; 0 means no response
+ * @param {number} attempt zero-based index of the attempt just made
+ * @param {string|null} retryAfter the origin's Retry-After header, if any
+ * @returns {number} milliseconds to wait
+ */
+export function backoffFor(status, attempt, retryAfter = null) {
+  const schedule =
+    status === 0 ? BACKOFF_NETWORK_MS : status === 429 ? BACKOFF_429_MS : BACKOFF_5XX_MS;
+
+  const told = parseRetryAfter(retryAfter);
+  // When the server TELLS us, it wins. This was not the first version: an
+  // earlier one took max(server, schedule), on the reasoning that our 429 floor
+  // existed to stop us retrying too eagerly. But that floor is the fallback for
+  // servers that send no header at all - which is exactly the case that produced
+  // this whole change, since the throttling we hit arrived as a bare 429 with no
+  // Retry-After. When a header IS present the server knows its own limit, and
+  // sitting on our own number after it says "you may retry in 2s" wastes the
+  // runner's clock for no benefit. The schedule is the guess; the header is the
+  // instruction.
+  if (told === null) return schedule[Math.min(attempt, schedule.length - 1)];
+
+  // Still capped, so a hostile or buggy origin cannot park a scheduled run for
+  // an hour by sending Retry-After: 86400.
+  return Math.min(told, RETRY_AFTER_CAP_MS);
+}
+
+/**
+ * Parse a Retry-After header into milliseconds, or null if unusable.
+ *
+ * Accepts both permitted forms: delta-seconds, and an HTTP-date.
+ *
+ * The date branch is gated on the value containing a LETTER, and that guard is
+ * load-bearing rather than fussy. `Date.parse` is extremely lenient: handed
+ * "-5" it does not return NaN, it returns a date in the past, and the
+ * `Math.max(0, ...)` below turned that into a wait of zero - so a malformed
+ * header could talk the fetcher into retrying a throttled origin IMMEDIATELY.
+ * Every HTTP-date form contains alphabetic day or month names ("Wed", "Oct",
+ * "GMT"), and delta-seconds contains none, so requiring a letter separates the
+ * two permitted forms from arbitrary junk with no false negatives.
+ *
+ * Exported for testing because unit handling and date arithmetic are exactly
+ * where a parser is quietly wrong.
+ */
+export function parseRetryAfter(value) {
+  if (value === null || value === undefined) return null;
+  const raw = String(value).trim();
+  if (raw === '') return null;
+
+  if (/^\d+$/.test(raw)) return Number(raw) * 1000;
+
+  if (!/[a-zA-Z]/.test(raw)) return null;
+
+  const when = Date.parse(raw);
+  if (Number.isNaN(when)) return null;
+  // A date in the past means "retry now", not "retry in the past".
+  return Math.max(0, when - Date.now());
 }
 
 /**
@@ -81,10 +180,14 @@ export async function get(url, options = {}) {
 
   const attempts = Math.max(1, retries + 1);
   let lastResult = null;
+  // Carried between attempts so the wait can be chosen from HOW the previous
+  // attempt failed, and so the origin's own Retry-After survives into it.
+  let lastStatus = 0;
+  let lastRetryAfter = null;
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     if (attempt > 0) {
-      await delay(BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)]);
+      await delay(backoffFor(lastStatus, attempt - 1, lastRetryAfter));
     }
 
     let response = null;
@@ -116,6 +219,8 @@ export async function get(url, options = {}) {
         body: '',
         error: `network error after ${attempt + 1} attempt(s): ${networkError.message}`
       };
+      lastStatus = 0;
+      lastRetryAfter = null;
       continue;
     }
 
@@ -135,8 +240,17 @@ export async function get(url, options = {}) {
         finalUrl,
         contentType,
         body: '',
-        error: `HTTP ${status} ${response.statusText || ''}`.trim() + ` for ${finalUrl}`
+        // The refusal now NAMES the guidance it carries. A bare "HTTP 429" sends
+        // whoever is reading a red run to the Cloudflare dashboard to check a
+        // deployment that is working perfectly; the rate limit is on OUR request
+        // rate, and saying so in the line they will actually read saves that.
+        error:
+          `HTTP ${status} ${response.statusText || ''}`.trim() +
+          ` for ${finalUrl}` +
+          (status === 429 ? ' (rate limited by the host; this is our request rate, not a broken feed)' : '')
       };
+      lastStatus = status;
+      lastRetryAfter = response.headers.get('retry-after') ?? null;
       if (isRetryableStatus(status)) continue;
       return lastResult;
     }
