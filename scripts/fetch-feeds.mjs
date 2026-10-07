@@ -445,7 +445,25 @@ async function main() {
 
   const results = [];
   for (const source of enabled) {
-    const result = await collectSource(source, { fetchImpl: globalThis.fetch });
+    // NO `io` ARGUMENT, AND THAT IS LOAD-BEARING.
+    //
+    // This line used to read `{ fetchImpl: globalThis.fetch }`. That explicitly
+    // injected the network fetch, and http.mjs gives an injected fetchImpl
+    // priority over its own default - correctly, because that is what makes the
+    // test suite injectable. The consequence was that the feed-egress Worker was
+    // never used by the real fetcher at all: every request went straight out over
+    // the runner's own network, and every feed still answered 403.
+    //
+    // It looked fine locally, which is what made it dangerous. From a residential
+    // IP the direct path returns 200, so a local run could not tell the two paths
+    // apart - a local "end to end" check of this change reported 4 sources and 49
+    // items and demonstrated nothing whatsoever. The symptom only appeared on the
+    // runner, as the same 403 this whole change exists to remove.
+    //
+    // Passing nothing lets http.mjs decide: the egress relay when FEED_EGRESS_URL
+    // is set, the network otherwise. One place knows about the transport, and
+    // that place is the transport's own module.
+    const result = await collectSource(source);
     results.push(result);
     const mark = result.error ? 'FAIL' : `OK ${result.itemCount} items`;
     process.stdout.write(`fetched ${source.id}: ${mark}\n`);
