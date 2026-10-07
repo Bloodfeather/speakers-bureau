@@ -1,0 +1,112 @@
+# .github/workflows/diagnose-feeds.yml
+#
+# WHAT THIS IS. A read-only probe that answers WHY a feed refuses us, rather than
+# only that it does. It exists because `refresh` has been failing on its fetch
+# step with HTTP 403 from every feed, while identical code run from a laptop
+# returns 200, and a status code on its own cannot tell you whether the refusal
+# came from a WAF, from the origin application, or from a bot policy.
+#
+# IT IS DELIBERATELY SEPARATE FROM refresh.yml, and nothing here is shared with
+# it. That is the safety property. This workflow:
+#
+#   - has NO push, schedule or pull_request trigger, only workflow_dispatch, so
+#     it cannot fire on its own and cannot be triggered by a commit;
+#   - needs NO secrets, so it cannot touch git or Cloudflare even in principle;
+#   - checks out the repository and runs one command that ALWAYS exits 0, so it
+#     cannot turn a run red and cannot block anything;
+#   - writes nothing, commits nothing, deploys nothing.
+#
+# If this file were deleted tomorrow the site would be entirely unaffected. That
+# is the design goal: a diagnostic that can break production is not a diagnostic.
+#
+# WHY IT RUNS THE REUSABLE SCRIPT AND NOT INLINE SHELL
+# ------------------------------------------------------
+# The matrix lives in scripts/diagnose-feeds.mjs, which also runs on a laptop
+# with `npm run feeds:diagnose`. Comparing the runner's output against a local
+# run is the entire method, and that only works if both sides run the same code.
+# A second copy of the probe, written in YAML, would drift from the first within
+# a week and quietly compare two different experiments.
+#
+# It runs BEFORE `npm ci` on purpose. The script imports only `yaml` and
+# scripts/lib/http.mjs, and the runner image already ships a current Node, so
+# installing 400MB of Astro dependencies to diagnose a network refusal would be
+# waste. If the import of `yaml` is ever the thing that breaks, that is a
+# different bug and the log will say so.
+
+name: diagnose-feeds
+
+on:
+  # Manual only, and there is no reason to change that.
+  #
+  # This probes third-party hosts, so it should run when a human is reading the
+  # output. It has no business firing on a schedule, and no business firing on a
+  # push: a diagnostic that runs automatically is a diagnostic nobody reads.
+  workflow_dispatch:
+
+# Nothing needs write access, and nothing needs to be cancelled: nothing is
+# written. These are the smallest permissions that can read the repository, and
+# they are declared rather than inherited so that widening the refresh job's
+# permissions later cannot silently widen this one.
+permissions:
+  contents: read
+
+concurrency:
+  group: diagnose-feeds
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    name: probe feeds from a runner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          # Depth 1. This reads two files (data/sources.yml and the script) and
+          # has no reason to pull history.
+          persist-credentials: false
+
+      - name: node version in use
+        # Printed because the runner image's Node changes over time and the
+        # fetcher's behaviour is Node-version-sensitive in ways worth knowing
+        # when comparing a runner result against a laptop result.
+        run: node --version
+
+      - name: which IP this runner egresses from
+        # The single most useful fact for an IP-reputation hypothesis, and the
+        # one thing that cannot be inferred from the failure itself. Failure to
+        # resolve it is reported and ignored: it must never fail this step,
+        # because a diagnostic that depends on a third-party IP echo service is
+        # a diagnostic with a single point of failure.
+        run: |
+          ip=$(curl -s --max-time 10 https://api.ipify.org || true)
+          if [ -n "$ip" ]; then
+            echo "egress ip: $ip"
+          else
+            echo "egress ip: (could not be determined; not fatal)"
+          fi
+
+      - name: install production dependencies only
+        # `npm ci --omit=dev`, not a bare `npm ci` and not a skipped install.
+        #
+        # The probe imports `yaml`, because it reads data/sources.yml with the
+        # SAME parser the real fetcher uses. Sharing the parser is deliberate:
+        # a diagnostic that parsed the config its own way could disagree with
+        # production about which feeds are even enabled, and would then be
+        # measuring something other than the thing that failed.
+        #
+        # --omit=dev drops astro, which is the entire weight of the lockfile and
+        # has nothing to do with an HTTP request. An earlier draft of this file
+        # claimed the install could be skipped entirely; that was wrong, the
+        # import would have thrown MODULE_NOT_FOUND, and the comment was
+        # corrected rather than left to mislead the next reader.
+        run: npm ci --omit=dev
+
+      - name: probe every feed across every user-agent variant
+        # No continue-on-error, and none is needed: the script always exits 0.
+        # If this step ever fails, that is the script itself being broken, which
+        # is worth a red run.
+        run: npm run feeds:diagnose
