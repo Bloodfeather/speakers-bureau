@@ -69,25 +69,36 @@ const nextEvent = events.find((event) => !isPast(event, reviewedOn)) ?? null
 // front door. The count is stated so the reader knows exactly what is behind the
 // link rather than clicking to find out.
 //
+// DOUBLED from 6 on 2026-10-07 at the client's request. It is still a front door
+// and not a list: the window holds 49 articles and this shows 12 of them, so
+// three quarters of the dataset stays behind the "see all" link. The round-robin
+// below means the doubling widens every publication's share rather than adding
+// depth to one of them, so no writer is crowded out by the change.
+//
 // ---------------------------------------------------------------------------
 // WHY THIS IS NOT A PLAIN SLICE
 // ---------------------------------------------------------------------------
 //
-// `feed.slice(0, 6)` over the newest-first list looks reasonable with two feeds
-// and breaks the moment a third arrives, because publications do not publish at
-// the same rate. On the current dataset one publication posts daily, one posts
-// roughly weekly, and one last wrote in February 2025 - so a plain slice fills
-// the run with six posts from a single publication and the front door displays one
-// writer out of three. Two of them are invisible.
+// `feed.slice(0, FEATURED_COUNT)` over the newest-first list looks reasonable
+// with two feeds and breaks the moment a third arrives, because publications do
+// not publish at the same rate. On the current dataset one publication posts
+// daily, one posts roughly weekly, and one last wrote in February 2025 - so a
+// plain slice fills the run with posts from a single publication and the front
+// door displays one writer out of four. Three of them are invisible.
 //
 // The bug is not the constant, it is the assumption: that a "latest N" run
 // samples the publications. It only does when they publish at similar rates.
 //
 // The fix takes a proportional share per publication, newest-first within each,
 // then reassembles by date so the page still reads as one chronological feed.
-// A publication can never be crowded out by a busier one, and adding a fourth
+// A publication can never be crowded out by a busier one, and adding a fifth
 // publication needs no change here.
-const FEATURED_COUNT = 6
+//
+// What 12 looks like in practice: four publications, three rounds of the loop,
+// three articles from each. The smallest feed in the set has exactly three
+// items, so it is fully represented and no slot is spent on a publication that
+// cannot fill its share.
+const FEATURED_COUNT = 12
 
 const byPublication = new Map()
 for (const article of feed) {
