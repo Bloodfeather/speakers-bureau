@@ -90,7 +90,7 @@ of setup and costs nothing - both have generous free tiers.
 | Name | Kind | What it is | State |
 | --- | --- | --- | --- |
 | `FEED_EGRESS_TOKEN` | Secret | Shared key that lets the fetch reach the feeds. **Already set.** | Done |
-| `PAT_TOKEN` | Secret | Lets the automation save the fetched articles back to GitHub. Section 4. | **Needed** |
+| `PAT_TOKEN` | Secret | Lets the automation save the fetched articles back to GitHub. Section 4. | **Set 2026-10-07** |
 | `CLOUDFLARE_API_TOKEN` | Secret | Lets the automation publish the built site to Cloudflare. Section 7. | **Needed** |
 | `CLOUDFLARE_ACCOUNT_ID` | Secret | Tells Cloudflare which account is yours. Section 6. | **Needed** |
 
@@ -373,12 +373,24 @@ Two things about it are deliberate:
    <https://dash.cloudflare.com/?to=/:account/api-tokens>
 2. Click **Create Token**.
 3. Under **Custom Token**, click **Get started**.
-4. **Token name**: `SpeakersBureau Pages Publisher`
-5. **Permissions**. Add exactly one row:
+   **Or, faster and less error-prone: use the "Edit Cloudflare Workers" template**
+   in the list above it. That template already grants exactly the permissions
+   this project needs, and you can skip straight to step 7.
+4. **Token name**: `SpeakersBureau Worker Publisher`
+5. **Permissions**. These are the minimum for this project:
 
    | Account | Permission | Access |
    | --- | --- | --- |
-   | Account | Cloudflare Pages | Edit |
+   | Account | Workers Scripts | Edit |
+   | Account | Account Settings | Read |
+
+   **Not** "Cloudflare Pages". Earlier versions of this document said Pages, which
+   was wrong: this site is published as a Worker, not as a Pages project, so a
+   Pages-only token deploys nothing. If you get "Not enough permissions to
+   deploy", check this table first.
+
+   You do **not** need Workers KV Storage, Workers R2 Storage or Workers Routes:
+   this site uses none of them.
 
 6. **Account Resources**: restrict it to the account that owns your project.
 7. Click **Continue to summary**, then **Create Token**.
@@ -612,14 +624,19 @@ with no colours and no formatting.
 
 ### A permission or sign-in error when it tries to publish
 
-**Symptom:** the red step is `deploy to cloudflare pages` and the log mentions
-authentication, a 403, or permission denied.
+**Symptom:** the red step is `deploy to cloudflare workers` and the log mentions
+authentication, a 403, or "Not enough permissions to deploy".
 
 **Why, in order of likelihood:**
-1. The Cloudflare token has expired. Cloudflare API tokens do not expire by
+1. The token has **Workers Scripts > Edit**, not **Cloudflare Pages > Edit**.
+   This is the most common cause by a wide margin, because Cloudflare's dashboard
+   offers both and they are not interchangeable: this site is published as a
+   Worker, so Pages permissions do nothing for it. Earlier versions of this
+   document told you to use Pages, which was the bug.
+2. The Cloudflare token has expired. Cloudflare API tokens do not expire by
    default, but they can be revoked.
-2. The token is missing the **Cloudflare Pages > Edit** permission, or was
-   created against a different account than the one owning the project.
+3. The token was created against a different account than the one owning the
+   Worker.
 3. The token needs the extra **Account Settings > Read** permission. See
    section 7.
 4. `CLOUDFLARE_ACCOUNT_ID` belongs to a different account than the token.

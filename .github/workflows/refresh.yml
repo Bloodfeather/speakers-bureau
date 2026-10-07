@@ -74,10 +74,23 @@
 # command line where it would land in the log.
 #
 # The token is a scoped API token from the Cloudflare dashboard - not an account
-# password, and not a Global API Key. It carries ONE permission, Account >
-# Cloudflare Pages > Edit, restricted to the one account that owns the Pages
-# project. That is the minimum that can create a deployment, and it cannot read
-# DNS records, cannot read billing, and cannot reach Workers, KV or R2.
+# password, and not a Global API Key.
+#
+# THE PERMISSION IS "Workers Scripts > Edit", NOT "Cloudflare Pages > Edit", and
+# this comment previously said the opposite. That was wrong, and following it
+# would have produced a token that deploys nothing: `wrangler deploy` publishes
+# a Worker, so Pages permissions do not apply to it at all. Cloudflare's own
+# documented permission set for this command is Account > Workers Scripts (edit)
+# plus Account > Account Settings (read), and the dashboard's "Edit Cloudflare
+# Workers" template grants exactly that. The quickest way to get this right is to
+# use that template rather than to hand-pick permissions.
+#
+# The token is restricted to the one account that owns this Worker. It cannot read
+# DNS records and cannot read billing.
+#
+# The old comment claimed this permission "cannot reach Workers, KV or R2", which
+# was self-contradictory: Workers Scripts > Edit IS reaching Workers, and reaching
+# Workers is the entire point of the permission.
 #
 # WHY A TOKEN AND NOT THE OAUTH LOGIN. Wrangler can be logged in interactively
 # with `wrangler login`, which is the right tool for a developer on a laptop. It
