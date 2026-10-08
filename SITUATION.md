@@ -150,36 +150,41 @@ The fix for section 4 is `workers/feed-egress/worker.js`, a Worker that fetches
 feed URLs and relays the bytes. It parses nothing and decides nothing; all
 validation, retry policy and normalization stay in `scripts/`, under test.
 
-**That fixed the 403 and introduced a second problem.** Funnelling every
-scheduled request through one Worker means all scheduled traffic arrives from a
-small set of Cloudflare addresses, and the origins throttle it:
+**That fixed the 403, and for a while it looked like it had introduced a second
+problem.** Funnelling every scheduled request through one Worker means all
+scheduled traffic arrives from a small set of Cloudflare addresses. Four
+scheduled runs in a row were throttled:
 
 ```
-feed                    residential   via Worker
-unitedpatriotsalliance    200           200
-evanmulch                 200             0
-malone                    200             0
-melthevcl                 200           200
-```
-
-Every scheduled run since the Worker went in has failed with HTTP 429:
-
-```
-2026-10-07T06:00Z   (old, pre-Worker: the 403)
 2026-10-07T15:33Z   429
 2026-10-07T21:18Z   429
 2026-10-08T06:05Z   429
 2026-10-08T15:37Z   429
 ```
 
-An earlier note in `build-log.md` frames this as residue from diagnostic probing.
-**That framing was wrong.** It is chronic, not incidental. The response being
-implemented is to request less often and less burstily: a stagger between feeds,
-a longer retry window for 429, and a move from a 4-hourly to a 6-hourly
-schedule.
+**CORRECTION, made in the open on 2026-10-08 after the evidence contradicted it.**
+An earlier version of this file called that pattern *chronic, not incidental*, and
+implied the request rate had to be cut further. That was too strong, and it was
+written from the failure count rather than from a diagnosis. What is actually
+known:
 
-If that proves insufficient, the next option is to stop making the Worker the
-sole route, so that neither path carries the whole load. See section 9.
+- Four consecutive failures, then a clean pass. A Cloudflare-egress probe at
+  19:11Z returned **200 on all four feeds in 15-69ms with no `retry-after`**, and
+  the 19:12Z run then fetched **4 sources, 4 OK, 0 failed**.
+- So the throttling is **intermittent and bursty**, not a standing limit.
+- Heavy probing on 2026-10-07 plausibly caused some of it, since this
+  investigation hit these feeds dozens of times in a few hours. But the failures
+  on 2026-10-08 at 06:05Z and 15:37Z happened while no probing was happening, so
+  probing is not the whole explanation either.
+- The honest summary is that the Worker concentrates the request rate, which
+  makes throttling *possible*, and something about the request pattern tips it
+  over sometimes. No single cause has been established.
+
+The stagger and the longer retry window are the right mitigation for intermittent
+throttling regardless of the cause, and the 6-hourly interval reduces exposure.
+Keep them. But do not treat the 429s as solved until several consecutive runs
+have passed, and do not be surprised by an occasional red run that is purely
+this.
 
 ---
 
@@ -193,9 +198,36 @@ The four repository secrets, and the true state of each:
 | Secret | Set | Works? |
 | --- | --- | --- |
 | `FEED_EGRESS_TOKEN` | yes | **Yes.** Proved by a green refresh job. |
-| `PAT_TOKEN` | yes | **Unknown.** Secret values cannot be read back, and this is only exercised when dataset *content* changes. Expect a loud, safe failure if it is wrong: nothing written, deploy skipped, live site untouched. |
+| `PAT_TOKEN` | yes | **No.** Authenticates as `Bloodfeather` but is denied write access. See below. |
 | `CLOUDFLARE_ACCOUNT_ID` | yes | Yes, as far as it can be: verified to match the account wrangler deploys to. It is an identifier, not a credential. |
 | `CLOUDFLARE_API_TOKEN` | yes | **No.** See below. |
+
+### The GitHub token problem, found 2026-10-08
+
+This was flagged as unverified in earlier versions of this file, and it is now
+the confirmed blocker. The fetch succeeds, the dataset is committed **locally**,
+and the push is refused:
+
+```
+[main 77edf00] data: refresh dataset (+5 added, ...)
+remote: Permission to Bloodfeather/speakers-bureau.git denied to Bloodfeather.
+fatal: unable to access 'https://github.com/Bloodfeather/speakers-bureau/': The
+requested URL returned error: 403
+```
+
+Read that carefully, because it narrows the problem a long way. **The token is
+valid and authenticating correctly** - GitHub names the authenticated principal
+as `Bloodfeather`, which is the right account. It is not a malformed or expired
+token. It simply **lacks write permission on this repository**.
+
+The fix is in the token's settings, not its value: a **fine-grained** token needs
+this repository selected under *Repository access*, and **Contents: Read and
+write** under *Permissions*. A classic PAT would instead need the `repo` scope.
+
+**Because `deploy` has `needs: refresh`, this blocks publishing entirely.** A
+failed push means the refresh job is red, so the deploy job is skipped and the
+Cloudflare token is never even exercised. Fix this before spending more effort on
+the Cloudflare token, or the next thing you learn will still be about this one.
 
 ### The Cloudflare token problem
 
@@ -364,8 +396,22 @@ ASCII audit of a source file should show exactly zero, while an audit of
 
 ## 9. What to do next, in order
 
-1. **Fix `CLOUDFLARE_API_TOKEN`.** Have the owner verify it locally without
-   exposing it:
+**The order matters, and it changed on 2026-10-08.** `PAT_TOKEN` used to be item
+4 and "unverified". It is now item 1 and known broken, because a failed push
+makes the refresh job red, which skips the deploy job, which means the Cloudflare
+token is never exercised. Fixing Cloudflare first would have taught us nothing.
+
+1. **Fix `PAT_TOKEN`.** It authenticates as the right account but is denied
+   write access, so the fix is in the token's settings:
+   - Fine-grained token: select **this repository** under *Repository access*,
+     and set **Contents: Read and write** under *Permissions*.
+   - Classic PAT: the **`repo`** scope.
+
+   Verify without exposing it: `gh auth status` will not help for a token stored
+   as a secret, so the quickest confirmation is simply to re-run the workflow and
+   read whether `commit and push the dataset` goes green.
+2. **Then fix `CLOUDFLARE_API_TOKEN`,** which will only become visible once the
+   push succeeds. Have the owner verify it locally without exposing it:
    ```powershell
    $env:CF = Read-Host "paste token"
    "length      : $($env:CF.Length)"
@@ -376,14 +422,13 @@ ASCII audit of a source file should show exactly zero, while an audit of
    ```
    A valid Cloudflare API token is **40 characters**, `[A-Za-z0-9_-]` only.
    `Read-Host` keeps it out of shell history. Expect `"success":true`.
-2. **Watch the rate limiting.** Confirm the stagger, the longer retry window and
-   the 6-hourly interval actually clear the 429s across several scheduled runs.
-   This cannot be verified in one run; it needs a few days of evidence.
-3. **If 429s persist,** stop making the Worker the only route, so neither the
-   Worker nor a single IP carries the whole load. This is the remaining
-   architectural option and has not been tried.
-4. **Exercise `PAT_TOKEN`.** It is still unverified. The first run that finds a
-   genuine content change will test it.
+3. **Expect occasional 429 failures and do not treat them as regressions.**
+   The throttling is intermittent, not a standing limit: see section 5. The
+   stagger and the longer retry window are the right mitigation. Judge them on
+   several consecutive runs, not one.
+4. **Only if 429s prove chronic,** stop making the Worker the only route, so
+   neither the Worker nor a single IP carries the whole load. That is the
+   remaining architectural option and has not been tried.
 5. **Update `docs/DEPLOY.md` and this file** as the state changes. Section 2 is
    the table to edit first.
 
