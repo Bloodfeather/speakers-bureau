@@ -30,7 +30,7 @@
 # (superseded heading) Publishing this site to Cloudflare Pages
 
 This document takes you from "the site works on my computer" to "the site
-updates itself every four hours, on its own, forever," published at
+updates itself every six hours, on its own, forever," published at
 **scspeakersbureau.org**.
 
 Almost everything here is a click in a website. You should not need a command
@@ -77,7 +77,7 @@ This is the part that is genuinely unusual, so read it before anything else.
 
 Your site is **built on GitHub** and **hosted at Cloudflare**. Both are needed:
 
-- **GitHub** runs the timer and saves your work. Every four hours it fetches the
+- **GitHub** runs the timer and saves your work. Every six hours it fetches the
   feeds, and if anything changed it saves a commit. That commit is why you can
   always answer "why is this article on my site?"
 - **Cloudflare** stores the website itself and serves it to visitors.
@@ -194,7 +194,7 @@ rather than later.
 automated job can act as you, instead of needing your username and password.**
 
 Why the automated job needs one: GitHub runs the scheduled job on a brand new,
-empty computer, roughly six times a day. That computer has never seen your
+empty computer, roughly four times a day. That computer has never seen your
 laptop and has no access to your GitHub Desktop session. It has no memory of
 your login. Without a token it has nothing to log in with, so it cannot save its
 work back to your repository.
@@ -299,7 +299,7 @@ taken and it added characters, use the name it actually gave you.
 
 You are creating the project as a "Direct Upload" project. That is exactly what
 the automatic publishing in section 8 needs, and the two work together: you can
-drag a folder in by hand today, and the automation can replace it every four
+drag a folder in by hand today, and the automation can replace it every six
 hours tomorrow, into the same project, at the same address.
 
 **One thing to know, so it does not surprise you later:** you cannot connect a
@@ -492,8 +492,12 @@ There is no switch to flip. The automation is already written and is already
 looking at your repository. Once the four settings from section 8 exist, the next
 scheduled run will publish.
 
-The schedule runs roughly every four hours, at about 17 minutes past the hour:
-00:17, 04:17, 08:17, 12:17, 16:17 and 20:17 UTC.
+The schedule runs roughly every six hours, at about 17 minutes past the hour:
+00:17, 06:17, 12:17 and 18:17 UTC. That is four times a day.
+
+The 17 is deliberate rather than round. GitHub's own automated jobs all queue at
+the top of the hour, so a job scheduled at :00 starts more slowly. Seventeen
+past spreads the load. It has nothing to do with how often the site checks.
 
 ---
 
@@ -691,6 +695,40 @@ It lists **every** problem at once rather than stopping at the first, including
 any image file it could not find. `data/events.schema.md` is the written
 contract for the file.
 
+### In plain language: the site checks every six hours, and it always stays up
+
+This section is here so that the rest of section 12 does not have to be read to
+understand the one thing that happens most often.
+
+**The site looks for new articles four times a day, not continuously.** It
+checks roughly every six hours: at about 17 minutes past 00:00, 06:00, 12:00 and
+18:00 **UTC** (UCT is the time used in computer and web addresses, and is an
+hour behind British Summer Time). It is a fixed timetable, not a constant
+stream, and that is deliberate - there is no version of this site that watches
+the publications in real time.
+
+**Sometimes a check is turned away, and the site carries on anyway.** If all
+four publications are being asked for new articles too often by too many
+different visitors at the same moment, they refuse the request. That is called
+being rate limited, and it is the same thing that happens if you try to open a
+bank's website fifty times in a minute. **When this happens the site keeps
+showing the articles it already has.** Nothing is deleted, nothing is blanked,
+the address still works, and the previous version stays online. The only
+consequence is that new articles appear a little late.
+
+**There is nothing to do about it.** Do not change anything in the project, do
+not re-run anything, and do not worry about it. The next check on the timetable
+will usually work perfectly. A red box in the Actions tab with the words
+"fetch feeds" next to it is this situation, and it is the system behaving
+correctly rather than a fault to repair.
+
+**If you ever want it faster or slower, it is one line.** Open
+`.github/workflows/refresh.yml` and look at the line that says `cron`. Change
+the `6` in `'17 */6 * * *'` to any number you like, save, and push. Nothing
+else in this project needs to change, and no file other than that one. Two
+things to leave alone: keep the `17` (see section 10 for why), and be aware
+that a number smaller than `6` may bring the refusals described above back.
+
 ---
 
 ## 13. Confirming it is genuinely updating
@@ -699,7 +737,7 @@ After the first automatic run:
 
 - In GitHub Desktop, click **Fetch origin**. A new `data: refresh dataset`
   commit appears when anything changed.
-- The Actions tab shows a run about every four hours. **A run is not proof of
+- The Actions tab shows a run about every six hours. **A run is not proof of
   success.** Open it and read the steps. A run that saved nothing because
   nothing changed is still a healthy run.
 - Visit your site and look at the **Feeds last checked** line in the footer. It

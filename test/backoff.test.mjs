@@ -12,7 +12,26 @@
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { backoffFor, parseRetryAfter, get } from '../scripts/lib/http.mjs'
+import { backoffFor, parseRetryAfter, get, setSleepForTests } from '../scripts/lib/http.mjs'
+
+// A sleep that records what it was asked to wait for and returns at once.
+//
+// The 429 schedule now has a 120-second rung, so any test that reaches the
+// third retry through the real timer would make the suite sit there for two
+// minutes. This keeps the arithmetic honest - the waits are still computed and
+// still passed to a sleep - while costing nothing. Restored in a finally,
+// because a test that leaves a fake sleep installed silently turns every later
+// test in the process into a zero-wait fetcher.
+async function withRecordedSleeps(fn) {
+  const waits = []
+  setSleepForTests(async (ms) => { waits.push(ms) })
+  try {
+    await fn()
+  } finally {
+    setSleepForTests(null)
+  }
+  return waits
+}
 
 // ---------------------------------------------------------------------------
 // The schedules are ordered the way the reasoning says they must be.
@@ -40,15 +59,30 @@ test('the wait grows between attempts rather than staying flat', () => {
   }
 })
 
-test('a third attempt waits the same as the second rather than off the end of an array', () => {
+test('a past-the-end attempt clamps to the last rung rather than running off the array', () => {
   // backoffFor indexes a schedule by attempt. An attempt index past the end of
   // the array must clamp, not return undefined, which would be a NaN delay and
   // a silent immediate retry.
+  //
+  // THE LAST RUNG IS FOUND, NOT ASSUMED. This test used to hard-code "attempt 1
+  // is the end", which was true when every schedule had two rungs. Giving the
+  // 429 schedule a third rung made that assumption false, and it failed - but
+  // the clamping behaviour it was written to protect is unchanged. Finding the
+  // end means the next rung someone adds will not have to touch this line.
   for (const status of [429, 503, 0]) {
-    const second = backoffFor(status, 1)
-    const tenth = backoffFor(status, 9)
-    assert.equal(tenth, second, `status ${status}: schedule must clamp, not fall off the end`)
-    assert.ok(Number.isFinite(tenth), `status ${status}: a clamped wait must still be a number`)
+    let lastRung = backoffFor(status, 0)
+    let rung = 1
+    while (backoffFor(status, rung + 1) !== lastRung) {
+      rung += 1
+      assert.ok(rung < 20, `status ${status}: schedule should end, not grow without bound`)
+      lastRung = backoffFor(status, rung)
+    }
+
+    assert.ok(rung >= 1, `status ${status}: a schedule must have at least one rung to clamp to`)
+    const far = backoffFor(status, 9)
+    assert.equal(far, lastRung, `status ${status}: attempt 9 must clamp to rung ${rung} (${lastRung})`)
+    assert.ok(Number.isFinite(far), `status ${status}: a clamped wait must still be a number`)
+    assert.ok(far > 0, `status ${status}: a clamped wait must not be zero, which would be an immediate retry`)
   }
 })
 
@@ -134,13 +168,67 @@ test('a hostile Retry-After cannot park the run indefinitely', () => {
 // Behaviour, not just arithmetic: the retry loop has to actually use it.
 // ---------------------------------------------------------------------------
 
+test('the 429 schedule is 10s, 45s, then 120s, and the default retry count reaches all three', async () => {
+  // The values themselves, not just their ordering. An ordering property holds
+  // for [10, 45, 45] and for [10, 45, 120] equally, and only one of those is a
+  // schedule that outlasts a throttle that lasts two minutes.
+  assert.equal(backoffFor(429, 0, null), 10_000)
+  assert.equal(backoffFor(429, 1, null), 45_000)
+  assert.equal(backoffFor(429, 2, null), 120_000, 'the third 429 wait must be the long one')
+
+  // And the default retry count has to be able to get there: with 3 retries the
+  // loop makes 4 attempts and waits on 3 of them, so the 120s rung is reachable.
+  // With the previous count of 2 it was a line of code that could never execute.
+  let attempts = 0
+  const impl = async (url) => {
+    attempts += 1
+    return { ok: false, status: 429, url, headers: { get: () => null }, text: async () => '' }
+  }
+
+  const recorded = await withRecordedSleeps(async () => {
+    await get('https://example.substack.com/feed', { fetchImpl: impl, timeoutMs: 100 })
+  })
+
+  assert.equal(attempts, 4, 'the default must allow four attempts')
+  assert.deepEqual(
+    recorded,
+    [10_000, 45_000, 120_000],
+    'a fully throttled feed must actually walk the whole 429 schedule'
+  )
+})
+
+test('a 5xx and a dropped connection still get short schedules', async () => {
+  // The point of separating the schedules was that only 429 needs real elapsed
+  // time. Extending 429 must not have dragged the other two along with it,
+  // because a server error clears in seconds and a two-minute wait for a 503 is
+  // the runner doing nothing.
+  assert.equal(backoffFor(503, 0, null), 1_000)
+  assert.equal(backoffFor(503, 1, null), 4_000)
+  assert.equal(backoffFor(500, 0, null), 1_000)
+  assert.equal(backoffFor(0, 0, null), 2_000)
+  assert.equal(backoffFor(0, 1, null), 8_000)
+
+  const impl = async (url) => {
+    return { ok: false, status: 503, url, headers: { get: () => null }, text: async () => '' }
+  }
+  const recorded = await withRecordedSleeps(async () => {
+    await get('https://example.invalid/feed', { fetchImpl: impl, timeoutMs: 100 })
+  })
+
+  assert.deepEqual(recorded, [1_000, 4_000, 4_000], 'the last 5xx wait clamps to the end of its schedule')
+})
+
 test('a 429 is retried, and a 403 is not', async () => {
   const seen = []
   const impl = async (url) => {
     seen.push(Date.now())
     return { ok: false, status: 429, url, headers: { get: () => null }, text: async () => '' }
   }
-  await get('https://example.substack.com/feed', { fetchImpl: impl, retries: 1, timeoutMs: 100 })
+  // Recorded sleeps: with retries:1 this is a single 10s wait on the real timer,
+  // which the suite used to pay in full on every run.
+  await withRecordedSleeps(async () => {
+    await get('https://example.substack.com/feed', { fetchImpl: impl, retries: 1, timeoutMs: 100 })
+  })
   assert.equal(seen.length, 2, 'a 429 must be retried')
 
   const attempts403 = []

@@ -21,12 +21,24 @@ export const USER_AGENT =
 // from a CDN and normally lands in under 2s. 15s is generous enough to absorb
 // cold TLS and a slow mobile link, short enough that a hung socket on a
 // 20-source list cannot stall the scheduled Action for minutes. Retries add
-// up: 3 attempts x 15s plus backoff is a ~50s worst case per dead feed, which
-// is acceptable for a job that runs every 4h. Raise it if feeds are ever
-// fetched from somewhere genuinely slow rather than by reflex.
+// up, and they now add up to more than they used to: see the worst-case note
+// on BACKOFF_429_MS for the figure that now governs. The timeout itself is
+// unchanged. Raise it if feeds are ever fetched from somewhere genuinely slow
+// rather than by reflex.
 const DEFAULT_TIMEOUT_MS = 15_000;
-const DEFAULT_RETRIES = 2;
-const BACKOFF_MS = [750, 2000];
+
+// Four attempts, not three. The rate-limit schedule below grew a third rung
+// (see BACKOFF_429_MS), and a schedule with more rungs than attempts is a
+// schedule that is never actually used. Raising the retry count is what makes
+// the 120s rung reachable, so the two numbers are changed together on purpose.
+const DEFAULT_RETRIES = 3;
+
+// DELETED, 2026-10-08: `const BACKOFF_MS = [750, 2000]` sat here unused for two
+// days. The single flat schedule was replaced by three kind-specific ones below,
+// and this leftover was never removed. It compiled, every test passed, and it was
+// still a lie in the file: a reader would reasonably conclude those were the
+// waits. Found by grepping the whole repo for the identifier rather than by
+// reading the file, which is the only reason it surfaced at all.
 
 // Status codes worth trying again.
 //   5xx - server-side problem, may be transient.
@@ -55,13 +67,27 @@ function isRetryableStatus(status) {
 //   network  no response at all. Usually a dropped connection, and a short gap
 //            is usually enough; a long one just wastes the runner's clock.
 //
-// WORST CASE, and it is bounded deliberately. Per feed: 3 attempts, each capped
-// at DEFAULT_TIMEOUT_MS, plus at most 10s + 45s of waiting for a 429. That is
-// roughly 100s for a throttled feed, and feeds are fetched one at a time, so a
-// run where every feed is throttled costs a few extra minutes. A scheduled job
-// that waits three minutes to avoid publishing stale data is a good trade; one
-// that waits three minutes and still fails teaches nothing.
-const BACKOFF_429_MS = [10_000, 45_000];
+// WHY 429 GETS A SCHEDULE OF ITS OWN AND NOT A LONGER VERSION OF THE OTHERS.
+// A 5xx clears in seconds: the server is briefly broken, so waiting is nearly
+// free and waiting long is pure waste. A 429 means the server is measuring our
+// request RATE, and rate limits are denominated in elapsed time - a retry that
+// arrives 2 seconds after a refusal is not slower, it is the same client
+// arriving again. So the two cannot share a schedule: scaling one schedule
+// uniformly would make a 5xx wait minutes it does not need, in order to make a
+// 429 wait longer than it otherwise would.
+//
+// THIRD RUNG ADDED, AND THE RETRY COUNT RAISED WITH IT. Two attempts of
+// [10s, 45s] outlasted a short throttle and not a long one, which is how a
+// throttled feed still shipped stale. The schedules stay deliberately unequal -
+// 5xx and network are untouched, because their reasoning did not change.
+//
+// WORST CASE, and it is bounded deliberately. Per feed: 4 attempts, each capped
+// at DEFAULT_TIMEOUT_MS, plus at most 10s + 45s + 120s of waiting for a 429.
+// That is roughly four minutes for one throttled feed. Feeds are fetched ONE AT
+// A TIME, so a fully throttled run costs a few extra minutes on a job that runs
+// a few times a day. A scheduled job that waits to avoid publishing stale data
+// is a good trade; one that waits and still fails teaches nothing.
+const BACKOFF_429_MS = [10_000, 45_000, 120_000];
 const BACKOFF_5XX_MS = [1_000, 4_000];
 const BACKOFF_NETWORK_MS = [2_000, 8_000];
 
@@ -76,6 +102,28 @@ const BACKOFF_NETWORK_MS = [2_000, 8_000];
 // useful header for this exact problem was being dropped on the floor by the
 // relay that exists to carry it.
 const RETRY_AFTER_CAP_MS = 120_000;
+
+// THE WAIT IS INJECTABLE, and the reason is test duration rather than design.
+// The 429 schedule now contains a 120-second rung, so a test that exercised a
+// throttled retry against the real timer would make the suite sit there for two
+// minutes. Module scope plus a setter is the smallest seam that fixes it: with
+// nothing injected the behaviour is byte-for-byte what it was, `delay` itself.
+let sleepImpl = delay;
+
+/**
+ * Replace the sleep used between retry attempts. FOR TESTS ONLY.
+ *
+ * Production code must never call this. There is no legitimate runtime reason
+ * to change how the client waits, and a caller that got it wrong would silently
+ * turn a rate-limit backoff into an immediate retry - the exact failure this
+ * module exists to prevent. Pass `null` to restore the real timer.
+ *
+ * @param {((ms:number)=>Promise<unknown>)|null} fn
+ * @returns {void}
+ */
+export function setSleepForTests(fn) {
+  sleepImpl = typeof fn === 'function' ? fn : delay;
+}
 
 /**
  * How long to wait before the next attempt, given how the last one failed.
@@ -144,7 +192,7 @@ export function parseRetryAfter(value) {
  * @param {string} url
  * @param {object} [options]
  * @param {number} [options.timeoutMs=15000] per-attempt timeout
- * @param {number} [options.retries=2]      extra attempts after the first
+ * @param {number} [options.retries=3]      extra attempts after the first
  * @param {Function} [options.fetchImpl]    injectable for tests; defaults to the
  *                                          feed-egress Worker when
  *                                          FEED_EGRESS_URL is set, otherwise
@@ -187,7 +235,7 @@ export async function get(url, options = {}) {
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     if (attempt > 0) {
-      await delay(backoffFor(lastStatus, attempt - 1, lastRetryAfter));
+      await sleepImpl(backoffFor(lastStatus, attempt - 1, lastRetryAfter));
     }
 
     let response = null;

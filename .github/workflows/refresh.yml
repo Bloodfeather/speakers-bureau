@@ -95,7 +95,7 @@
 # WHY A TOKEN AND NOT THE OAUTH LOGIN. Wrangler can be logged in interactively
 # with `wrangler login`, which is the right tool for a developer on a laptop. It
 # stores a token in a config file on one machine, and a fresh ephemeral runner
-# six times a day has no such file and cannot be handed one. An API token is the
+# four times a day has no such file and cannot be handed one. An API token is the
 # only credential a stateless runner can be given, and the only one that can be
 # scoped down to a single permission.
 #
@@ -108,13 +108,24 @@ name: refresh
 
 on:
   schedule:
-    # Every 4 hours. Minute 17, not 0: every scheduled workflow on GitHub that
+    # Every 6 hours. Minute 17, not 0: every scheduled workflow on GitHub that
     # fires on the hour queues against the same infrastructure, so an off-hour
     # minute starts faster and jitter-spreads the load.
-    - cron: '17 */4 * * *'
+    #
+    # The interval was widened from every 4 hours to every 6 hours. That is a
+    # measured response to rate limiting on the fetch - the scheduled runs were
+    # being refused with HTTP 429 - and not a preference for a slower site.
+    # Requesting less often is the fix that does not move the architecture.
+    # Those are four runs a day rather than six.
+    #
+    # The minute-of-hour reason above is a SEPARATE thing and is not part of the
+    # interval change. It is about how quickly the job STARTS, not how many
+    # requests it makes, so widening the interval neither depends on it nor
+    # weakens it. Minute 17 stays.
+    - cron: '17 */6 * * *'
   # A push to the branch publishes. This is the trigger that makes the everyday
   # answer to "I changed something" be `git push` and nothing else - no waiting
-  # up to four hours for the schedule, and no manual run from the Actions tab.
+  # up to six hours for the schedule, and no manual run from the Actions tab.
   #
   # It runs the FULL pipeline, fetch included, rather than deploy-only, and that
   # is deliberate. A code change should not be able to publish a dataset it never
@@ -198,7 +209,7 @@ jobs:
           # floating number.
           node-version: '24'
           # npm cache keyed on the lockfile. Cuts a minute or more off every run,
-          # which matters for a job that runs six times a day.
+          # which matters for a job that runs four times a day.
           cache: npm
           cache-dependency-path: package-lock.json
 
@@ -260,7 +271,7 @@ jobs:
           # The committed copy, for comparison.
           git show HEAD:data/articles.json > "$PREV"
           # generatedAt is a fresh ISO timestamp on every single run, so the file
-          # is BYTE-DIFFERENT every 4 hours no matter what the feeds did. A plain
+          # is BYTE-DIFFERENT every 6 hours no matter what the feeds did. A plain
           # `git diff --quiet` therefore NEVER says "unchanged" and would commit
           # a one-line timestamp bump forever, which is the empty-commit churn
           # this job exists to avoid. So the comparison below drops generatedAt
@@ -498,5 +509,5 @@ jobs:
 #
 # All three are checked by name in this file and all three fail with a message
 # that names the missing setting, because a workflow that fails obscurely on a
-# schedule six times a day is a workflow that stays broken for weeks.
+# schedule four times a day is a workflow that stays broken for weeks.
 # ---------------------------------------------------------------------------

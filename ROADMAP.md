@@ -97,7 +97,7 @@ scripts/fetch-feeds.mjs ... validate -> normalize -> dedupe -> data/articles.jso
 src/pages/* .............. Astro renders the dataset (static, no server)
         |
 .github/workflows/refresh.yml
-   every 4h: fetch, commit if changed, build, deploy to Pages
+   every 6h: fetch via the egress Worker, commit if changed, build, deploy to Workers
 ```
 
 ### Why the dataset is a committed JSON file

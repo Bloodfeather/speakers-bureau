@@ -267,21 +267,25 @@ completely with JavaScript turned off.
 
 ---
 
-## Publishing to Cloudflare Pages
+## Publishing to Cloudflare Workers
 
-A scheduled GitHub Action refreshes the dataset roughly every four hours,
-commits it if anything changed, builds the site, and publishes it to Cloudflare
-Pages at `scspeakersbureau.org`.
+A scheduled GitHub Action refreshes the dataset roughly every six hours, commits
+it if anything changed, builds the site, and publishes it to a Cloudflare Worker.
+
+**Note the domain.** The site is published at
+`https://bold-unit-b37a.mstricklandtech.workers.dev`, **not** at
+`scspeakersbureau.org`. That domain serves a separate, pre-existing WordPress
+site and is not connected to this project. See `SITUATION.md` section 6.
 
 The schedule and the dataset commit stay on GitHub Actions; only the publish
-step is Cloudflare. That means three secrets (`PAT_TOKEN`,
-`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) and one variable
-(`CLOUDFLARE_PAGES_PROJECT`). The click-by-click instructions, and what to do
-when each step fails, are in **[`docs/DEPLOY.md`](docs/DEPLOY.md)**.
+step is Cloudflare. That means four secrets (`FEED_EGRESS_TOKEN`, `PAT_TOKEN`,
+`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`). The click-by-click
+instructions, and what to do when each step fails, are in
+**[`docs/DEPLOY.md`](docs/DEPLOY.md)**.
 
-**The workflow has never been run.** It has been checked for valid YAML and for
-its structure, but no run has happened, because that needs a repository, a
-Cloudflare account, and tokens first. Treat the first manual run as a real test.
+**Automated publishing has not yet succeeded.** Runs execute and the feed fetch
+works, but the Cloudflare deploy step fails on its API token. Treat the first
+green run as a real milestone, not a formality.
 
 ---
 

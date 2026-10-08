@@ -21,6 +21,7 @@ import { writeFile, rename, mkdir, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { setTimeout as delay } from 'node:timers/promises';
 import { parse as parseYaml } from 'yaml';
 
 import { get } from './lib/http.mjs';
@@ -71,6 +72,80 @@ export function parseArgs(argv) {
   }
 
   return opts;
+}
+
+// WHY THE FEEDS ARE FETCHED ONE AT A TIME WITH A GAP, AND WHY THE GAP IS HERE
+// RATHER THAN IN THE WORKFLOW.
+//
+// The scheduled run is HTTP 429 because every run shares a small set of
+// Cloudflare egress addresses, so four feeds arriving as one burst is four
+// requests from the same apparent client in the same second. Spacing them in
+// the workflow file would fix it too, but it would be invisible in the code
+// that does the fetching: the fetcher would still be capable of bursting, and
+// the next person to add a call site would reintroduce it. So the pacing lives
+// here, where the loop is.
+//
+// It is a separate mechanism from the retry backoff in http.mjs on purpose. That
+// one reacts to a server that has already refused us; this one prevents us from
+// asking in the first place. Neither can do the other's job.
+//
+// Exported so the tests assert the real fallback rather than a number they
+// hard-code and drift from.
+export const DEFAULT_STAGGER_MS = 5_000;
+
+/**
+ * How long to wait between feeds, from the FEED_STAGGER_MS environment value.
+ *
+ * 0, an empty value, or unset all mean "no stagger at all". A garbage or
+ * negative value falls back to DEFAULT_STAGGER_MS.
+ *
+ * THE PARSE IS DEFENSIVE BECAUSE OF WHAT NaN DOES TO setTimeout. It does not
+ * reject it: `setTimeout(fn, NaN)` fires on the next tick. So a typo in a
+ * workflow file - FEED_STAGGER_MS=5_000, or a stray character - would turn the
+ * pacing off entirely while the configuration still plainly said it was on, and
+ * the run would burst 429 again with nothing in the logs to say why. Garbage
+ * falls back to the safe value, not to zero.
+ *
+ * A negative number is refused for the same reason: an unbounded negative
+ * delay is not "no delay", it is a coerced zero somewhere further down.
+ *
+ * @param {unknown} raw the raw environment value, if any
+ * @returns {number} milliseconds to wait between feeds; 0 means no stagger
+ */
+export function staggerMsFrom(raw) {
+  // Unset and empty are the same instruction from an operator: not pacing.
+  if (raw === undefined || raw === null) return 0;
+  const text = String(raw).trim();
+  if (text === '') return 0;
+
+  // DIGITS AND NOTHING ELSE, not Number.parseInt on its own. parseInt stops at
+  // the first character it does not understand and returns what it got, so
+  // "5000ms" became 5000ms and "5_000" became 5. Neither is what anyone meant,
+  // and a 5ms gap is a stagger that is technically on and practically absent -
+  // the worst outcome, because the configuration reads as correct.
+  if (!/^\d+$/.test(text)) return DEFAULT_STAGGER_MS;
+
+  const parsed = Number(text);
+  if (!Number.isFinite(parsed)) return DEFAULT_STAGGER_MS;
+  return parsed;
+}
+
+// The stagger wait is injectable for the same reason the retry wait is, and the
+// same rule applies: production code must never call the setter. The default is
+// the real timer, so nothing about the shipped behaviour depends on this.
+let sleepImpl = delay;
+
+/**
+ * Replace the sleep used between feeds. FOR TESTS ONLY.
+ *
+ * Exists so a test can assert how many gaps the fetch loop opened without
+ * spending five seconds per gap. Production code must never call this.
+ *
+ * @param {((ms:number)=>Promise<unknown>)|null} fn
+ * @returns {void}
+ */
+export function setStaggerSleepForTests(fn) {
+  sleepImpl = typeof fn === 'function' ? fn : delay;
 }
 
 // A topic tag is a short human-typed word, not a sentence. A longer value is
@@ -275,6 +350,44 @@ export async function collectSource(source, io = {}) {
 }
 
 /**
+ * Fetch every source in order, pausing between them.
+ *
+ * Extracted from main() for one reason: the pacing loop is the thing this
+ * change adds, and a loop that cannot be called cannot be tested. main() used
+ * to hold it inline, which meant the only way to observe a gap was to run the
+ * real fetcher against the real network.
+ *
+ * THE PAUSE GOES BEFORE EACH SOURCE RATHER THAN AFTER EACH ONE. Same number of
+ * waits, and it makes "no wait after the last source" structural instead of a
+ * condition to get right: there is nothing after the last source, so nothing
+ * after it waits.
+ *
+ * @param {Array<object>} sources enabled sources, in configured order
+ * @param {{collect?:Function, staggerMs?:number, sleep?:Function, log?:Function}} [io]
+ * @returns {Promise<object[]>} one result per source, in the same order
+ */
+export async function collectAllSources(sources, io = {}) {
+  const {
+    collect = collectSource,
+    staggerMs = staggerMsFrom(process.env.FEED_STAGGER_MS),
+    sleep = sleepImpl,
+    log = () => {}
+  } = io;
+
+  const results = [];
+  for (let i = 0; i < sources.length; i += 1) {
+    const source = sources[i];
+
+    if (i > 0 && staggerMs > 0) await sleep(staggerMs);
+
+    const result = await collect(source);
+    results.push(result);
+    log(source, result);
+  }
+  return results;
+}
+
+/**
  * Dedupe by `id`, keeping the first occurrence, and sort newest first.
  *
  * The same article syndicated into two feeds collapses to one. First-wins
@@ -443,31 +556,33 @@ async function main() {
     );
   }
 
-  const results = [];
-  for (const source of enabled) {
-    // NO `io` ARGUMENT, AND THAT IS LOAD-BEARING.
-    //
-    // This line used to read `{ fetchImpl: globalThis.fetch }`. That explicitly
-    // injected the network fetch, and http.mjs gives an injected fetchImpl
-    // priority over its own default - correctly, because that is what makes the
-    // test suite injectable. The consequence was that the feed-egress Worker was
-    // never used by the real fetcher at all: every request went straight out over
-    // the runner's own network, and every feed still answered 403.
-    //
-    // It looked fine locally, which is what made it dangerous. From a residential
-    // IP the direct path returns 200, so a local run could not tell the two paths
-    // apart - a local "end to end" check of this change reported 4 sources and 49
-    // items and demonstrated nothing whatsoever. The symptom only appeared on the
-    // runner, as the same 403 this whole change exists to remove.
-    //
-    // Passing nothing lets http.mjs decide: the egress relay when FEED_EGRESS_URL
-    // is set, the network otherwise. One place knows about the transport, and
-    // that place is the transport's own module.
-    const result = await collectSource(source);
-    results.push(result);
-    const mark = result.error ? 'FAIL' : `OK ${result.itemCount} items`;
-    process.stdout.write(`fetched ${source.id}: ${mark}\n`);
-  }
+  // NO `io.fetchImpl`, AND THAT IS LOAD-BEARING.
+  //
+  // This loop used to pass `{ fetchImpl: globalThis.fetch }` to collectSource.
+  // That explicitly injected the network fetch, and http.mjs gives an injected
+  // fetchImpl priority over its own default - correctly, because that is what
+  // makes the test suite injectable. The consequence was that the feed-egress
+  // Worker was never used by the real fetcher at all: every request went
+  // straight out over the runner's own network, and every feed still answered
+  // 403.
+  //
+  // It looked fine locally, which is what made it dangerous. From a residential
+  // IP the direct path returns 200, so a local run could not tell the two paths
+  // apart - a local "end to end" check of this change reported 4 sources and 49
+  // items and demonstrated nothing whatsoever. The symptom only appeared on the
+  // runner, as the same 403 this whole change exists to remove.
+  //
+  // Passing nothing lets http.mjs decide: the egress relay when FEED_EGRESS_URL
+  // is set, the network otherwise. One place knows about the transport, and that
+  // place is the transport's own module. Only the pacing and the progress line
+  // are supplied here.
+  const results = await collectAllSources(enabled, {
+    staggerMs: staggerMsFrom(process.env.FEED_STAGGER_MS),
+    log: (source, result) => {
+      const mark = result.error ? 'FAIL' : `OK ${result.itemCount} items`;
+      process.stdout.write(`fetched ${source.id}: ${mark}\n`);
+    }
+  });
 
   const okResults = results.filter((r) => !r.error);
   const allArticles = okResults.flatMap((r) => r.articles);
