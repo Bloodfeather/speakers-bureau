@@ -56,7 +56,7 @@ const navItems = [
 const isCurrent = (href: string) => currentPath === href
 ---
 
-<header class="masthead">
+<header class="masthead" style={`--masthead-banner: url('${withBase('/img/banner.jpg')}')`}>
   <div class="masthead__inner">
     <p class="masthead__name">
       <a class="masthead__home" href={withBase('/')}>
@@ -88,8 +88,29 @@ const isCurrent = (href: string) => currentPath === href
 
 <style>
   .masthead {
-    padding-block: var(--space-6) var(--space-5);
+    position: relative;
+    padding-block: var(--space-9) var(--space-8);
     border-block-end: var(--rule-width-strong) solid var(--rule-strong);
+    /* The banner is a custom property set on the element itself by the
+     * frontmatter, so the path goes through withBase() like every other asset
+     * on this site. A literal url() here would hardcode the deployment root,
+     * which is the one thing withBase() exists to prevent. */
+    background-image: var(--masthead-banner);
+    background-size: cover;
+    background-position: center 30%;
+    isolation: isolate;
+  }
+
+  .masthead::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    /* The mute is the theme's own page colour, not a black or white scrim, so
+     * it darkens the painting on slate and lightens it on civic and ledger
+     * instead of washing the dark themes out. */
+    background: var(--bg);
+    opacity: 0.62;
+    z-index: -1;
   }
 
   .masthead__inner {

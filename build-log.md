@@ -5,6 +5,40 @@ interruption, read the top entry, then `ROADMAP.md`, then continue.
 
 ---
 
+## 2026-10-09 - The masthead carries a banner. One image, muted by the theme's own colour.
+
+**The change:** the masthead is now a full-bleed header with a painting behind it,
+supplied by the client. `public/img/banner.jpg`, 1920x960, 594 KB - the source was a
+1774x887 PNG at 3.5 MB, resized to 1920 wide and re-encoded as JPEG q85.
+
+**The mute is `var(--bg)`, not a scrim.** A `::before` overlay at `opacity: 0.62`
+paints the ACTIVE THEME'S PAGE COLOUR over the artwork, so the painting is darkened
+on slate and lightened on civic and ledger. A fixed black or white scrim would wash
+one of the two out, which is the bug this avoids by construction. `isolation:
+isolate` on the header contains the `z-index: -1` overlay so it cannot fall behind
+the page background.
+
+**The path goes through `withBase()`.** `background-image` cannot call a function, so
+the frontmatter passes `--masthead-banner` as an inline custom property on the header
+element and the stylesheet consumes it. Every other image in this project
+(`EventDetail`, `EventRow`) already routes through `withBase()`; a literal `url()`
+would hardcode the deployment root, which is the one thing that helper exists to
+prevent. Verified in the built output:
+`class="masthead" style="--masthead-banner: url('/img/banner.jpg')"`.
+
+**Verified:** `npm run build` exit 0, 7 pages. `npm test` 290 passing / 0 failing
+(unchanged count - this change adds no test). Rendered in headless Chrome at
+1440x900 and inspected in all three themes by setting `data-theme` and the matching
+`checked` radio: the banner is visible, the title keeps full contrast, and the slate
+header is dark rather than washed white. `background-position: center 30%` was
+measured against the first attempt, which sliced the painting through the middle.
+
+**Not done, deliberately:** no `pinokio.json`, no `.gitattributes` entry. `banner.jpg`
+is served as-is from `public/` and carries no reproducible-bytes assertion, so the
+`*.svg -text` rule does not apply to it.
+
+---
+
 ## 2026-10-09 - Automated publishing works. Three stacked faults, one unnecessary secret.
 
 **The result:** run **37965253177**, both jobs green, deploy published. The first
