@@ -10,22 +10,28 @@
 >
 > **What that means for the instructions below:**
 >
-> - **Sections 1-4 are still correct.** The GitHub repository, the public/private
->   decision, checking what got uploaded, and the `PAT_TOKEN` are all unchanged.
->   `PAT_TOKEN` is still needed: the refresh job commits the dataset back.
+> - **Section 4 is now a tombstone.** There is **no GitHub token to create**.
+>   `PAT_TOKEN` was deleted on 2026-10-09 and must not be recreated; the automatic
+>   `GITHUB_TOKEN` pushes the dataset. Section 4 explains why.
+> - **Sections 1-3 are still correct.** The GitHub repository, the public/private
+>   decision, and checking what got uploaded are all unchanged.
 > - **Section 5 is wrong.** There is no drag-and-drop upload for Workers static
 >   assets. The site was first published by hand, which is how it came to be on
 >   Workers, but that route does not exist for the platform we now target. The
 >   automatic route in section 8 is the route.
-> - **The Cloudflare token in section 7 is still correct**, with one addition:
->   `wrangler` may also ask for **Account > Account Settings > Read**. Grant it
->   if the first publish is refused.
+> - **Section 7 is correct and now carries the most important warning in this
+>   document:** do **not** set Client IP Address Filtering on the Cloudflare
+>   token. That single setting broke the deploy for a day.
 > - **Section 8 lists one setting too many.** There is no
->   `CLOUDFLARE_PAGES_PROJECT` variable any more. The Worker name lives in
->   `wrangler.jsonc`, committed, not in repository settings.
+>   `CLOUDFLARE_PAGES_PROJECT` variable any more, and no `PAT_TOKEN` secret. Two
+>   secrets remain, both Cloudflare.
 >
 > The repository is at <https://github.com/Bloodfeather/speakers-bureau> and the
 > live site is at the `workers.dev` address in that repository's description.
+>
+> **Automated publishing works as of 2026-10-09** (run 37965253177, the first
+> fully green run in the project's history). See `SITUATION.md` section 6 for the
+> three stacked faults that had to be cleared to get there.
 
 # (superseded heading) Publishing this site to Cloudflare Pages
 
@@ -49,25 +55,17 @@ never been tried.
 | The feed fetcher writes `data/articles.json` | Works. Verified against live feeds. |
 | `data/articles.json` is saved into the project's history | Yes, deliberately. |
 | The domain is set in `astro.config.mjs` | Done. `scspeakersbureau.org`. |
-| The publish file `.github/workflows/refresh.yml` | Written for Cloudflare. **Never run.** |
-| A GitHub repository for this project | **Not created. Section 1.** |
-| A GitHub token, so the automation can save its work | **Not created. Section 4.** |
-| A Cloudflare account and Pages project | **Not created. Section 5.** |
-| Cloudflare tokens for the automation | **Not created. Sections 6 and 7.** |
-| Automatic publishing switched on | Not yet. Section 8. |
+| The publish file `.github/workflows/refresh.yml` | **Working.** First fully green run 2026-10-09. |
+| A GitHub repository for this project | Created. |
+| A GitHub token, so the automation can save its work | **Not needed, and must not be created.** See section 4. |
+| A Cloudflare account and Worker | Created. `bold-unit-b37a`. |
+| Cloudflare tokens for the automation | Created. Sections 6 and 7. |
+| Automatic publishing switched on | **On.** Every 6 hours, and on every push to `main`. |
 
-**The honest part, stated plainly:** the automated publishing has never been
-executed. It could not be - when it was first written there was no GitHub
-repository for it to run in and no Cloudflare account to publish to. It has been
-checked to be valid YAML, its structure has been verified, and every setting it
-needs is named in it so that a missing one fails with a message saying which
-one. But "the file looks right" and "it runs" are different things.
-
-**The step most likely to fail first is a token in section 4 or section 7.**
-Those are the pieces nobody can check without real accounts. If something goes
-wrong, look there first.
-
-Section 11 is where you find out. Do not skip it.
+**The honest part, stated plainly:** this document was written before any of it
+had been executed, and it was wrong about one thing that mattered - it told you
+to create a GitHub token. That instruction cost three days. Everything is now
+verified by a real green run, and section 4 has been rewritten to say so.
 
 ---
 
@@ -89,14 +87,16 @@ of setup and costs nothing - both have generous free tiers.
 
 | Name | Kind | What it is | State |
 | --- | --- | --- | --- |
-| `FEED_EGRESS_TOKEN` | Secret | Shared key that lets the fetch reach the feeds. **Already set.** | Done |
-| `PAT_TOKEN` | Secret | Lets the automation save the fetched articles back to GitHub. Section 4. | **Set 2026-10-07** |
-| `CLOUDFLARE_API_TOKEN` | Secret | Lets the automation publish the built site to Cloudflare. Section 7. | **Needed** |
-| `CLOUDFLARE_ACCOUNT_ID` | Secret | Tells Cloudflare which account is yours. Section 6. | **Needed** |
+| `FEED_EGRESS_TOKEN` | Secret | Shared key that lets the fetch reach the feeds. | Set |
+| `CLOUDFLARE_API_TOKEN` | Secret | Lets the automation publish the built site to Cloudflare. Section 7. | Set |
+| `CLOUDFLARE_ACCOUNT_ID` | Secret | Tells Cloudflare which account is yours. Section 6. | Set |
 
-The first is **already set and you do not need to create it.** It was added on
-2026-10-07 to fix a problem you should know about, because it will look like
-something is broken otherwise.
+**Three settings, all present. There is no GitHub token among them** - the
+automatic `GITHUB_TOKEN` pushes the dataset, and a `PAT_TOKEN` must not be
+created. See section 4.
+
+`FEED_EGRESS_TOKEN` was added on 2026-10-07 to fix a problem you should know
+about, because it will look like something is broken otherwise.
 
 ### Why there is a Worker in the middle of the fetch
 
@@ -186,74 +186,59 @@ rather than later.
 
 ---
 
-## 4. Create the GitHub token, so the automation can save its work
+## 4. There is no GitHub token to create. This section was removed 2026-10-09.
 
-### What a token is, in one sentence
+**You do not need to create a `PAT_TOKEN`, and you should not.** If one exists in
+your repository settings, delete it.
 
-**A personal access token is a password that GitHub generates so that an
-automated job can act as you, instead of needing your username and password.**
+This section used to walk through generating a fine-grained personal access token
+with *Contents: Read and write*, saving it as `PAT_TOKEN`, and setting a calendar
+reminder for its expiry. All of that is unnecessary, and following it is what
+broke this project for three days.
 
-Why the automated job needs one: GitHub runs the scheduled job on a brand new,
-empty computer, roughly four times a day. That computer has never seen your
-laptop and has no access to your GitHub Desktop session. It has no memory of
-your login. Without a token it has nothing to log in with, so it cannot save its
-work back to your repository.
+### Why it was never needed
 
-You create the token once. Nothing you do in GitHub Desktop needs it - it is
-only for the automated job.
+The `refresh` job in `.github/workflows/refresh.yml` grants itself
+`permissions: contents: write`. A job-level grant **overrides** the repository's
+default workflow-token permission, which is `read`. That means the automatic
+`GITHUB_TOKEN` - which every Actions run receives with no setup at all - already
+has everything `git push` requires.
 
-### Step 4a - generate the token
+The workflow file said so all along:
 
-1. In your browser go to:
+> `GITHUB_TOKEN would also be able to push, and that is the honest alternative.`
 
-   ```
-   https://github.com/settings/personal-access-tokens/new
-   ```
+### Why the token made things worse
 
-   (Or: your profile picture > **Settings** > **Developer settings** >
-   **Personal access tokens** > **Fine-grained tokens** > **Generate new
-   token**.)
+The checkout step used this expression:
 
-2. **Token name**: `SpeakersBureau CI`
-3. **Expiration**: 1 year, or the longest your account allows.
-4. **Set a calendar reminder for when it expires.** This matters more than it
-   sounds: when the token expires, the automation starts failing, and you will
-   not find out until you happen to look at the Actions tab weeks later.
-5. **Resource owner**: your own account.
-6. **Repository access**: choose **Only select repositories**, then pick this
-   project. Do **not** choose **All repositories**.
-7. **Repository permissions**. Turn on exactly one:
+```
+token: ${{ secrets.PAT_TOKEN || github.token }}
+```
 
-   **Contents: Read and write**
+That looks like a safe fallback and is the exact opposite. The `||` only falls
+through when the left side is **unset**. While `PAT_TOKEN` existed - even set to
+a token that was invalid, expired, or scoped to the wrong repository - it always
+won, and the working `GITHUB_TOKEN` underneath was never reached.
 
-   That is the only permission needed. Leave every other permission at **No
-   access**. In particular leave **Workflows** at No access - this automation
-   never edits its own definition, so it does not need it.
-8. Click **Generate token**, then copy the token. **It is shown once only.** If
-   you lose it, delete it and make a new one.
+The result was 25 consecutive failed runs, every one failing at the same place
+with the same message:
 
-### Step 4b - save the token in the repository
+```
+remote: Permission to Bloodfeather/speakers-bureau.git denied to Bloodfeather.
+```
 
-1. Go to:
+And because a guard step existed that asserted `secrets.PAT_TOKEN` was *set*, the
+failure read as "this credential needs repairing" when the correct answer was
+"delete this credential".
 
-   ```
-   https://github.com/<your-username>/<your-repository>/settings/secrets/actions
-   ```
+### What to do instead
 
-2. Click **New repository secret**.
-3. **Name**: type exactly
+Nothing. There is no secret to create, nothing to paste, and nothing to put a
+calendar reminder on. The push works because the job grants `contents: write`,
+which is visible in the workflow file and reviewable in a pull request.
 
-   ```
-   PAT_TOKEN
-   ```
-
-   **This exact name, character for character.** If you call it `PAT` or
-   `GITHUB_TOKEN`, the automation will not find it, and it will fail several
-   steps into the run, which looks like a mysterious failure rather than a typo.
-4. **Secret**: paste the token you copied.
-5. Click **Add secret**.
-
-The token value is never shown again and never appears in any log.
+If the push is ever refused, that grant is what to check - not a token.
 
 ---
 
@@ -392,17 +377,68 @@ Two things about it are deliberate:
    You do **not** need Workers KV Storage, Workers R2 Storage or Workers Routes:
    this site uses none of them.
 
-6. **Account Resources**: restrict it to the account that owns your project.
-7. Click **Continue to summary**, then **Create Token**.
-8. **Copy the token now. It is shown once only.** If you lose it, delete it and
+6. **Client IP Address Filtering: LEAVE THIS EMPTY.** Do not set it to your home
+   or office address. See the warning below - this is the setting that broke the
+   deploy for a day.
+7. **Account Resources**: restrict it to the account that owns your project.
+8. Click **Continue to summary**, then **Create Token**.
+9. **Copy the token now. It is shown once only.** If you lose it, delete it and
    make another.
 
-### If the publish step fails with a permissions error
+### The IP filter is the trap. Do not set it.
 
-Cloudflare occasionally requires **Account > Account Settings > Read** in
-addition to the Pages permission above. Add that second permission, save the
-secret again in section 8, and run it again. This is a known quirk rather than
-something you did wrong, and section 12 has the exact wording to look for.
+Cloudflare offers **Client IP Address Filtering** under the token's *Additional
+settings*. It is a sensible-looking security feature and it **will break this
+project**, because the deploy runs from a GitHub Actions runner in a Microsoft
+Azure datacentre, not from your computer.
+
+The symptom is distinctive and worth memorising:
+
+```
+Authentication error [code: 10000]
+Cannot use the access token from location: 40.75.133.96 [code: 9109]
+```
+
+That address is an Azure range. The token works perfectly from `curl` on your own
+machine and fails only in CI - **that asymmetry is the tell.** A token that works
+locally and fails in the pipeline is an IP-filter problem, not a permissions
+problem.
+
+**Set it to "Not restricted".** One more subtlety, from Cloudflare's own
+community: an **empty** condition block is *not* the same as no filter. An empty
+block defaults to deny and produces the identical `9109`. If you use the
+**"Edit Cloudflare Workers"** template and never open the IP section, you are
+safe.
+
+### If the token is rejected, decode the code before changing anything
+
+These four codes mean four different things, and guessing between them is what
+cost the most time here:
+
+| Code | Means | Fix |
+| --- | --- | --- |
+| `6111` | The header value is **malformed** - checked before the token is looked up | Value must be exactly 40 chars of `[A-Za-z0-9_-]`, with no `Bearer ` prefix and no quotes |
+| `1000` | The token is genuinely **invalid, revoked or expired** | Create a new one |
+| `9109` | The token has an **IP filter** | Remove the IP restriction |
+| `10000` | **Permissions** are wrong | Check the table in step 5 |
+
+**`6111` is not caused by a trailing newline or space** - an earlier version of
+this document said so, and it was measured to be wrong (whitespace returns
+`1000`). `6111` means the value contains something outside the token charset:
+most often a pasted `Bearer ` prefix, surrounding quotes, or a truncation.
+
+To check a token before pasting it into a secret, without exposing it:
+
+```powershell
+$env:CF = Read-Host "paste token"
+"length     : $($env:CF.Length)"                       # want exactly 40
+"has bearer : $($env:CF -match 'Bearer')"              # want False
+"charset ok : $($env:CF -match '^[A-Za-z0-9_-]+$')"    # want True
+curl.exe -s -H "Authorization: Bearer $env:CF" https://api.cloudflare.com/client/v4/user/tokens/verify
+```
+
+Expect `"success":true` from the last line. `Read-Host` keeps the value out of
+your shell history.
 
 ---
 
@@ -426,18 +462,19 @@ tab. Click **New repository secret** twice, once for each:
 
 Both names must be exact. `CLOUDFLARE_TOKEN` will not be found.
 
-### One variable
+**Do not add a `PAT_TOKEN` secret.** It is not needed and its presence is what
+broke the pipeline for three days - see section 4.
 
-On the same page, switch to the **Variables** tab. Click **New repository
-variable`:
+### No variable is needed
 
-| Name | Value |
-| --- | --- |
-| `CLOUDFLARE_PAGES_PROJECT` | The project name from section 5 |
+On the old hosting platform there was a `CLOUDFLARE_PAGES_PROJECT` variable
+holding the project name. **It no longer exists and should not be created.** The
+Worker name lives in `wrangler.jsonc`, committed alongside the build it
+describes, where a typo is reviewable in a pull request rather than hidden in a
+settings page.
 
-This one is a setting rather than a credential, which is why it is a variable.
-That means if you ever rename your Pages project you change it here and nowhere
-else - no code changes, no file edits.
+Two sources of truth for one name is worse than one source of truth and a code
+review. If you find a `CLOUDFLARE_PAGES_PROJECT` variable, delete it.
 
 ### Do NOT create a `BASE_PATH` variable
 
@@ -600,16 +637,15 @@ failures. There is no switch for this, and that is on purpose.
 **Symptom:** red step called **require the cloudflare credentials**.
 
 **Why, in order of likelihood:**
-1. One of the three Cloudflare settings is missing. The message names which.
+1. One of the Cloudflare settings is missing. The message names which.
 2. A name is misspelled. `CLOUDFLARE_TOKEN`, `CLOUDFLARE_PROJECT_NAME` and
    `ACCOUNT_ID` are all wrong and none of them will be found.
-3. `CLOUDFLARE_PAGES_PROJECT` was added as a **secret** when it should be a
-   **variable**. It works either way in practice, but it belongs on the
-   Variables tab next to the project name.
+3. `wrangler.jsonc` is missing from the repository. The check says so by name.
 
 **Fix:** open
 `https://github.com/<your-username>/<your-repository>/settings/secrets/actions`
-and compare the names character by character with the table in section 0.
+and compare the names character by character with the table in section 0. There
+are three settings, all Cloudflare.
 
 ### The site gives a 404, or loads with no styling
 
@@ -631,19 +667,34 @@ with no colours and no formatting.
 **Symptom:** the red step is `deploy to cloudflare workers` and the log mentions
 authentication, a 403, or "Not enough permissions to deploy".
 
+**Decode the error code first.** These mean four different things, and guessing
+between them is what cost the most time on this project:
+
+| Code | Means | Fix |
+| --- | --- | --- |
+| `6111` | Header value **malformed** | 40 chars of `[A-Za-z0-9_-]`, no `Bearer `, no quotes |
+| `1000` | Token **invalid / revoked / expired** | Create a new token, section 7 |
+| `9109` | Token has an **IP filter** | Remove Client IP Address Filtering |
+| `10000` | **Permissions** wrong | See the list below |
+
 **Why, in order of likelihood:**
-1. The token has **Workers Scripts > Edit**, not **Cloudflare Pages > Edit**.
-   This is the most common cause by a wide margin, because Cloudflare's dashboard
-   offers both and they are not interchangeable: this site is published as a
-   Worker, so Pages permissions do nothing for it. Earlier versions of this
-   document told you to use Pages, which was the bug.
-2. The Cloudflare token has expired. Cloudflare API tokens do not expire by
-   default, but they can be revoked.
-3. The token was created against a different account than the one owning the
-   Worker.
-3. The token needs the extra **Account Settings > Read** permission. See
+1. **The token has an IP address filter.** This produces `9109` and the tell is
+   that the token works from your own machine but not from the runner. It is the
+   single most misleading failure here, because it reads like a permissions bug.
+   See section 7.
+2. The token has **Workers Scripts > Edit**, not **Cloudflare Pages > Edit**.
+   Cloudflare's dashboard offers both and they are not interchangeable: this site
+   is published as a Worker, so Pages permissions do nothing for it. Earlier
+   versions of this document told you to use Pages, which was the bug.
+3. The token value is malformed (`6111`) - most often a pasted `Bearer ` prefix
+   or surrounding quotes. Note that this is **not** caused by a trailing newline.
+4. The token has expired or been revoked (`1000`). Cloudflare API tokens do not
+   expire by default, but they can be revoked.
+5. The token needs the extra **Account Settings > Read** permission. See
    section 7.
-4. `CLOUDFLARE_ACCOUNT_ID` belongs to a different account than the token.
+6. `CLOUDFLARE_ACCOUNT_ID` belongs to a different account than the token.
+7. The token was created against a different account than the one owning the
+   Worker.
 
 **Fix:** open **API Tokens** in the Cloudflare dashboard. If the token is gone,
 create a new one as in section 7 and replace the secret in section 8.
@@ -653,16 +704,27 @@ create a new one as in section 7 and replace the secret in section 8.
 **Symptom:** the red step is `commit and push the dataset`, and the log says
 something about authentication, a rejected push, or permission denied.
 
-**Why, in order of likelihood:**
-1. The secret is not named exactly `PAT_TOKEN`. A near-miss name is not found.
-2. The token expired.
-3. The token has the wrong permission, or is not restricted to this repository.
-4. Branch protection rules were added later and block the push.
+**This is no longer a token problem, and the fix is not in settings.** The push
+uses the automatic `GITHUB_TOKEN`, which is granted by this line in the refresh
+job:
 
-**Fix:** open
-`https://github.com/<your-username>/<your-repository>/settings/secrets/actions`.
-You should see `PAT_TOKEN` with exactly one permission on: **Contents: Read and
-write**.
+```yaml
+permissions:
+  contents: write
+```
+
+**Why, in order of likelihood:**
+1. That `permissions:` block was removed or lowered to `read`. The workflow's
+   `confirm the push credential` step checks for exactly this and will have
+   failed first with a message saying so.
+2. Branch protection or a ruleset was added to `main` later and blocks the push.
+   There are none today (`gh api repos/OWNER/REPO/rulesets` returns `[]`).
+3. Someone re-added a `PAT_TOKEN` secret, which takes precedence over
+   `GITHUB_TOKEN` in an expression like `secrets.PAT_TOKEN || github.token`.
+   Delete it.
+
+**Fix:** restore the `contents: write` grant in `.github/workflows/refresh.yml`.
+There is no secret to repair.
 
 **If you ever add branch protection to `main`:** rules that require review, or
 that stop anyone pushing directly, will reject the automation's push. Either

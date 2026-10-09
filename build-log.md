@@ -5,6 +5,125 @@ interruption, read the top entry, then `ROADMAP.md`, then continue.
 
 ---
 
+## 2026-10-09 - Automated publishing works. Three stacked faults, one unnecessary secret.
+
+**The result:** run **37965253177**, both jobs green, deploy published. The first
+fully green run in the project's history, after **25 consecutive failures**.
+
+```
+[ok] fetch and commit dataset         success
+[ok] build and deploy to cloudflare   success
+    Uploaded bold-unit-b37a (3.08 sec)
+    Current Version ID: 43558a4f-ff62-4040-bf7f-7e179c9ca3b3
+```
+
+**Verified after the change:** `npm test` 290 passing / 0 failing (was 274).
+`npm run events:check` exit 0, 14 events, 0 images missing. `npm run build` exit 0,
+7 pages. All 6 live routes return 200, the home page renders 12 cards, and the
+deployed `index.html` is byte-identical to the local build (sha256 `d2dd18ec540e0978`
+on both sides).
+
+### The three faults, and why each hid the next
+
+Every failure looked like a different problem, and fixing one revealed the next.
+That is the whole reason this took days: there was never a single fault to find.
+
+**1. `secrets.PAT_TOKEN || github.token` - an unnecessary secret that blocked a
+working path.**
+
+The refresh job has always granted `permissions: contents: write`, and a
+job-level grant overrides the repository's default workflow-token permission
+(`read`). So the automatic `GITHUB_TOKEN` could push the dataset the entire time.
+The workflow file even said so, in a comment: *"GITHUB_TOKEN would also be able to
+push, and that is the honest alternative."*
+
+The blocker was the expression. `||` falls through only when the left side is
+**unset**, so while `PAT_TOKEN` existed - even invalid, expired, or scoped to the
+wrong repository - it always won and `GITHUB_TOKEN` was never reached. A guard
+step made it worse by asserting `secrets.PAT_TOKEN` was *set*, so a broken
+optional secret was checked for and then used. The failure read as "repair this
+credential" when the answer was "delete this credential".
+
+**Fix:** `token: ${{ github.token }}`; the guard now asserts the `contents: write`
+grant instead. `PAT_TOKEN` deleted from the repository.
+
+**2. The token value was malformed (`6111`).**
+
+```
+{"code":6003,"message":"Invalid request headers",
+  "error_chain":[{"code":6111,"message":"Invalid format for Authorization header"}]}
+```
+
+This file's earlier entry, and `SITUATION.md`, both said the likely cause was a
+trailing newline or space. **That was wrong, and it was measured wrong.** Probing
+the live API with deliberately malformed values:
+
+| Header value | Cloudflare returns |
+| --- | --- |
+| Well-formed 40-char but invalid | `1000` |
+| Trailing newline / trailing space | `1000` (the client strips them) |
+| No `Bearer ` prefix | `6111` |
+| `Bearer ` with nothing after | `6111` |
+| Quoted token | `6111` |
+| Space, colon, slash or `%` inside | `6111` |
+| Short value | `6111` |
+
+So `6111` means the value contains something outside `[A-Za-z0-9_-]`, or is
+empty, or is truncated - most often a pasted `Bearer ` prefix or surrounding
+quotes. A valid Cloudflare API token is exactly 40 characters.
+
+**Fix:** re-pasted the value correctly.
+
+**3. The token had an IP address filter (`9109`).**
+
+```
+Authentication error [code: 10000]
+Cannot use the access token from location: 40.75.133.96 [code: 9109]
+```
+
+`40.75.133.96` is AS8075, Microsoft Corporation, San Jose - GitHub Actions' Azure
+runner egress. The token had **Client IP Address Filtering** set to a home
+address, so Cloudflare refused it from the runner while it kept working from a
+laptop. **That asymmetry is the diagnostic:** a token that works in `curl`
+locally and fails only in CI is an IP-filter problem, not a permissions problem.
+
+Note that an **empty** IP condition block is not the same as no filter - it
+defaults to deny and reproduces `9109` exactly.
+
+**Fix:** set the token's Client IP Address Filtering to **Not restricted**.
+
+### A diagnostic that cost a step
+
+`CLOUDFLARE_ACCOUNT_ID` was suggested as the "next suspect" after fault 2. It was
+never broken. What caught the error was comparing `gh secret list --json
+updatedAt` timestamps: the account-ID secret's timestamp moved after an edit while
+the token secret's did not, which proved the wrong secret had been updated.
+**Prefer that check before asking for a credential to be re-pasted.**
+
+### Files changed
+
+- `.github/workflows/refresh.yml` - `github.token`; the push-credential guard now
+  asserts the `contents: write` grant; the PAT rationale comments rewritten; the
+  file-footer settings list corrected to two Cloudflare secrets.
+- `SITUATION.md` - section 2 status table, section 5 retitled (the 429s are
+  accepted, not "the live problem"), section 6 rewritten entirely, section 9
+  rewritten to watching-the-schedule plus an error-code decoder.
+- `docs/DEPLOY.md` - section 4 is now a tombstone explaining why there is no
+  GitHub token; section 7 gained the IP-filter warning and the error-code table;
+  section 8's settings table and variable section corrected; two section 12
+  troubleshooting entries rewritten; the top banner updated.
+- `README.md` - three secrets, not four; publishing now works.
+
+### Not fixed, and deliberately so
+
+The intermittent **429s** on the egress Worker remain. Two of four feeds were
+throttled on one run today and passed on the immediate retry. When it happens the
+run goes red and the deploy is skipped **on purpose**, so a stale site is never
+republished under a fresh timestamp. The site stays up and catches up next run.
+Do not "fix" this with `continue-on-error` or `--allow-partial`.
+
+---
+
 ## 2026-10-06 - The Bureau's own words on About, and the removal of the notes
 
 The client supplied the organisation's About copy. It went on `/about/`, and the

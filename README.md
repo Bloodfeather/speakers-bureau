@@ -278,14 +278,16 @@ it if anything changed, builds the site, and publishes it to a Cloudflare Worker
 site and is not connected to this project. See `SITUATION.md` section 6.
 
 The schedule and the dataset commit stay on GitHub Actions; only the publish
-step is Cloudflare. That means four secrets (`FEED_EGRESS_TOKEN`, `PAT_TOKEN`,
-`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`). The click-by-click
-instructions, and what to do when each step fails, are in
+step is Cloudflare. That means three secrets (`FEED_EGRESS_TOKEN`,
+`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) - and **no GitHub token**, because
+the automatic `GITHUB_TOKEN` pushes the dataset. The click-by-click instructions,
+and what to do when each step fails, are in
 **[`docs/DEPLOY.md`](docs/DEPLOY.md)**.
 
-**Automated publishing has not yet succeeded.** Runs execute and the feed fetch
-works, but the Cloudflare deploy step fails on its API token. Treat the first
-green run as a real milestone, not a formality.
+**Automated publishing works** as of 2026-10-09 (run 37965253177, the first fully
+green run after 25 consecutive failures). See `SITUATION.md` section 6 for the
+three stacked faults that had to be cleared: an unnecessary `PAT_TOKEN`, a
+malformed token value, and a Cloudflare IP address filter.
 
 ---
 

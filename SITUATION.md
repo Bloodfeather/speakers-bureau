@@ -1,6 +1,7 @@
 # SITUATION.md
 
-**Written 2026-10-08. Read this before changing anything in this project.**
+**Written 2026-10-08. Revised 2026-10-09. Read this before changing anything in
+this project.**
 
 This is a situational overview, not a history. `build-log.md` records what was
 tried and what broke, in order, and it is the right place to look for the reason
@@ -73,14 +74,15 @@ it is not a URL where this site can be reached.
 | Area | State |
 | --- | --- |
 | Live site | **Up and correct.** HTTP 200, 12-card home page, all pages building. |
-| Test suite | **274 passing, 0 failing** at time of writing. |
+| Test suite | **290 passing, 0 failing** at time of writing. |
 | Build | Exit 0, 7 pages, deterministic (two builds produce identical SHA-256 per file). |
 | Event data | `npm run events:check` exits 0. |
 | Feed refresh, manual from a home IP | **Works.** 4 sources, 49 articles. |
 | Feed refresh, from GitHub's own network | **Broken. Permanently. See section 4.** |
-| Feed refresh, via the egress Worker | **Rate limited. See section 5. This is the live problem.** |
-| Automated publishing | **Never once succeeded.** See section 6. |
-| Repository secrets | 4 of 4 names are set. One is almost certainly still wrong. See section 6. |
+| Feed refresh, via the egress Worker | **Works, with occasional 429s. See section 5.** |
+| Automated publishing | **Working.** First fully green run 2026-10-09 (run 37965253177). |
+| Repository secrets | **2, both Cloudflare.** `PAT_TOKEN` was deleted 2026-10-09. See section 6. |
+| The schedule | **Armed and active.** Every 6 hours. |
 
 ---
 
@@ -144,11 +146,15 @@ the real one.
 
 ---
 
-## 5. The live problem: the egress Worker is rate limited
+## 5. The egress Worker, and its occasional 429s
 
 The fix for section 4 is `workers/feed-egress/worker.js`, a Worker that fetches
 feed URLs and relays the bytes. It parses nothing and decides nothing; all
 validation, retry policy and normalization stay in `scripts/`, under test.
+
+**Status 2026-10-09: this is a known, accepted, intermittent condition, not an
+open problem.** It is recorded here because a red run caused by it must not be
+mistaken for a regression.
 
 **That fixed the 403, and for a while it looked like it had introduced a second
 problem.** Funnelling every scheduled request through one Worker means all
@@ -188,74 +194,112 @@ this.
 
 ---
 
-## 6. Automated publishing has never worked
+## 6. Automated publishing works. Solved 2026-10-09.
 
-Not once. Every `refresh` run has been red. Getting to an unattended 4-hourly
-loop is the single outstanding goal of this project.
+The run that fixed this is **37965253177**: both jobs green, deploy published,
+first time in the project's history. Twenty-five runs had failed before it.
 
-The four repository secrets, and the true state of each:
+Three separate faults were stacked on top of each other, and each one masked the
+next. That is why it took days: every fix revealed a different error, and no
+single error message named its own cause.
+
+| # | Fault | Symptom | Fix |
+| --- | --- | --- | --- |
+| 1 | `secrets.PAT_TOKEN \|\| github.token` | `Permission ... denied` (403) | Use `github.token`. See below. |
+| 2 | Token secret value malformed | `6111 Invalid format for Authorization header` | Re-paste, 40 chars, no `Bearer`, no quotes |
+| 3 | Token had an IP allowlist | `9109 Cannot use the access token from location: 40.75.133.96` | Remove the IP restriction |
+
+### Fault 1: the PAT was never needed, and the fallback hid that
+
+The refresh job has always granted `permissions: contents: write`, and a
+job-level grant **overrides** the repository's default workflow-token permission
+(which is `read`). So the automatic `GITHUB_TOKEN` could push the dataset the
+entire time. The workflow file even said so:
+
+> `GITHUB_TOKEN would also be able to push, and that is the honest alternative.`
+
+The blocker was the expression itself:
+
+```
+token: ${{ secrets.PAT_TOKEN || github.token }}
+```
+
+That looks like a safe fallback and is the opposite. `||` only falls through when
+the left side is **unset**. While `PAT_TOKEN` existed - even set to a token that
+was invalid, expired, or scoped to the wrong repository - it always won, and the
+`GITHUB_TOKEN` underneath was never reached.
+
+There was a guard step that made this worse: `require the push credential`
+asserted that `secrets.PAT_TOKEN` was *set*, so a broken optional secret was
+checked for and then used. The failure read as "this credential needs repairing"
+when the correct answer was "delete this credential".
+
+**Now:** `token: ${{ github.token }}`, and the guard asserts the real dependency -
+that the job grants `contents: write` - failing with a useful message if someone
+lowers it. `PAT_TOKEN` was deleted from the repository on 2026-10-09. Do not add
+it back.
+
+### Fault 2: 6111 means malformed, not wrong
+
+```
+{"code":6003,"message":"Invalid request headers",
+  "error_chain":[{"code":6111,"message":"Invalid format for Authorization header"}]}
+```
+
+`6111` is returned when the value contains anything outside `[A-Za-z0-9_-]`, or
+is empty, or is truncated. It is checked **before** the token is looked up.
+
+An earlier version of this file said the likely cause was a trailing newline or
+space. **That is wrong**, and it was measured: a trailing newline or space
+returns `1000 Invalid API Token`, not `6111`, because the HTTP client strips
+those. What actually produces `6111`, verified against the live API:
+
+| Header value | Cloudflare returns |
+| --- | --- |
+| Well-formed 40-char but invalid | `1000` |
+| Trailing newline / trailing space | `1000` |
+| No `Bearer ` prefix | `6111` |
+| `Bearer ` with nothing after | `6111` |
+| Quoted token `"..."` | `6111` |
+| Space, colon, slash or `%` inside | `6111` |
+| Short value | `6111` |
+
+So the practical rule: **a valid Cloudflare API token is exactly 40 characters of
+`[A-Za-z0-9_-]`, with no prefix and no quotes.** `1000` means the token is
+invalid or revoked; `6111` means the value is malformed.
+
+### Fault 3: the IP allowlist, which is the one nobody expects
+
+```
+Authentication error [code: 10000]
+Cannot use the access token from location: 40.75.133.96 [code: 9109]
+```
+
+`40.75.133.96` is **AS8075, Microsoft Corporation, San Jose** - GitHub Actions'
+Azure runner egress. The token had **Client IP Address Filtering** set to a home
+address, so Cloudflare refused it from the runner while it kept working from a
+laptop. That asymmetry is the tell: a token that works in `curl` locally and
+fails only in CI is an IP-filter problem, not a permissions problem.
+
+**Fix:** on the token, set *Client IP Address Filtering* to **Not restricted**.
+An **empty** condition block is not the same as no filter - it defaults to deny
+and reproduces `9109` exactly. Create from the **"Edit Cloudflare Workers"**
+template and never touch the IP section.
+
+### The secrets, and the true state of each
+
+Only **two** secrets are needed now, both Cloudflare.
 
 | Secret | Set | Works? |
 | --- | --- | --- |
-| `FEED_EGRESS_TOKEN` | yes | **Yes.** Proved by a green refresh job. |
-| `PAT_TOKEN` | yes | **No.** Authenticates as `Bloodfeather` but is denied write access. See below. |
-| `CLOUDFLARE_ACCOUNT_ID` | yes | Yes, as far as it can be: verified to match the account wrangler deploys to. It is an identifier, not a credential. |
-| `CLOUDFLARE_API_TOKEN` | yes | **No.** See below. |
+| `FEED_EGRESS_TOKEN` | yes | **Yes.** Proved by every green fetch. |
+| `CLOUDFLARE_API_TOKEN` | yes | **Yes.** Proved by run 37965253177. `Workers Scripts > Edit` + `Account Settings > Read`, no IP filter. |
+| `CLOUDFLARE_ACCOUNT_ID` | yes | Yes. It is an identifier, not a credential. `da978ed1ad70fd76a2486982616e2551`. |
+| ~~`PAT_TOKEN`~~ | **deleted** | Not needed. See fault 1. |
 
-### The GitHub token problem, found 2026-10-08
-
-This was flagged as unverified in earlier versions of this file, and it is now
-the confirmed blocker. The fetch succeeds, the dataset is committed **locally**,
-and the push is refused:
-
-```
-[main 77edf00] data: refresh dataset (+5 added, ...)
-remote: Permission to Bloodfeather/speakers-bureau.git denied to Bloodfeather.
-fatal: unable to access 'https://github.com/Bloodfeather/speakers-bureau/': The
-requested URL returned error: 403
-```
-
-Read that carefully, because it narrows the problem a long way. **The token is
-valid and authenticating correctly** - GitHub names the authenticated principal
-as `Bloodfeather`, which is the right account. It is not a malformed or expired
-token. It simply **lacks write permission on this repository**.
-
-The fix is in the token's settings, not its value: a **fine-grained** token needs
-this repository selected under *Repository access*, and **Contents: Read and
-write** under *Permissions*. A classic PAT would instead need the `repo` scope.
-
-**Because `deploy` has `needs: refresh`, this blocks publishing entirely.** A
-failed push means the refresh job is red, so the deploy job is skipped and the
-Cloudflare token is never even exercised. Fix this before spending more effort on
-the Cloudflare token, or the next thing you learn will still be about this one.
-
-### The Cloudflare token problem
-
-The deploy step fails with:
-
-```
-ERROR  A request to the Cloudflare API (/accounts/***/workers/...) failed
-       Authentication error [code: 10000]
-  It looks like you are authenticating Wrangler via a custom API token set in an
-  environment variable.
-```
-
-A hand-run verification against the token returned:
-
-```json
-{"success":false,"errors":[{"code":6003,"message":"Invalid request headers",
-  "error_chain":[{"code":6111,"message":"Invalid format for Authorization header"}]}]}
-```
-
-**Code 6111 is the key detail.** It means Cloudflare rejected the *shape* of the
-header before looking at the token at all. A wrong-but-well-formed token gets
-10000. So this is a string-formatting problem, not an authentication or
-permissions problem. Most likely the pasted value carries a trailing newline, a
-space, or a stray quote. The token itself may be perfectly good.
-
-**Required permission: `Account > Workers Scripts > Edit`, plus
+**Required Cloudflare permission: `Account > Workers Scripts > Edit`, plus
 `Account > Account Settings > Read`.** The dashboard's **"Edit Cloudflare
-Workers"** template grants exactly this and is the fast path.
+Workers"** template grants exactly this.
 
 **`Cloudflare Pages > Edit` is wrong** and appears nowhere in the current docs.
 It was in three places until 2026-10-07, and following it would have produced a
@@ -268,6 +312,9 @@ it holds `workers:write` and `pages:write` but **no token-minting scope**. So no
 API token can be created from here, and an OAuth token would be the wrong
 artifact anyway, since it expires and needs interactive refresh. This step
 genuinely needs a human in the dashboard.
+
+Note that the local OAuth login **can** deploy by hand (it holds `workers:write`),
+which is the useful fallback when the scheduled path is broken - see section 7.
 
 ---
 
@@ -396,41 +443,44 @@ ASCII audit of a source file should show exactly zero, while an audit of
 
 ## 9. What to do next, in order
 
-**The order matters, and it changed on 2026-10-08.** `PAT_TOKEN` used to be item
-4 and "unverified". It is now item 1 and known broken, because a failed push
-makes the refresh job red, which skips the deploy job, which means the Cloudflare
-token is never exercised. Fixing Cloudflare first would have taught us nothing.
+**Rewritten 2026-10-09.** The two credential items that used to head this list are
+done - see section 6. Automated publishing works. What is left is watching it
+stay working, and keeping the record honest.
 
-1. **Fix `PAT_TOKEN`.** It authenticates as the right account but is denied
-   write access, so the fix is in the token's settings:
-   - Fine-grained token: select **this repository** under *Repository access*,
-     and set **Contents: Read and write** under *Permissions*.
-   - Classic PAT: the **`repo`** scope.
-
-   Verify without exposing it: `gh auth status` will not help for a token stored
-   as a secret, so the quickest confirmation is simply to re-run the workflow and
-   read whether `commit and push the dataset` goes green.
-2. **Then fix `CLOUDFLARE_API_TOKEN`,** which will only become visible once the
-   push succeeds. Have the owner verify it locally without exposing it:
-   ```powershell
-   $env:CF = Read-Host "paste token"
-   "length      : $($env:CF.Length)"
-   "needs trim  : $($env:CF -ne $env:CF.Trim())"
-   "charset ok  : $($env:CF -match '^[A-Za-z0-9_-]+$')"
-   $env:CF = $env:CF.Trim()
-   curl.exe -s -H "Authorization: Bearer $env:CF" https://api.cloudflare.com/client/v4/user/tokens/verify
+1. **Watch the next few scheduled runs before trusting it.** The pipeline has
+   passed **once**. One green run proves the wiring, not the reliability. Look at
+   the next two or three: 00:17, 06:17, 12:17, 18:17 UTC.
    ```
-   A valid Cloudflare API token is **40 characters**, `[A-Za-z0-9_-]` only.
-   `Read-Host` keeps it out of shell history. Expect `"success":true`.
-3. **Expect occasional 429 failures and do not treat them as regressions.**
-   The throttling is intermittent, not a standing limit: see section 5. The
-   stagger and the longer retry window are the right mitigation. Judge them on
-   several consecutive runs, not one.
-4. **Only if 429s prove chronic,** stop making the Worker the only route, so
+   gh run list --repo Bloodfeather/speakers-bureau --limit 10
+   ```
+   A healthy run is green with a `data: refresh dataset` commit. A run that saved
+   nothing because nothing changed is also healthy - the dataset step says so.
+2. **Expect occasional 429 failures and do not treat them as regressions.** The
+   throttling is intermittent, not a standing limit: see section 5. When it
+   happens the fetch fails, the run goes red, and the deploy is skipped **on
+   purpose** so a stale site is never republished. The site stays up and catches
+   up on the next run. Judge the pattern over several runs, not one.
+3. **Only if 429s prove chronic,** stop making the Worker the only route, so
    neither the Worker nor a single IP carries the whole load. That is the
    remaining architectural option and has not been tried.
-5. **Update `docs/DEPLOY.md` and this file** as the state changes. Section 2 is
-   the table to edit first.
+4. **Update `docs/DEPLOY.md` and this file** as the state changes. Section 2 is
+   the table to edit first. Section 6 of this file and section 4 of
+   `docs/DEPLOY.md` were both rewritten on 2026-10-09 because the credential
+   story changed underneath them.
+
+### If it breaks again, start here
+
+- **Push refused (`Permission ... denied`)** - the job-level
+  `permissions: contents: write` grant has been removed or lowered. That grant is
+  the whole mechanism; there is no token secret to fix.
+- **`6111 Invalid format for Authorization header`** - the
+  `CLOUDFLARE_API_TOKEN` value is malformed. It is not a permissions problem and
+  not a trailing newline. 40 chars, `[A-Za-z0-9_-]`, no `Bearer`, no quotes.
+- **`9109 Cannot use the access token from location`** - the token has an IP
+  filter. Remove it. This is the one that looks like a permissions bug and is
+  not.
+- **`1000 Invalid API Token`** - the token is genuinely invalid, revoked, or
+  expired. Recreate it.
 
 ---
 
