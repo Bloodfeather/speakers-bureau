@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-09T15:35:42.688Z",
+  "generatedAt": "2026-10-09T19:17:28.925Z",
   "articleCount": 49,
   "sourceCount": 4,
   "duplicateCount": 0,
@@ -54,6 +54,21 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-friday-funnies-450-degrees",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Friday Funnies: 450 Degrees",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/friday-funnies-450-degrees",
+      "image": "https://substackcdn.com/image/fetch/$s_!MSDK!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd5de505c-464d-4792-8829-26f7d0575812_778x776.png",
+      "publishedAt": "2026-10-09T18:25:48.000Z",
+      "excerpt": "and rising",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-the-russian-plague-mystery-is-far",
       "sourceId": "malone",
@@ -425,21 +440,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!IhJ3!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa00bcb61-d97f-45ea-8c98-f08f693dfecb_1680x1246.png",
       "publishedAt": "2026-09-25T16:17:00.000Z",
       "excerpt": "And other true stories.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-criminal-mrna-malfeasance-by-the",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Criminal mRNA Malfeasance by the CDC",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/criminal-mrna-malfeasance-by-the",
-      "image": "https://substackcdn.com/image/fetch/$s_!xT0t!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F525a4b8a-a970-4f55-afc4-2be109a66e0b_1664x892.png",
-      "publishedAt": "2026-09-25T13:27:25.000Z",
-      "excerpt": "And I am mad as hell about it",
       "categories": [
         "commentary"
       ]
