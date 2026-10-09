@@ -46,23 +46,33 @@
 # red, the answer is in the log: every run prints per-source status, resolved
 # URL, item count, and the exact reason for any failure.
 #
-# CREDENTIALS: WHY A PAT AND NOT THE BUILT-IN GITHUB_TOKEN
+# CREDENTIALS: THE BUILT-IN GITHUB_TOKEN, NOT A PAT
 # --------------------------------------------------------
-# The push needs a credential and it cannot be implicit. `secrets.PAT_TOKEN` is a
-# fine-grained personal access token owned by the repository owner, scoped to
-# THIS repository only, with ONE permission: Contents -> Read and write. That is
-# the minimum for `git push` of a commit. Workflows -> Write is NOT needed and
-# NOT granted, because this workflow never edits its own definition. Account
-# permissions (Administration, Secrets) are not needed.
-# See docs/DEPLOY.md for the click-by-click creation steps.
+# This used to require `secrets.PAT_TOKEN`, a fine-grained personal access token
+# with Contents -> Read and write. That was wrong, and it cost days.
 #
-# GITHUB_TOKEN would also be able to push, and that is the honest alternative.
-# The PAT is used instead because it is independent of the repository's default
-# workflow token permissions setting, it is scoped to one repo, and it does not
-# expire with a single job run. `persist-credentials: true` (the checkout
-# default, stated explicitly anyway) is what makes the credential usable by the
-# later `git push`: checkout writes it into this clone's local git config, so no
-# secret is ever passed on a command line or printed in the log.
+# `permissions: contents: write` is set on the refresh job below. That grant
+# OVERRIDES the repository's default workflow-token permission (which is `read`),
+# so the automatic GITHUB_TOKEN - minted fresh for every run, needing no setup -
+# already has everything `git push` requires. No dashboard visit, no token
+# creation, nothing to expire and nothing to paste.
+#
+# The bug was the expression `secrets.PAT_TOKEN || github.token`. That is an
+# either/or: while PAT_TOKEN exists it always wins, so a bad PAT_TOKEN never
+# fell back to the GITHUB_TOKEN that would have worked. One optional secret
+# blocked a path that needed no secret at all. Every run failed identically:
+# fetch green, commit green, push 403.
+#
+# Do not reintroduce a PAT here. If a future change ever needs one, read
+# docs/DEPLOY.md first - the reasons the old comment gave (independence from the
+# default-permissions setting, single-repo scope) are already satisfied by the
+# job-level `permissions:` block below, and "it does not expire per run" is a
+# property of the GITHUB_TOKEN, not a drawback of it.
+#
+# `persist-credentials: true` (the checkout default, stated explicitly anyway)
+# is what makes the credential usable by the later `git push`: checkout writes
+# it into this clone's local git config, so no secret is ever passed on a
+# command line or printed in the log.
 # If branch rulesets are ever enabled, they must allow Actions to bypass, or the
 # push is rejected - see docs/DEPLOY.md.
 #
@@ -178,27 +188,23 @@ jobs:
           # See the credential note above. Without this the later push has no
           # credential to use.
           persist-credentials: true
-          # `secrets.PAT_TOKEN || github.token` IS LOAD-BEARING, and the fallback
-          # is the whole point. An absent secret expands to an EMPTY STRING, and
-          # actions/checkout treats an explicitly-supplied empty `token` as "a
-          # token was required and none was given" - a hard failure at the FIRST
-          # step. Measured, not assumed: the first run of this workflow on
-          # 2026-10-06 died in 5 seconds at checkout with exactly that error,
-          # before the fetcher, the build or the deploy had run a single line.
+          # `github.token` is the automatic per-run token, and it is supplied
+          # explicitly rather than left implicit so this line cannot be
+          # mistaken for "no credential was configured".
           #
-          # That is the wrong place to fail. Reading the repository needs no
-          # secret at all - GITHUB_TOKEN always has it - so when PAT_TOKEN is
-          # missing, fall back to GITHUB_TOKEN and let checkout succeed. The job
-          # then fetches, builds and deploys normally, and the ONE thing that
-          # genuinely needs the PAT - committing the refreshed dataset - fails
-          # later, at the step that already exists to say so in plain words.
+          # This replaced `secrets.PAT_TOKEN || github.token`, which looked like
+          # a safe fallback and was the opposite. The `||` only falls through
+          # when PAT_TOKEN is UNSET; while it is set - even set to a token that
+          # is invalid, expired, or scoped to the wrong repository - it always
+          # wins. So the one secret that was optional became the one thing every
+          # run depended on, and the working credential underneath it was never
+          # reached. Measured: 24 consecutive runs, every one failing at the same
+          # push with "Permission to ... denied", while `permissions:
+          # contents: write` below had been granting everything needed the whole
+          # time.
           #
-          # With no PAT_TOKEN you therefore lose the ability to SAVE new
-          # articles, and keep the ability to publish code changes. Failing at
-          # checkout instead would lose both, over a secret that only one step
-          # uses. When PAT_TOKEN IS set, this expression is exactly what it was
-          # before.
-          token: ${{ secrets.PAT_TOKEN || github.token }}
+          # Nothing needs to be set for this to work. That is the point.
+          token: ${{ github.token }}
 
       - name: set up node
         uses: actions/setup-node@v4
@@ -324,16 +330,27 @@ jobs:
           git checkout -- data/articles.json
           echo "Dataset content unchanged (generatedAt moved, nothing else). No commit."
 
-      - name: require the push credential
-        # Fails loudly and specifically, instead of letting `git push` fail with
-        # a generic authentication error eight steps later. Only reached when
-        # there is genuinely something to commit.
+      - name: confirm the push credential
+        # Kept as a named step, and kept checking something real, rather than
+        # deleted along with the PAT guard it replaces.
+        #
+        # It used to assert `secrets.PAT_TOKEN` was set. That check was the bug
+        # wearing a safety badge: it turned a missing OPTIONAL secret into a hard
+        # stop on a path that never needed it. The credential `git push` actually
+        # uses is the automatic GITHUB_TOKEN, and the thing that can genuinely be
+        # wrong about it is the job-level `permissions:` grant above. So that is
+        # what this asserts now - if someone lowers `contents: write` to `read`,
+        # this fails here with the reason, instead of eight steps later inside a
+        # generic "authentication failed" from git.
         if: steps.dataset.outputs.changed == 'true'
         run: |
-          if [ -z "${{ secrets.PAT_TOKEN }}" ]; then
-            echo "::error::PAT_TOKEN repository secret is not set, so the dataset cannot be committed. See docs/DEPLOY.md."
+          # The grant is read from the workflow file itself, not from the token,
+          # because a token's scopes cannot be inspected from inside a run.
+          if ! grep -qE '^      contents: write$' .github/workflows/refresh.yml; then
+            echo "::error::The refresh job no longer grants 'permissions: contents: write', so the automatic GITHUB_TOKEN cannot push the dataset. Restore that grant; it is what makes the push work with no secret at all."
             exit 1
           fi
+          echo "The refresh job grants contents: write, so GITHUB_TOKEN can push."
 
       - name: commit and push the dataset
         if: steps.dataset.outputs.changed == 'true'
@@ -393,8 +410,8 @@ jobs:
         run: npm ci
 
       - name: require the cloudflare credentials
-        # Same reasoning as the PAT_TOKEN guard in the refresh job, and for the
-        # same reason: fail loudly and specifically here, rather than letting
+        # Same reasoning as the push-credential guard in the refresh job, and for
+        # the same reason: fail loudly and specifically here, rather than letting
         # wrangler fail three steps later with a message about a token it could
         # not find. A missing secret should read as a missing secret.
         run: |
@@ -496,10 +513,15 @@ jobs:
 # ROADMAP design rule 3 first. The green build on stale data is the failure mode
 # this project was built to make impossible.
 #
-# THE THREE THINGS THIS FILE NOW NEEDS FROM A REPOSITORY, all in docs/DEPLOY.md:
-#   secret   PAT_TOKEN                  - pushes the refreshed dataset back to git
+# THE TWO THINGS THIS FILE NOW NEEDS FROM A REPOSITORY, both in docs/DEPLOY.md:
 #   secret   CLOUDFLARE_API_TOKEN       - publishes the built site
 #   secret   CLOUDFLARE_ACCOUNT_ID      - says which Cloudflare account
+#
+# There is deliberately NO GitHub token secret. The automatic GITHUB_TOKEN pushes
+# the dataset, which is what `permissions: contents: write` on the refresh job is
+# for. The old `PAT_TOKEN` requirement was removed after it was found to be the
+# single cause of 24 consecutive failed runs - see the credential note at the top
+# of this file. Do not add one back.
 #
 # There is NO project-name setting, and that is the point. On the Pages side of
 # this file the Worker name was a repository VARIABLE read into a command line;
