@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-07T00:58:01.660Z",
+  "generatedAt": "2026-10-09T15:35:42.688Z",
   "articleCount": 49,
   "sourceCount": 4,
   "duplicateCount": 0,
@@ -54,6 +54,96 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-the-russian-plague-mystery-is-far",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Russian Plague Mystery Is Far From Over",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-russian-plague-mystery-is-far",
+      "image": "https://substackcdn.com/image/fetch/$s_!BqtT!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa382192d-1e75-4159-940c-edbe758b46ef_1672x941.png",
+      "publishedAt": "2026-10-08T19:12:03.000Z",
+      "excerpt": "So many questions remain",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-plague-grift",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Plague Grift",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-plague-grift",
+      "image": "https://substackcdn.com/image/fetch/$s_!gxts!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc6e38a59-0775-4940-956f-642a0072ffd3_1536x1024.png",
+      "publishedAt": "2026-10-08T16:18:26.000Z",
+      "excerpt": "When Fear of Plague Becomes the Product",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-inside-south-carolina-gop-corruption",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Inside South Carolina GOP Corruption, Defiance, and the Fight for Liberty with Bob Fetterly",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://unitedpatriotsalliance.substack.com/p/inside-south-carolina-gop-corruption",
+      "image": null,
+      "publishedAt": "2026-10-07T17:59:10.000Z",
+      "excerpt": "Summary of Video",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-from-liberty-to-leviathan-the-rise",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "From Liberty To Leviathan: The Rise Of The Administrative State",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://unitedpatriotsalliance.substack.com/p/from-liberty-to-leviathan-the-rise",
+      "image": null,
+      "publishedAt": "2026-10-07T15:26:50.000Z",
+      "excerpt": "Dear Patriots,",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-update-the-plague-death-russia-will",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Update: The Plague Death Russia Will Not Explain",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/update-the-plague-death-russia-will",
+      "image": "https://substackcdn.com/image/fetch/$s_!tfci!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4d5502e2-cebc-48e5-ab31-865a48128561_3210x1760.png",
+      "publishedAt": "2026-10-07T13:47:59.000Z",
+      "excerpt": "The Russian filing to WHO says no plague was registered. Read what it does not say.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-acip-case-gets-stranger",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The ACIP Case Gets Stranger",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-acip-case-gets-stranger",
+      "image": "https://substackcdn.com/image/fetch/$s_!uQRt!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F119e055d-63e5-470b-ae22-c917f429781c_1672x941.png",
+      "publishedAt": "2026-10-07T13:15:00.000Z",
+      "excerpt": "A troubling pattern emerges from the court record",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-inside-the-irkutsk-plague-institute",
       "sourceId": "malone",
@@ -355,66 +445,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-the-first-amendment-was-forged-in",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The First Amendment Was Forged in Virginia",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-first-amendment-was-forged-in",
-      "image": "https://substackcdn.com/image/fetch/$s_!a8Br!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd41f3d6f-ce6d-4fae-9340-a917509422bd_1672x941.png",
-      "publishedAt": "2026-09-24T18:01:12.000Z",
-      "excerpt": "The continuing fight over who gets to decide which freedoms government will allow",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-homesteading-fall-cometh",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Homesteading: Fall Cometh",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/homesteading-fall-cometh",
-      "image": "https://substackcdn.com/image/fetch/$s_!MmYm!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F740d2500-816d-46b4-87ab-4d964eb6bc60_2372x1580.png",
-      "publishedAt": "2026-09-23T21:31:30.000Z",
-      "excerpt": "And another rainy day",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-machine-that-decides-what-you",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Machine That Decides What You Know",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-machine-that-decides-what-you",
-      "image": "https://substackcdn.com/image/fetch/$s_!HcbL!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F12d57ce0-9353-41f3-ba90-16a905c0cead_1672x941.png",
-      "publishedAt": "2026-09-22T15:27:19.000Z",
-      "excerpt": "When “AI Safety” Becomes Information Control",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-kennedy-exception",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Kennedy Exception",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-kennedy-exception",
-      "image": "https://substackcdn.com/image/fetch/$s_!LtoX!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa5d78cd0-2e0f-4c02-84b8-dea2c9c6cc2d_1672x941.png",
-      "publishedAt": "2026-09-21T15:16:34.000Z",
-      "excerpt": "Kennedy runs HHS. Has loyalty replaced scrutiny?",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "unitedpatriotsalliance-substack-com-p-qatari-money-and-the-neoconservative",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -710,36 +740,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!794-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6e012577-8c3d-403a-8211-6768e3ccd79f_1616x1080.jpeg",
       "publishedAt": "2026-05-04T21:01:39.000Z",
       "excerpt": "The South Carolina State Election Commission (SEC) voted 4-1 last week to authorize Executive Director Conway Belangia to execute a Memorandum of Understanding (MOU) with the U.S.",
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-call-to-action-tell-your-state-r-811dhq",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "Call to Action: Tell Your State Representative to Vote NO on H.3556",
-      "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/call-to-action-tell-your-state-representative",
-      "image": "https://substackcdn.com/image/fetch/$s_!CE3Z!,w_256,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F88914fe9-99ea-4dd1-a69d-35b26e08085e_788x788.png",
-      "publishedAt": "2026-04-21T13:00:10.000Z",
-      "excerpt": "H.3556 would make major changes to how primary election disputes are handled…and not for the better.",
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-the-great-south-carolina-tax-scam",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "The Great South Carolina Tax Scam: What Your Legislators Did While You Were Filing Your Taxes",
-      "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/the-great-south-carolina-tax-scam",
-      "image": "https://substackcdn.com/image/fetch/$s_!7-Nb!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F013538c5-3aea-4f9c-b0b9-88cd4609cc6e_1616x1080.jpeg",
-      "publishedAt": "2026-04-20T20:43:01.000Z",
-      "excerpt": "Have you been wondering why you owe the government more money than usual while filing your taxes this year?",
       "categories": [
         "news"
       ]
