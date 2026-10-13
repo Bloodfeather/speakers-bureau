@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-09T19:17:28.925Z",
+  "generatedAt": "2026-10-13T22:52:35.799Z",
   "articleCount": 49,
   "sourceCount": 4,
   "duplicateCount": 0,
@@ -54,6 +54,66 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-stop-spraying-poison-on-our-food",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Stop Spraying Poison on Our Food Before Harvest",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/stop-spraying-poison-on-our-food",
+      "image": "https://substackcdn.com/image/fetch/$s_!URdV!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F41d14288-c1ed-476a-b0d8-a4207752de92_1672x941.png",
+      "publishedAt": "2026-10-13T15:26:38.000Z",
+      "excerpt": "America harvested crops without chemical desiccants for generations. We can do it again",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-war-on-columbus-is-a-war-on-americas",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The War on Columbus, Is a War on America's History",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-war-on-columbus-is-a-war-on-americas",
+      "image": "https://substackcdn.com/image/fetch/$s_!fpoW!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F824db8de-c4fb-4250-a4d3-f6e13edd4382_1677x938.png",
+      "publishedAt": "2026-10-12T17:10:00.000Z",
+      "excerpt": "The social justice warriors came for Columbus. The real target is America.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-sunday-strip-if-the-senate-flips",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Sunday Strip: If the Senate Flips -",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/sunday-strip-if-the-senate-flips",
+      "image": "https://substackcdn.com/image/fetch/$s_!YHH3!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb2ce4efc-c212-4cf3-881f-c36d087779f9_778x576.png",
+      "publishedAt": "2026-10-11T15:07:59.000Z",
+      "excerpt": "So does the script.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-wellbeing-does-eating-less-meat-really",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Wellbeing: Does Eating Less Meat Really Make You Live Longer?",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/wellbeing-does-eating-less-meat-really",
+      "image": "https://substackcdn.com/image/fetch/$s_!0g28!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F07b27bcc-c38c-42dd-ad25-119a69748613_1672x941.png",
+      "publishedAt": "2026-10-10T15:38:15.000Z",
+      "excerpt": "Does Eating Less Meat Make You Live Longer?",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-friday-funnies-450-degrees",
       "sourceId": "malone",
@@ -380,66 +440,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!kUJ4!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdf7f206f-cec7-43b9-93a2-65a6139269b1_1024x768.jpeg",
       "publishedAt": "2026-09-29T13:41:07.000Z",
       "excerpt": "Diversifying the Homestead for Profit",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-capture-of-maha",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Capture of MAHA",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-capture-of-maha",
-      "image": "https://substackcdn.com/image/fetch/$s_!MEUB!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2a461440-47fe-4372-9b61-6d7b54bb8dc0_1536x1024.png",
-      "publishedAt": "2026-09-28T15:07:26.000Z",
-      "excerpt": "The corporations moved in. The outsiders were pushed aside.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-sunday-strip-the-face-you-make",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Sunday Strip: The Face You Make",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/sunday-strip-the-face-you-make",
-      "image": "https://substackcdn.com/image/fetch/$s_!J-8T!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2806b697-93c9-4be9-88f6-1befe9961e79_848x688.png",
-      "publishedAt": "2026-09-27T15:05:03.000Z",
-      "excerpt": "At death’s door.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-zoomers-will-decide-the-2028-election",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Zoomers Will Decide the 2028 Election, and Neither Political Party Is the Answer",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/zoomers-will-decide-the-2028-election",
-      "image": "https://substackcdn.com/image/fetch/$s_!seSZ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F60effc25-41a9-44cc-8dd4-bc49bab4e6e9_3098x1728.png",
-      "publishedAt": "2026-09-26T16:46:28.000Z",
-      "excerpt": "Housing, Food, and the Decentralized Alternative",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-friday-funnies-ballroom-dance",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Friday Funnies: Ballroom Dance",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/friday-funnies-ballroom-dance",
-      "image": "https://substackcdn.com/image/fetch/$s_!IhJ3!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa00bcb61-d97f-45ea-8c98-f08f693dfecb_1680x1246.png",
-      "publishedAt": "2026-09-25T16:17:00.000Z",
-      "excerpt": "And other true stories.",
       "categories": [
         "commentary"
       ]
