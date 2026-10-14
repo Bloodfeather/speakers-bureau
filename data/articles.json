@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-13T22:52:35.799Z",
+  "generatedAt": "2026-10-14T21:47:55.747Z",
   "articleCount": 49,
   "sourceCount": 4,
   "duplicateCount": 0,
@@ -54,6 +54,36 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-homesteading-shorter-days-longer",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Homesteading: Shorter Days, Longer Nights, and Never Enough Hours",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/homesteading-shorter-days-longer",
+      "image": "https://substackcdn.com/image/fetch/$s_!S2pu!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3966b1b4-9ea1-44b5-b339-46b0491019cc_1672x941.png",
+      "publishedAt": "2026-10-14T19:06:08.000Z",
+      "excerpt": "Cows, colts, Kale, and the coming winter",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-abortions-after-dark-inside-the-palmetto",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Abortions After Dark: Inside the Palmetto State Abortion Fund",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/abortions-after-dark-inside-the-palmetto",
+      "image": "https://substackcdn.com/image/fetch/$s_!5UU4!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8f4203c-0781-4ed6-863a-b2a5555aa8f8_6000x4000.jpeg",
+      "publishedAt": "2026-10-14T18:09:22.000Z",
+      "excerpt": "The Abortion Fund That Outgrew the Heartbeat Law",
+      "categories": [
+        "news"
+      ]
+    },
     {
       "id": "www-malone-news-p-stop-spraying-poison-on-our-food",
       "sourceId": "malone",
@@ -430,21 +460,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-homesteading-exotic-poultry",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Homesteading: Exotic Poultry",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/homesteading-exotic-poultry",
-      "image": "https://substackcdn.com/image/fetch/$s_!kUJ4!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdf7f206f-cec7-43b9-93a2-65a6139269b1_1024x768.jpeg",
-      "publishedAt": "2026-09-29T13:41:07.000Z",
-      "excerpt": "Diversifying the Homestead for Profit",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "unitedpatriotsalliance-substack-com-p-qatari-money-and-the-neoconservative",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -725,21 +740,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!Sk_E!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F585521b7-ba49-4647-bd0f-e156363014e8_1616x1080.jpeg",
       "publishedAt": "2026-05-12T21:06:25.000Z",
       "excerpt": "Palmetto State Watch Foundation‘s ongoing investigation into the South Carolina Attorney General‘s (SCAG) Litigation Retention Agreements has, until now, focused heavily on the Senate side of the legislature and on the network of outside counsel that has profited from the state’s biggest...",
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-sc-election-commission-signs-voter",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "SC Election Commission Signs Voter Data Deal with DOJ as Pennsylvania Makes CVRs Public",
-      "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/sc-election-commission-signs-voter",
-      "image": "https://substackcdn.com/image/fetch/$s_!794-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6e012577-8c3d-403a-8211-6768e3ccd79f_1616x1080.jpeg",
-      "publishedAt": "2026-05-04T21:01:39.000Z",
-      "excerpt": "The South Carolina State Election Commission (SEC) voted 4-1 last week to authorize Executive Director Conway Belangia to execute a Memorandum of Understanding (MOU) with the U.S.",
       "categories": [
         "news"
       ]
