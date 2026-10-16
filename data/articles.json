@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-14T21:47:55.747Z",
+  "generatedAt": "2026-10-16T11:30:21.594Z",
   "articleCount": 49,
   "sourceCount": 4,
   "duplicateCount": 0,
@@ -54,6 +54,36 @@
     }
   ],
   "articles": [
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-the-politically-weaponized-labeling-58c",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "The Politically Weaponized Labeling Strategy: Turning Conservatives Into \"Extremists\"",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/the-politically-weaponized-labeling-58c",
+      "image": null,
+      "publishedAt": "2026-10-15T21:07:45.000Z",
+      "excerpt": "To help stop the political weaponization of labels, please let others know that you publicly stand against racial supremacy.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-follow-the-money-the-political-book",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Follow the Money: The Political Book Advance Grift",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/follow-the-money-the-political-book",
+      "image": "https://substackcdn.com/image/fetch/$s_!RhcV!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F474428db-1a55-4e43-9852-f6f2c1287d27_1672x941.png",
+      "publishedAt": "2026-10-15T16:33:40.000Z",
+      "excerpt": "Who Really Pays the Politicians?",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-homesteading-shorter-days-longer",
       "sourceId": "malone",
@@ -430,21 +460,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-jd-kennedy-and-freebird",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "JD, Kennedy, and Freebird",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/jd-kennedy-and-freebird",
-      "image": "https://substackcdn.com/image/fetch/$s_!FC5Y!,w_256,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3b3eaef2-6254-48df-84c8-dd833035aad2_428x428.png",
-      "publishedAt": "2026-09-29T23:44:01.000Z",
-      "excerpt": "Plus other true stories",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "unitedpatriotsalliance-substack-com-p-qatar-carolina-how-nelson-mullins",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -725,21 +740,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!aoJ6!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc9672ac1-a7e6-4f63-934d-8a4b47269858_1616x1080.jpeg",
       "publishedAt": "2026-05-19T13:00:35.000Z",
       "excerpt": "On the morning of April 23, 2026, the Richland County Courthouse docket on the second floor read like roll call of reckoning.",
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-the-house-always-wins-lawyer-legislators",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "The House Always Wins: Lawyer-Legislators on the SCAG's Tab",
-      "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/the-house-always-wins-lawyer-legislators",
-      "image": "https://substackcdn.com/image/fetch/$s_!Sk_E!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F585521b7-ba49-4647-bd0f-e156363014e8_1616x1080.jpeg",
-      "publishedAt": "2026-05-12T21:06:25.000Z",
-      "excerpt": "Palmetto State Watch Foundation‘s ongoing investigation into the South Carolina Attorney General‘s (SCAG) Litigation Retention Agreements has, until now, focused heavily on the Senate side of the legislature and on the network of outside counsel that has profited from the state’s biggest...",
       "categories": [
         "news"
       ]
