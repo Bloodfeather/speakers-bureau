@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-17T04:39:29.500Z",
+  "generatedAt": "2026-10-21T04:56:40.633Z",
   "articleCount": 49,
   "sourceCount": 4,
   "duplicateCount": 0,
@@ -54,6 +54,66 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-melanias-womens-health-initiative",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Melania’s Women’s Health Initiative: Big Promises, No Money",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/melanias-womens-health-initiative",
+      "image": "https://substackcdn.com/image/fetch/$s_!a_bI!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa71f4f27-78bf-4e7c-b51a-c53ff5fd492e_1672x941.png",
+      "publishedAt": "2026-10-20T16:02:47.000Z",
+      "excerpt": "Five ambitious goals, a new NIH division, and some good science. But who will pay for it?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-legalizing-infanticide",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Legalizing Infanticide",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/legalizing-infanticide",
+      "image": "https://substackcdn.com/image/fetch/$s_!uKn6!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fddb8b1e7-c5b2-47b6-a3c9-bc1106ea2834_1672x940.png",
+      "publishedAt": "2026-10-19T17:39:56.000Z",
+      "excerpt": "Ancient history, modern medicine, and the constitutional question facing Virginia voters",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-sunday-strip-dumpster-diving-and",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Sunday Strip: Dumpster Diving and Killer Cats",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/sunday-strip-dumpster-diving-and",
+      "image": "https://substackcdn.com/image/fetch/$s_!Cq8J!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8115bc5f-bf8f-4b3d-a603-93a5a684ebf6_792x694.png",
+      "publishedAt": "2026-10-18T15:23:49.000Z",
+      "excerpt": "Dead mouse delivery",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-homesteading-rethinking-cats",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Homesteading: Rethinking Cats",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/homesteading-rethinking-cats",
+      "image": "https://substackcdn.com/image/fetch/$s_!zAtZ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6efe95f6-7531-48c9-b355-597231673043_1672x941.png",
+      "publishedAt": "2026-10-17T15:51:04.000Z",
+      "excerpt": "To cat or not to cat, that is the question",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-friday-funnies-mars-x",
       "sourceId": "malone",
@@ -365,66 +425,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!H2Z-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1521709c-42a4-49b7-9ed2-baf76f6881fd_998x1158.png",
       "publishedAt": "2026-10-04T16:24:47.000Z",
       "excerpt": "Breaking Mews",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-broken-tube-a-plague-death-in",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Broken Tube: A Plague Death in Siberia",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-broken-tube-a-plague-death-in",
-      "image": "https://substackcdn.com/image/fetch/$s_!gN8H!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe6a8790c-0124-4b2d-966c-30cb64699dcd_1456x819.png",
-      "publishedAt": "2026-10-04T15:01:29.000Z",
-      "excerpt": "What does it prove?",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-poop-peppers-and-a-mouse-in-the-brine",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Poop, Peppers and a Mouse in the Brine",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/poop-peppers-and-a-mouse-in-the-brine",
-      "image": "https://substackcdn.com/image/fetch/$s_!20sf!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2e42ddc9-e7d7-4d40-81a3-b6058a5e7b6b_1536x1024.png",
-      "publishedAt": "2026-10-03T14:15:44.000Z",
-      "excerpt": "Finger-lickin' good",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-friday-funnies-pass-the-grass",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Friday Funnies: Pass the Grass",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/friday-funnies-pass-the-grass",
-      "image": "https://substackcdn.com/image/fetch/$s_!gkG3!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6cf1e7ac-5439-49a7-991e-db623e155180_1560x1656.png",
-      "publishedAt": "2026-10-02T16:57:25.000Z",
-      "excerpt": "Cause Frankenfoods tastes so gud!",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-acip-goes-back-to-court",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "ACIP Goes Back to Court",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/acip-goes-back-to-court",
-      "image": "https://substackcdn.com/image/fetch/$s_!5m3y!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F82e24291-e2c0-4a43-bc57-0794e7a10ff9_1672x941.png",
-      "publishedAt": "2026-10-02T13:25:44.000Z",
-      "excerpt": "The fight over standing, executive power and judicial reach",
       "categories": [
         "commentary"
       ]
