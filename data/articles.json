@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-21T04:56:40.633Z",
+  "generatedAt": "2026-10-22T17:14:52.180Z",
   "articleCount": 49,
   "sourceCount": 4,
   "duplicateCount": 0,
@@ -54,6 +54,66 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-the-failure-of-modern-american-medicine",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Failure of Modern American Medicine",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-failure-of-modern-american-medicine",
+      "image": "https://substackcdn.com/image/fetch/$s_!qfDn!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fba5f65d2-c6df-4671-bd0d-ce543536850e_1672x941.png",
+      "publishedAt": "2026-10-22T14:58:57.000Z",
+      "excerpt": "How big business moved in, and quality moved out.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-paris-is-burning-and-brussels-is",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Paris Is Burning, and Brussels Is Still Writing Regulations",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/paris-is-burning-and-brussels-is",
+      "image": "https://substackcdn.com/image/fetch/$s_!rRTT!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faf052cce-3340-4df5-802a-6fa87eafd1be_1434x1046.png",
+      "publishedAt": "2026-10-21T16:14:56.000Z",
+      "excerpt": "“Committed to a better future”",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-south-carolina-gop-is-being-run-like",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "South Carolina GOP Is Being Run Like a Crime Syndicate",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/south-carolina-gop-is-being-run-like",
+      "image": null,
+      "publishedAt": "2026-10-21T16:03:43.000Z",
+      "excerpt": "South Carolina Republican politics is being run like a machine, and Barry Sanders says the fix starts with exposing who’s really in charge.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-equal-protection-south-carolina-president",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Equal Protection South Carolina President Mark Corral Encourages Patriots To Call State Legislators",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/equal-protection-south-carolina-president",
+      "image": null,
+      "publishedAt": "2026-10-21T15:02:01.000Z",
+      "excerpt": "Equal Protection South Carolina website: https://www.equalprotectionsc.org/",
+      "categories": [
+        "news"
+      ]
+    },
     {
       "id": "www-malone-news-p-melanias-womens-health-initiative",
       "sourceId": "malone",
@@ -400,36 +460,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-five-hospitals-and-a-denial",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Five Hospitals and a Denial",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/five-hospitals-and-a-denial",
-      "image": "https://substackcdn.com/image/fetch/$s_!LOf7!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc6049880-6407-45ea-87ff-64149b991168_1456x819.png",
-      "publishedAt": "2026-10-05T13:29:05.000Z",
-      "excerpt": "Update on Plague case in Siberia",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-sunday-strip-the-mice-are-not-alright",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Sunday Strip: The Mice Are Not Alright",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/sunday-strip-the-mice-are-not-alright",
-      "image": "https://substackcdn.com/image/fetch/$s_!H2Z-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1521709c-42a4-49b7-9ed2-baf76f6881fd_998x1158.png",
-      "publishedAt": "2026-10-04T16:24:47.000Z",
-      "excerpt": "Breaking Mews",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "unitedpatriotsalliance-substack-com-p-birds-of-a-liberal-feather-flock",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -712,36 +742,6 @@
       "excerpt": "Where is all the money going?",
       "categories": [
         "commentary"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-a-south-carolinians-guide-to-voting",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "A South Carolinian’s Guide to Voting, Patriot-Style",
-      "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/a-south-carolinians-guide-to-voting",
-      "image": "https://substackcdn.com/image/fetch/$s_!syI_!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fab0e4bbc-9b89-43b1-af75-ea7ad8425468_1616x1080.jpeg",
-      "publishedAt": "2026-06-04T13:45:31.000Z",
-      "excerpt": "South Carolina’s June 9th, 2026 primary is quickly approaching and the field is saturated with candidates.",
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-disgraced-former-election-officials",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "Disgraced Former Election Officials Set Criminal Court Dates",
-      "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/disgraced-former-election-officials",
-      "image": "https://substackcdn.com/image/fetch/$s_!aoJ6!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc9672ac1-a7e6-4f63-934d-8a4b47269858_1616x1080.jpeg",
-      "publishedAt": "2026-05-19T13:00:35.000Z",
-      "excerpt": "On the morning of April 23, 2026, the Richland County Courthouse docket on the second floor read like roll call of reckoning.",
-      "categories": [
-        "news"
       ]
     },
     {
