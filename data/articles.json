@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-25T11:38:08.550Z",
+  "generatedAt": "2026-10-25T20:54:46.231Z",
   "articleCount": 49,
   "sourceCount": 4,
   "duplicateCount": 0,
@@ -54,6 +54,21 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-sunday-strip-inventing-the-wheel",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Sunday Strip: Inventing the Wheel...",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/sunday-strip-inventing-the-wheel",
+      "image": "https://substackcdn.com/image/fetch/$s_!9oyj!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9d9f7790-b536-44de-a274-0217faf1fe1c_1860x1410.png",
+      "publishedAt": "2026-10-25T15:38:04.000Z",
+      "excerpt": "Again.",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-restoring-independent-medicine",
       "sourceId": "malone",
@@ -425,21 +440,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!tfci!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4d5502e2-cebc-48e5-ab31-865a48128561_3210x1760.png",
       "publishedAt": "2026-10-07T13:47:59.000Z",
       "excerpt": "The Russian filing to WHO says no plague was registered. Read what it does not say.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-acip-case-gets-stranger",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The ACIP Case Gets Stranger",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-acip-case-gets-stranger",
-      "image": "https://substackcdn.com/image/fetch/$s_!uQRt!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F119e055d-63e5-470b-ae22-c917f429781c_1672x941.png",
-      "publishedAt": "2026-10-07T13:15:00.000Z",
-      "excerpt": "A troubling pattern emerges from the court record",
       "categories": [
         "commentary"
       ]
