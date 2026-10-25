@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-22T17:14:52.180Z",
+  "generatedAt": "2026-10-25T11:38:08.550Z",
   "articleCount": 49,
   "sourceCount": 4,
   "duplicateCount": 0,
@@ -54,6 +54,36 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-restoring-independent-medicine",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Restoring Independent Medicine",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/restoring-independent-medicine",
+      "image": "https://substackcdn.com/image/fetch/$s_!TK13!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F52ecf4c9-2a0d-43f6-9aed-5641e46a0791_1672x941.png",
+      "publishedAt": "2026-10-24T15:48:55.000Z",
+      "excerpt": "A path to lower costs, better care, and a more resilient healthcare system",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-friday-funnies-a-high-degree-of-consanguinity",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Friday Funnies: A high degree of Consanguinity",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/friday-funnies-a-high-degree-of-consanguinity",
+      "image": "https://substackcdn.com/image/fetch/$s_!RUQh!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14d318e7-bbb8-4211-aefb-df08c99de3b7_858x616.png",
+      "publishedAt": "2026-10-23T15:49:13.000Z",
+      "excerpt": "and other true stories",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-the-failure-of-modern-american-medicine",
       "sourceId": "malone",
@@ -415,21 +445,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-inside-the-irkutsk-plague-institute",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Inside the Irkutsk Plague Institute",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/inside-the-irkutsk-plague-institute",
-      "image": "https://substackcdn.com/image/fetch/$s_!ou1c!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6c892407-515d-4ac6-9049-b8ad133a040f_1672x941.png",
-      "publishedAt": "2026-10-06T14:36:17.000Z",
-      "excerpt": "Mongolia, Marmots, Golden Eagles, and the ongoing plague investigation",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "melthevcl-substack-com-p-the-king-of-blood-bond-county",
       "sourceId": "melthevcl",
       "sourceName": "Mel",
@@ -440,21 +455,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!h_lv!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff32b9160-a6dc-44e9-a021-b7119e8c11aa_1550x1676.png",
       "publishedAt": "2026-10-06T02:15:30.000Z",
       "excerpt": "The man behind Palm Beach County’s record investment in genocide",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-a-tale-of-two-cults",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "A Tale of Two Cults",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/a-tale-of-two-cults",
-      "image": "https://substackcdn.com/image/fetch/$s_!-S4B!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbf7c563d-ce54-4fa1-a00f-de3274733267_1672x941.png",
-      "publishedAt": "2026-10-05T15:24:09.000Z",
-      "excerpt": "The vaccine wars have produced two rival orthodoxies, and neither tolerates doubt or dissent.",
       "categories": [
         "commentary"
       ]
