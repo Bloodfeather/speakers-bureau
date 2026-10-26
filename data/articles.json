@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-25T20:54:46.231Z",
+  "generatedAt": "2026-10-26T22:43:20.717Z",
   "articleCount": 49,
   "sourceCount": 4,
   "duplicateCount": 0,
@@ -54,6 +54,21 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-dengue-returns-to-florida",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Dengue Returns to Florida",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/dengue-returns-to-florida",
+      "image": "https://substackcdn.com/image/fetch/$s_!pUbZ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef89a040-463d-43f2-9e67-e8d4545b57de_1672x941.png",
+      "publishedAt": "2026-10-26T14:26:53.000Z",
+      "excerpt": "A tropical disease returns, bringing new risks and old questions.",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-sunday-strip-inventing-the-wheel",
       "sourceId": "malone",
@@ -427,21 +442,6 @@
       "excerpt": "Dear Patriots,",
       "categories": [
         "news"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-update-the-plague-death-russia-will",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Update: The Plague Death Russia Will Not Explain",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/update-the-plague-death-russia-will",
-      "image": "https://substackcdn.com/image/fetch/$s_!tfci!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4d5502e2-cebc-48e5-ab31-865a48128561_3210x1760.png",
-      "publishedAt": "2026-10-07T13:47:59.000Z",
-      "excerpt": "The Russian filing to WHO says no plague was registered. Read what it does not say.",
-      "categories": [
-        "commentary"
       ]
     },
     {
