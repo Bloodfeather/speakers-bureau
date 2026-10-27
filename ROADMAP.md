@@ -162,7 +162,16 @@ it, a human or an AI assistant does. That single fact drove every decision below
 - [x] `data/events.json` - **6 REAL events**: the Greenville County GOP quarterly
       meeting, the SC Governor Debate, the SCETV Senate debate, early voting
       (15-31 Oct), the 3 November general election, and Greenwood's municipal
-      election on the same day.
+      election on the same day. **Extended to 12 on 2026-10-27**, after the
+      election, with five reviewed additions carrying the calendar into January
+      2027: Greenville County's certification of the general election (6 Nov), a
+      County Council meeting (17 Nov), two Greenville County Historical Society
+      lectures (18 Nov, 20 Jan 2027), and a State Election Commission meeting
+      (16 Dec). Every date was re-read at its own official source before entry -
+      the county's projected meeting PDF, the voter registration board's 2026
+      schedule, the Commission's public notices page and the Society's season
+      page - and nothing that could not be confirmed at the body's own site was
+      added.
 - [x] `data/events.schema.md` - the written contract an AI assistant works from.
 - [x] `scripts/check-events.mjs` + `npm run events:check` - readable report, all
       problems at once, plus an on-disk check that every referenced image exists.
@@ -183,7 +192,7 @@ it, a human or an AI assistant does. That single fact drove every decision below
 | Undated prose | **A third root key, `pageNote`, validated like an event.** | "Ongoing campaign activity" is not an event and has no date. Faking it as one would put undated prose on a calendar of real election dates. Empty `paragraphs` is rejected so "no note" and "a note with nothing in it" cannot be expressed the same way. |
 | Missing artwork | **Generated typographic placeholders**, carrying the event name, the date and the word `PLACEHOLDER`. | There are no photographs for any real event yet. A plate of type cannot be mistaken for a photo, and the word on it means nobody mistakes the page for finished. |
 | Type vocabulary | **Extended once, to `Meeting`.** | A party quarterly meeting is not a moderated forum, and the chip is what a reader scans. The vocabulary was built to be extendable; this was its first real use. |
-| Past vs upcoming | Split on `reviewedOn`, a date **in the data**. | `new Date()` at build time would make the built HTML depend on the build day - design rule 8 broken in its most literal form. A human bumps the date when they review. |
+| Past vs upcoming | Split on `reviewedOn`, a date **in the data**. | `new Date()` at build time would make the built HTML depend on the build day - design rule 8 broken in its most literal form. A human bumps the date when they review. **The split uses an event's LAST day**, not its first: found 2026-10-27, when bumping `reviewedOn` past the start of early voting filed a window with four days left to run under "Already held". A span is past only once the day after it ends. |
 | Panel on a phone | **UNDER the calendar, not pinned.** | Pinning was the original mistake; a pinned 594px banner was 71% of the viewport. The selected cell shows the event name inline, so a tap still confirms immediately. |
 | Default view | **The list on a phone, the calendar from 64rem.** Decided by the viewport, not by script or a remembered choice. | A month grid at 390px is seven columns of two-line names in cells about 50px wide. The switch then SWAPS the two at every width, so it means the same thing on both, and the width decides which view is the unchecked one. Same 64rem at which the panel moves beside the calendar. |
 | Banner size | Flat `7rem` cap at every width. | Decoration may not take the screen. Measured 112px / 13.3% of an 844px viewport, against 71% before. |
@@ -224,10 +233,13 @@ it, a human or an AI assistant does. That single fact drove every decision below
   fires after the build already broke. See "THE PER-DAY SELECTORS" in
   `src/pages/events.astro`. The cost is one `is:inline` block holding generated CSS,
   which is unscoped by definition.
-- **No event has a `url`.** The three real debates and meetings have no published
-  page, and inventing `example.org` links was what the placeholder data did. The
-  panel omits the link block entirely when `url` is null, so the outbound-link path
-  is currently unexercised by the real data.
+- **Every event now carries a `url`** (done 2026-10-27). The note here used to say
+  no event had one, so the outbound-link path was unexercised by real data. The
+  five reviewed additions all link to the publishing body's own page - the
+  county's schedule PDF, the Commission's notices page, the Society's season
+  page - which is the kind of page a reader can actually check. A null `url` is
+  still valid and the panel still omits the block, because a real event with no
+  published page is more honest than a fabricated link.
 - **`articles.ts` no longer declares its own `MONTHS` table** (done 2026-10-05).
   It imports the table from `src/lib/months.ts`, and `src/lib/months.ts` also owns
   the one `twoDigits()` that four call sites used to reimplement. The zero-padding

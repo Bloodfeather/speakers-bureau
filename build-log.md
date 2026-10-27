@@ -5,6 +5,111 @@ interruption, read the top entry, then `ROADMAP.md`, then continue.
 
 ---
 
+## 2026-10-27 - The calendar reviewed after the election: 7 events to 12, and a wrong fact the review itself exposed.
+
+**The ask:** a news pass to upgrade and update the calendar for the next few
+months, then publish.
+
+**`reviewedOn` moved 2026-10-05 -> 2026-10-27.** That single value is what moves
+the four October debates and the party meeting into "Already held", and it is the
+only thing that can, by design.
+
+**Five events added, each re-read at the publishing body's own site before it went
+in.** A research sweep proposed more; every date below was then fetched again
+independently, because a child agent's summary is a claim and not a source.
+
+| Date | Event | Start | Source used |
+| --- | --- | --- | --- |
+| 6 Nov 2026 | Greenville County Election Certification (Voter Registration and Election Board) | 11:00 | the board's own 2026 meeting schedule PDF |
+| 17 Nov 2026 | Greenville County Council | 18:00 | the county's projected 2026 meeting-dates PDF |
+| 18 Nov 2026 | GCHS Lecture - "Vardry McBee's Children and Grandchildren" | 18:30-20:00 | the Society's 2026-27 season page |
+| 16 Dec 2026 | SC State Election Commission | 10:00 | scvotes.gov public notices |
+| 20 Jan 2027 | GCHS Lecture - "The People Who Lived Here 10,000 Years Ago" | 18:30-20:00 | the Society's 2026-27 season page |
+
+The calendar now has a month grid for each of October 2026 to January 2027, where
+before it stopped dead at 3 November. No end time is printed for any of the
+meetings, because **none of these bodies publishes one** - an end time would have
+been invented, and one aggregator's "6:30 pm - 7:30 pm" turned out to be a plugin
+default rather than a stated time.
+
+**`pageNote` was rewritten, and leaving it would have shipped a false statement.**
+The old note described campaign activity with sentences like "They debate on
+8 October" and "Both campaigns have agreed to the SCETV debate on 11 October" -
+written when those were future dates and, on 27 October, describing finished
+events in the present tense. The replacement says what is actually true after the
+election: certification happens in stages, and **there is no November runoff**.
+
+That last sentence was checked rather than assumed. The State Election Commission's
+master calendar for 2026 (dated 2026-10-26) lists no election anywhere in the state
+between 3 November and 1 December, when the Town of Paxville in Clarendon County
+votes. Fifty rows fall on 3 November; one falls on 1 December; nothing in between.
+
+### The bug the review exposed: a running span was filed as already held
+
+Bumping `reviewedOn` to 27 October immediately made a false statement possible.
+`isPast` compared only `startsAt`, so **early voting (19 - 31 October) moved into
+"Already held" with four days of polling still to run.** A reader trusting that
+page would conclude they had missed their chance to vote while the polls were open.
+
+Fixed in `isPast`: the split is drawn at `endsAt` when there is one and `startsAt`
+otherwise, so a span is past only once the day after it ends. A same-day timed
+event and an event with no end both keep the old behaviour exactly.
+
+This is the second time this page has got a span wrong in the pessimistic
+direction - the grid marked one day of thirteen, and now the split declared the
+window closed four days early. Both came from treating a span as a moment.
+
+**A test was passing for a reason it did not intend.** `goodEvent()` defaults
+`endsAt` to 2026-11-14, and the past/upcoming fixtures overrode only `startsAt` -
+so the "past" fixture secretly ran for seven weeks, and had been passing only
+because the old code ignored ends. Every fixture in that test now states its own
+`endsAt`, and the comment says why.
+
+**Also fixed: a test that failed every time the calendar was reviewed.**
+`assert.equal(result.reviewedOn, '2026-10-05')` hardcoded the date, so the one act
+the schema asks a human to perform - bumping `reviewedOn` - broke the suite and
+looked like a corrupted dataset. It now asserts that the value survives the parse,
+against the file's own value, plus that it is still a plain date.
+
+### Verified
+
+- `npm run events:check` exit 0: **12 events, 24 images referenced, 0 missing**.
+- `npm run events:placeholders`: **10 new plates written**, 14 existing skipped -
+  it refuses to overwrite, so no real artwork could be destroyed.
+- `npm test`: **292 passing** (was 291; one test added for the span rule).
+- `npm run build` exit 0, 7 pages. The built page carries month headings for
+  October 2026 through January 2027, **11 date radios** for 11 distinct start
+  dates, and all five new events render in both views.
+- The split was checked on the real data, not just fixtures: the four October
+  items are past, and **early voting is listed as upcoming** with 31 October as
+  its end.
+
+### Searched for and NOT added, recorded so the absence is a decision
+
+- **No school board meeting.** Spartanburg District 7's own page states "first
+  Tuesday of each month" but prints no day-of-month and its calendar showed only
+  October; Anderson District Five's date appeared only in a home-page widget on a
+  site that blocked further reading; Anderson County Board of Education's date
+  came from a search summary alone. Three unconfirmed dates, so none went in.
+- **No county party meeting.** Greenville GOP has nothing posted between 3 Nov and
+  its 12 December Christmas event; the county Democratic Party's page is
+  script-gated and renders empty, and its Mobilize listing ends at 3 November.
+- **The 12 December "Upstate Republican Parties Christmas Celebration" was
+  excluded despite two published listings**, because the two disagree on the start
+  time (17:30 on the Greenville GOP page, 18:00 on the Spartanburg GOP page) and
+  neither is a civic proceeding.
+- **Traps caught in the sweep, so they are not reused later:** `lwvshr.us` is
+  Virginia's South Hampton Roads league, not Greenville; `pickensgop.com` is
+  Pickens County, Georgia; `andersoncountygop.com` is dead (the real domain is
+  `andersonsc.gop`); and the Anderson County Museum's parade page still carries a
+  2021 template under its 2026 text.
+
+**Files changed:** `data/events.json`, `src/lib/events-schema.ts`,
+`test/events.test.mjs`, `data/events.schema.md`, `ROADMAP.md`, `build-log.md`, plus
+ten generated placeholder SVGs under `public/img/events/`.
+
+---
+
 ## 2026-10-27 - A fifth source added on a CUSTOM DOMAIN, and a routine refresh exposed a test that depended on one article being recent.
 
 **The ask:** add `https://www.merissahansen.com/` ("The Houston Comical", Merissa

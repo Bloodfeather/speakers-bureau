@@ -1485,12 +1485,21 @@ export function groupByMonth(eventsIn: readonly EventRecord[]): MonthGroup[] {
  * Compares CALENDAR DAYS as `YYYYMMDD` integers, never instants, so the split
  * cannot be shifted by a timezone. An all-day event ON the reviewed date is
  * upcoming, not past: today has not finished.
+ *
+ * THE COMPARISON USES THE EVENT'S LAST DAY, NOT ITS FIRST. A multi-day span is
+ * not over when it starts, and comparing `startsAt` alone filed a voting window
+ * that had four days left to run under "Already held" - a wrong fact on a page
+ * of dates, and wrong in the direction that discourages a reader from voting.
+ * Found on 2026-10-27 when `reviewedOn` was bumped past the start of early
+ * voting. A timed event ending on a later day is treated the same way, which
+ * costs nothing and is right for the same reason.
  */
 export function isPast(event: EventRecord, reviewedOn: string | null): boolean {
   if (reviewedOn === null) return false;
   const reviewed = parseWallClock(reviewedOn);
   if (reviewed === null) return false;
-  const eventDay = Number(event.startsAt.slice(0, 10).replace(/-/g, ''));
+  const lastDay = (event.endsAt ?? event.startsAt).slice(0, 10);
+  const eventDay = Number(lastDay.replace(/-/g, ''));
   const reviewedDay = Number(`${reviewed.year}${twoDigits(reviewed.month)}${twoDigits(reviewed.day)}`);
   return eventDay < reviewedDay
 }

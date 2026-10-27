@@ -162,7 +162,17 @@ test('the committed data/events.json is valid and is not empty', async (t) => {
     `positive control: the validator must accept a dataset with real content, got ${result.events.length} events`
   );
   assert.equal(result.events.length, REAL_DOC.events.length, 'every event must survive validation');
-  assert.equal(result.reviewedOn, '2026-10-05', 'reviewedOn must be read back from the file');
+  // ASSERTED AGAINST THE FILE, NOT AGAINST A LITERAL. This read the hardcoded
+  // string '2026-10-05', so every review of the calendar - the one act the
+  // schema asks a human to perform - failed the suite and looked like the data
+  // had broken. What this control is for is that the value survives the parse,
+  // and the file is the source of truth for what it is.
+  assert.equal(result.reviewedOn, REAL_DOC.reviewedOn, 'reviewedOn must be read back from the file');
+  assert.match(
+    String(result.reviewedOn),
+    /^\d{4}-\d{2}-\d{2}$/,
+    'reviewedOn must still be a plain date, not a timestamp the parser let through'
+  );
 
   // WHAT REPLACED "every type is exercised by the sample data", and why.
   //
@@ -1092,9 +1102,26 @@ test('the past/upcoming split is decided by reviewedOn, never by the clock', () 
   // The whole point: a build that renders "today" differently depending on the
   // day it ran is design rule 8 broken in the most literal way available.
   // isPast therefore takes the date from the data.
-  const pastEvent = goodEvent({ id: 'past-one', startsAt: '2026-09-24T19:00' });
-  const futureEvent = goodEvent({ id: 'future-one', startsAt: '2026-11-14T18:30' });
-  const todayEvent = goodEvent({ id: 'today-one', startsAt: '2026-10-05T09:00' });
+  const pastEvent = goodEvent({
+    id: 'past-one',
+    startsAt: '2026-09-24T19:00',
+    endsAt: '2026-09-24T20:00'
+  });
+  const futureEvent = goodEvent({
+    id: 'future-one',
+    startsAt: '2026-11-14T18:30',
+    endsAt: '2026-11-14T20:00'
+  });
+  const todayEvent = goodEvent({
+    id: 'today-one',
+    startsAt: '2026-10-05T09:00',
+    endsAt: '2026-10-05T10:00'
+  });
+  // endsAt IS STATED ON EVERY FIXTURE, and that is not incidental: goodEvent's
+  // default end is 2026-11-14, so a fixture that overrode only `startsAt` ended
+  // two months after it began and - once isPast began honouring the end of a
+  // span - stopped being past at all. The test was passing for a reason it did
+  // not intend.
 
   assert.equal(isPast(pastEvent, '2026-10-05'), true, 'an event before the review date is past');
   assert.equal(isPast(futureEvent, '2026-10-05'), false, 'an event after the review date is upcoming');
@@ -1104,6 +1131,49 @@ test('the past/upcoming split is decided by reviewedOn, never by the clock', () 
     'an event ON the review date is upcoming, because today has not finished'
   );
   assert.equal(isPast(futureEvent, null), false, 'with no reviewedOn there is no line to draw, so nothing is past');
+});
+
+test('a multi-day span is not past until its LAST day has passed', () => {
+  // THE WRONG FACT THIS PREVENTS. Early voting runs 19-31 October 2026. Reviewing
+  // the list on 27 October is the normal, correct thing to do mid-window - and
+  // comparing `startsAt` alone filed a window with four days left to run under
+  // "Already held". A reader who trusts that page concludes they have missed
+  // their chance to vote while the polls are open.
+  const earlyVoting = goodEvent({
+    id: 'early-voting',
+    startsAt: '2026-10-19',
+    endsAt: '2026-10-31',
+    allDay: true,
+    timezone: null
+  });
+
+  assert.equal(
+    isPast(earlyVoting, '2026-10-27'),
+    false,
+    'a span reviewed MID-WINDOW is still upcoming: four days of voter access remain'
+  );
+  assert.equal(
+    isPast(earlyVoting, '2026-10-31'),
+    false,
+    'on the span final day it is still upcoming, for the same reason an event ON the review date is'
+  );
+  assert.equal(
+    isPast(earlyVoting, '2026-11-01'),
+    true,
+    'the day after it ends, it is past'
+  );
+
+  // A same-day timed event must behave exactly as before: its end is on its own
+  // date, so nothing about this rule changes the common case.
+  const sameDay = goodEvent({ id: 'same-day', startsAt: '2026-11-14T18:30', endsAt: '2026-11-14T20:00' });
+  assert.equal(isPast(sameDay, '2026-11-14'), false, 'a same-day timed event ON the review date is upcoming');
+  assert.equal(isPast(sameDay, '2026-11-15'), true, 'a same-day timed event before the review date is past');
+
+  // An event with no end date falls back to its start, which keeps every
+  // single-day event on the old rule.
+  const noEnd = goodEvent({ id: 'no-end', startsAt: '2026-11-14T18:30', endsAt: null });
+  assert.equal(isPast(noEnd, '2026-11-15'), true, 'no endsAt means the start date decides');
+  assert.equal(isPast(noEnd, '2026-11-14'), false, 'no endsAt, on its own date, is upcoming');
 });
 
 // ---------------------------------------------------------------------------

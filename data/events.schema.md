@@ -265,8 +265,20 @@ the file.
 
 So: **bump `reviewedOn` to today when you review the list**, and expect anything
 before it to move into "Already held". An event ON the reviewed date counts as
-upcoming, because that day has not finished. If `reviewedOn` is absent, no split
-is made and everything renders in one chronological list.
+upcoming, because that day has not finished. If `reviewedOn` is absent, no split is
+made and everything renders in one chronological list.
+
+**The comparison uses an event's LAST day, not its first.** A multi-day span is not
+over when it starts, so the split is drawn at `endsAt` when there is one and
+`startsAt` otherwise. This matters the moment you review a list mid-window: early
+voting runs 19 - 31 October, and reviewing on 27 October originally filed it under
+"Already held" with four days of voter access still to run. A reader who trusted
+that page would conclude they had missed their chance to vote while the polls were
+open - so the rule is that a span stays upcoming until the day after it ends. A
+timed event ending on a later day follows the same rule.
+
+Bumping `reviewedOn` is therefore never a trap: review the list whenever you like,
+and an event that is still running will not be moved behind you.
 
 ---
 

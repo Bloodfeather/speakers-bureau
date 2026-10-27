@@ -1,5 +1,5 @@
 {
-  "reviewedOn": "2026-10-05",
+  "reviewedOn": "2026-10-27",
   "events": [
     {
       "id": "gop-quarterly-meeting",
@@ -105,16 +105,89 @@
       "banner": "/img/events/greenwood-general-election-banner.svg",
       "url": "https://www.cityofgreenwoodsc.com/government/election_information.php",
       "notes": "Held on the same day as the state and federal election. Greenwood is the county seat of Greenwood County. Confirm your polling place with Greenwood County."
+    },
+    {
+      "id": "gvrd-cert-general",
+      "name": "Greenville County Election Certification",
+      "event": "The Greenville County Voter Registration and Election Board meets to certify the results of the 3 November general election.",
+      "startsAt": "2026-11-06T11:00",
+      "endsAt": null,
+      "allDay": false,
+      "timezone": "Eastern Time (ET)",
+      "location": "225 S. Pleasantburg Drive, Suite B-10, Greenville",
+      "type": "Meeting",
+      "thumbnail": "/img/events/gvrd-cert-general-thumb.svg",
+      "banner": "/img/events/gvrd-cert-general-banner.svg",
+      "url": "https://greenvillecountysc.gov/VoterRegistration/pdf/BoardMeetingSchedule.pdf",
+      "notes": "11:00 am, taken from the board's own published 2026 meeting schedule, which lists this as the meeting that certifies the general election. Agendas and times are published in advance and can change, so check the board's notice before travelling."
+    },
+    {
+      "id": "county-council-nov-17",
+      "name": "Greenville County Council Meeting",
+      "event": "A regular public meeting of Greenville County Council in Council Chambers. Committee meetings are generally held in the Committee Room at County Square.",
+      "startsAt": "2026-11-17T18:00",
+      "endsAt": null,
+      "allDay": false,
+      "timezone": "Eastern Time (ET)",
+      "location": "Council Chambers, 301 University Ridge (County Square), Greenville",
+      "type": "Meeting",
+      "thumbnail": "/img/events/county-council-nov-17-thumb.svg",
+      "banner": "/img/events/county-council-nov-17-banner.svg",
+      "url": "https://www.greenvillecounty.org/Council/councilfiles/Projected_Schedule_REG.pdf",
+      "notes": "6:00 pm, from the county's own projected 2026 meeting schedule. That schedule states all dates are tentative and subject to cancellation, so confirm against the county's agenda listing before setting out."
+    },
+    {
+      "id": "gchs-lecture-mcbee",
+      "name": "Vardry McBee's Children and Grandchildren",
+      "event": "A Greenville County Historical Society lecture by Dr. Robert Benedict on the children and grandchildren of Vardry McBee.",
+      "startsAt": "2026-11-18T18:30",
+      "endsAt": "2026-11-18T20:00",
+      "allDay": false,
+      "timezone": "Eastern Time (ET)",
+      "location": "Downtown Presbyterian Church, 435 W Washington Street, Greenville",
+      "type": "Lecture",
+      "thumbnail": "/img/events/gchs-lecture-mcbee-thumb.svg",
+      "banner": "/img/events/gchs-lecture-mcbee-banner.svg",
+      "url": "https://greenvillehistory.org/lectures-and-events-new/",
+      "notes": "Runs 6:30 pm to 8:00 pm on a Wednesday evening. Free to Historical Society members; tickets for non-members are 15 dollars."
+    },
+    {
+      "id": "sec-meeting-dec-16",
+      "name": "SC State Election Commission Meeting",
+      "event": "A regular meeting of the State Election Commission, the body that oversees election administration across South Carolina, at its Columbia office.",
+      "startsAt": "2026-12-16T10:00",
+      "endsAt": null,
+      "allDay": false,
+      "timezone": "Eastern Time (ET)",
+      "location": "1122 Lady Street, Suite 500, Columbia",
+      "type": "Meeting",
+      "thumbnail": "/img/events/sec-meeting-dec-16-thumb.svg",
+      "banner": "/img/events/sec-meeting-dec-16-banner.svg",
+      "url": "https://scvotes.gov/about-the-sec/public-notices/",
+      "notes": "10:00 am, the Commission's standard start time unless a notice says otherwise. Its published notices state that meetings are subject to change up to 24 hours beforehand, so confirm before travelling to Columbia."
+    },
+    {
+      "id": "gchs-lecture-10000-years",
+      "name": "The People Who Lived Here 10,000 Years Ago",
+      "event": "A Greenville County Historical Society lecture by James T. Hammond on the people who lived in this part of the Upstate ten thousand years ago.",
+      "startsAt": "2027-01-20T18:30",
+      "endsAt": "2027-01-20T20:00",
+      "allDay": false,
+      "timezone": "Eastern Time (ET)",
+      "location": "Downtown Presbyterian Church, 435 W Washington Street, Greenville",
+      "type": "Lecture",
+      "thumbnail": "/img/events/gchs-lecture-10000-years-thumb.svg",
+      "banner": "/img/events/gchs-lecture-10000-years-banner.svg",
+      "url": "https://greenvillehistory.org/lectures-and-events-new/",
+      "notes": "Runs 6:30 pm to 8:00 pm on a Wednesday evening. Free to Historical Society members; tickets for non-members are 15 dollars."
     }
   ],
   "pageNote": {
-    "heading": "Ongoing campaign activity in the Upstate",
+    "heading": "After the election: certification, and what is not on the ballot",
     "paragraphs": [
-      "Darline Graham (U.S. Senate) has been making repeated stops in the Upstate, most recently a meet-and-greet luncheon at the Poinsett Club in Greenville on 21 September, hosted by the Upstate Republican Women's Club.",
-      "Annie Andrews (D) has also held events in the Upstate and pressed for televised debates in the region. Both campaigns have agreed to the SCETV debate on 11 October.",
-      "Alan Wilson (R, Governor) campaigned in Greenville and Laurens counties during the primary.",
-      "William Timmons (R, SC-04) is the incumbent in the Upstate congressional seat and is contesting it against Courtney McClain. They debate on 8 October.",
-      "Sheri Biggs (R, SC-03) covers the Anderson and Greenwood area and is running for re-election."
+      "Results from the 3 November general election are certified in stages rather than declared final on the night. County boards act first: Greenville County's Voter Registration and Election Board certifies its count on 6 November, and the State Board of Canvassers later certifies the statewide result.",
+      "No further election follows in the Upstate. The State Election Commission's master calendar for 2026 lists no election anywhere in the state between 3 November and 1 December, when the Town of Paxville in Clarendon County holds its municipal general election. There is no November runoff.",
+      "Public business continues through the winter. Greenville County Council's published schedule lists regular meetings on 17 November and 1 December at 6:00 pm in Council Chambers, and the Historical Society's lecture series runs monthly through to May."
     ]
   }
 }
