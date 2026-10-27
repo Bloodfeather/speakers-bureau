@@ -1467,6 +1467,124 @@ test('the events page ships no <noscript> fallback, and no :global() CLASS selec
   );
 });
 
+test('the list is the phone default view, the calendar is the desktop default, and the switch means one thing', async (t) => {
+  // A DEFAULT THAT DEPENDS ON THE VIEWPORT, WHICH IS THE ONE KIND OF DEFAULT A
+  // BUILD CANNOT SEE. The two views are shown and hidden by CSS, so the built
+  // HTML is byte-identical whether the phone opens on the list or on the
+  // calendar: every other test in this file, and a page snapshot, would pass
+  // either way. This is the assertion that can tell them apart.
+  //
+  // WHAT IT PINS, and each of the three is a way the requirement can be lost
+  // without anything else going red:
+  //
+  //   1. THE VALUES. The phone default is the list, so the calendar is the
+  //      hidden one; the breakpoint swaps them. A `--view-list: none` outside
+  //      the breakpoint is the phone opening on a month grid.
+  //   2. THE BREAKPOINT IS THE ONE THE LAYOUT ALREADY USES. 64rem is where the
+  //      panel moves from under the calendar to beside it. A second, different
+  //      width would make the page change shape twice, at two moments, for no
+  //      reason a reader could name.
+  //   3. THE SWITCH IS SYMMETRIC. `html:has(#view-list:checked)` must set each
+  //      view to the OTHER view's token. A hand-written `display: none` /
+  //      `display: block` pair here would still satisfy a careless version of
+  //      this test, and it is the shape that produces a switch whose first tap
+  //      does nothing on the width where the named view is already showing.
+  //
+  // WHY THE SOURCE AND NOT dist/. These rules survive compilation into the
+  // page's stylesheet link, and reading them out of dist/ would couple the test
+  // to a build artifact. The check below also reads dist/ for the SWITCH MARKUP,
+  // because that is the half a reader actually sees.
+  const page = await readFile(EVENTS_PAGE, 'utf8');
+  const css = styleBlockOf(page);
+
+  // POSITIVE CONTROL: the extraction found the stylesheet and the two rules that
+  // carry the decision. Without this, every assertion below could be matching an
+  // empty string.
+  assert.ok(css.length > 500, `positive control: the extracted style block should be substantial, got ${css.length} characters`);
+  assert.ok(
+    css.includes('--view-list') && css.includes('--view-calendar'),
+    'positive control: the two view tokens must be in the page\'s own style block, or this test is reading the wrong text'
+  );
+
+  // 1. The declared values. Matched as a unit so a stray `--view-list` elsewhere
+  // cannot satisfy it.
+  assert.match(
+    css,
+    /\.events__layout\s*\{[^}]*--view-list:\s*block;[^}]*--view-calendar:\s*none;/,
+    'the phone default must be the LIST: .events__layout must declare --view-list: block and --view-calendar: none. ' +
+      'Anything else opens a phone on the month grid, and no other test in this repository can see it.'
+  );
+
+  // 2. And the breakpoint, in the same block that places the columns, flipping
+  // both tokens. Asserted against the media block rather than the whole file, so
+  // a token declared somewhere else does not pass for this.
+  const breakpoint = css.match(/@media \(min-width: 64rem\) \{[\s\S]*?\n  \}/);
+  assert.ok(
+    breakpoint,
+    'the page must keep its 64rem breakpoint, which is where the panel moves beside the calendar; the view default ' +
+      'is meant to change at that same width rather than at a second one'
+  );
+  assert.match(
+    breakpoint[0],
+    /--view-list:\s*none;[^}]*--view-calendar:\s*block;/,
+    'above 64rem the default must be the CALENDAR: the breakpoint must declare --view-list: none and ' +
+      '--view-calendar: block, so the page changes shape once rather than twice'
+  );
+
+  // 3. The switch, and its symmetry. Each view takes the OTHER view's token when
+  // the control is on, which is what makes the control mean the same thing at
+  // both widths.
+  const switched = [...css.matchAll(/html:has\(#view-list:checked\)\s+\.events__view--(list|calendar)\s*\{[^}]*?display:\s*var\((--view-[a-z]+)\)/g)];
+  const wiring = Object.fromEntries(switched.map((m) => [m[1], m[2]]));
+  assert.equal(
+    switched.length,
+    2,
+    `the switch must redirect BOTH views when it is on, and each through a token; found ${switched.length}: ` +
+      `${JSON.stringify(wiring)}`
+  );
+  assert.equal(
+    wiring.list,
+    '--view-calendar',
+    'when the switch is ON the list must take the calendar\'s token, so the control swaps the two views rather than ' +
+      'setting one of them to a constant'
+  );
+  assert.equal(
+    wiring.calendar,
+    '--view-list',
+    'when the switch is ON the calendar must take the list\'s token. The pair is what makes the switch mean the same ' +
+      'thing on a phone and on a desktop; a constant here is the first tap that appears to do nothing.'
+  );
+
+  // And a per-view `display: none` has not crept back, which would be a third
+  // opinion about which view is hidden and would beat the tokens.
+  assert.equal(
+    /\.events__view--(list|calendar)\s*\{[^}]*display:\s*(none|block)\s*;/.test(css),
+    false,
+    'a view is hidden with a literal `display: none` or `block` again. That is a second place the default is ' +
+      'decided, it does not respond to the switch, and it is the shape that made the phone default invisible to review.'
+  );
+
+  // The other half of the requirement, in the markup a reader receives: the
+  // switch's own text. It named one view while the default was the other, which
+  // is the defect this asserts against coming back.
+  const builtPath = resolve(PROJECT_ROOT, 'dist', 'events', 'index.html');
+  const built = await readFile(builtPath, 'utf8').catch(() => null);
+  assert.ok(built !== null, `positive control: the built page must exist at ${builtPath}. Run \`npm run build\` before this suite.`);
+  assert.match(
+    built,
+    /<span class="switch__text"[^>]*>List \/ Calendar view<\/span>/,
+    'the switch must be labelled "List / Calendar view". It read "List view", which named the view the control ' +
+      'switched TO and was false on a phone once the list became the default there.'
+  );
+  assert.equal(
+    /<span class="switch__text"[^>]*>List view<\/span>/.test(built),
+    false,
+    'the built page still carries the old one-view label, which contradicts the width-dependent default'
+  );
+
+  t.diagnostic(`view default: ${JSON.stringify(wiring)} at the 64rem breakpoint, phone default = list`);
+});
+
 test('no calendar cell claims to be aria-current, and the state is carried twice instead', async (t) => {
   // THE ATTRIBUTE THAT WAS LYING. EventCalendar.astro rendered
   //
@@ -1853,7 +1971,7 @@ test('an event day and an empty day differ by a NON-COLOUR property', async (t) 
 // keyed every event on `startsAt` alone, so the fortnight of early voting that the
 // panel and the list both print as "19 - 31 October 2026" was marked on the calendar
 // on 19 October and the other twelve dates rendered as ordinary empty squares. The
-// calendar is the DEFAULT view, so the page's front door understated voter access on
+// grid is what a desktop opens on, so the page understated voter access on
 // twelve of the thirteen days it runs - confidently, and in the pessimistic
 // direction, which is the worst way for it to be wrong.
 //

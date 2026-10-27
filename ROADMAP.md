@@ -185,6 +185,7 @@ it, a human or an AI assistant does. That single fact drove every decision below
 | Type vocabulary | **Extended once, to `Meeting`.** | A party quarterly meeting is not a moderated forum, and the chip is what a reader scans. The vocabulary was built to be extendable; this was its first real use. |
 | Past vs upcoming | Split on `reviewedOn`, a date **in the data**. | `new Date()` at build time would make the built HTML depend on the build day - design rule 8 broken in its most literal form. A human bumps the date when they review. |
 | Panel on a phone | **UNDER the calendar, not pinned.** | Pinning was the original mistake; a pinned 594px banner was 71% of the viewport. The selected cell shows the event name inline, so a tap still confirms immediately. |
+| Default view | **The list on a phone, the calendar from 64rem.** Decided by the viewport, not by script or a remembered choice. | A month grid at 390px is seven columns of two-line names in cells about 50px wide. The switch then SWAPS the two at every width, so it means the same thing on both, and the width decides which view is the unchecked one. Same 64rem at which the panel moves beside the calendar. |
 | Banner size | Flat `7rem` cap at every width. | Decoration may not take the screen. Measured 112px / 13.3% of an 844px viewport, against 71% before. |
 | Month navigation | Only months that have events. | Navigation needs a second selection group or URL state, and buys browsing empty months. |
 | Hand-authored data | **Unknown keys are a hard error.** | A misspelled `loction` would otherwise render a row with no venue, green build, page looking finished. |
@@ -196,7 +197,7 @@ it, a human or an AI assistant does. That single fact drove every decision below
 - **DONE 2026-10-05: a multi-day span now marks EVERY day it runs on in the grid.**
   This was the top follow-up, and it was the worst defect the project had: early
   voting occupied one cell of thirteen while the panel and the list said
-  "19 - 31 October 2026", so the page's DEFAULT view understated voter access on
+  "19 - 31 October 2026", so the grid understated voter access on
   twelve of the thirteen days it runs - confidently, and in the pessimistic
   direction. `src/lib/calendar.ts` now knows a day can be a *continuation*: a date
   a span runs through rather than one that starts there. Such a day is marked with a

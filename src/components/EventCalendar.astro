@@ -21,7 +21,7 @@
 //
 // Early voting runs 19 to 31 October 2026. The panel and the list both print that
 // range. Marking only the 19th and rendering the following twelve dates as
-// ordinary empty squares would say, in the DEFAULT view of the page, that voter
+// ordinary empty squares would say, on the grid a desktop opens on, that voter
 // access existed on one day of thirteen - while the page's own prose, two hundred
 // pixels away, said otherwise. `eventDays` consults `endsAt` on the grid path.
 //
@@ -373,8 +373,8 @@ function toWeeks(cells: MonthGrid['cells']): MonthGrid['cells'][] {
    * A DAY INSIDE A MULTI-DAY EVENT, as opposed to the day the event starts.
    * Early voting runs 19 to 31 October 2026; before this marker existed the grid
    * marked the 19th and rendered 20 through 31 as ordinary empty squares, while
-   * the panel and the list both said "19 - 31 October 2026". The default view of
-   * the page therefore understated voter access on twelve of the thirteen days
+   * the panel and the list both said "19 - 31 October 2026". The grid therefore
+   * understated voter access on twelve of the thirteen days
    * it runs - confidently, and in the pessimistic direction.
    *
    * It is a DIFFERENT SHAPE from `.cal__mark`, and it has to be, for two reasons:

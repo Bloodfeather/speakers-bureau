@@ -160,8 +160,9 @@ const MINIMUM_ROWS = 5
  * keyed only on `dayKey(startsAt)`, early voting - `2026-10-19` to
  * `2026-10-31` - would be marked on 19 October and the other twelve days would
  * render as ordinary empty squares. The panel and the list both say "19 - 31 October
- * 2026", so the DEFAULT view of the page (the calendar; the list is behind a
- * toggle) asserted that voter access existed on one day out of thirteen. A
+ * 2026", so the page's DEFAULT view of the grid - the calendar is what a desktop
+ * opens on; a phone opens on the list - asserted that voter access existed on one
+ * day out of thirteen. A
  * confidently wrong answer, and the pessimistic one, on a page publishing real
  * voter-access information.
  */
@@ -350,7 +351,7 @@ export function dayKey(startsAt: string): string {
  * "19 - 31 October 2026" was marked on the calendar on 19 October alone and the
  * other twelve dates rendered as ordinary empty squares. On a page of real
  * voter-access information that is the wrong answer in the pessimistic direction,
- * on the page's DEFAULT view.
+ * on the view the page opens on at that width.
  *
  * Order comes from `sortEvents`, so the same list always produces the same days
  * in the same order regardless of the order it arrived in - design rule 8 applied

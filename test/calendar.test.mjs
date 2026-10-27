@@ -426,8 +426,8 @@ test('days come out ascending, and events within a day come out chronological', 
 // `dayKey(startsAt)` and `endsAt` was never consulted on the grid path. Early
 // voting runs 19 to 31 October 2026 and was marked on the calendar on 19 October
 // alone; the other twelve dates rendered as ordinary empty squares while the panel
-// and the list both printed "19 - 31 October 2026". The calendar is the page's
-// DEFAULT view, so on a page of real voter-access information the default view
+// and the list both printed "19 - 31 October 2026". The grid is what a desktop
+// opens on, so on a page of real voter-access information it
 // under-reported voter access on twelve of the thirteen days it runs - confidently,
 // and in the pessimistic direction.
 // ---------------------------------------------------------------------------

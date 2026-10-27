@@ -152,8 +152,8 @@ never renders as a span, because `18:30 - 31 October 2026` reads as nonsense.
 **The calendar grid now marks EVERY day of a span.** Early voting appears on 19
 October, and the 20th to the 31st are marked as days the event runs through rather
 than as ordinary empty days. Before 2026-10-05 the grid marked only the first day,
-so the page's default view said voter access existed on one day of thirteen while
-its own panel and list said otherwise.
+so the grid a desktop opens on said voter access existed on one day of thirteen
+while its own panel and list said otherwise.
 
 Two details matter if you are filling this file in:
 
@@ -396,6 +396,11 @@ Worth knowing before you edit the data, because it explains several fields.
 
 - **The calendar shows only months that have events.** No event means no month, and
   no empty grid is rendered. A month grid is built per distinct month in the data.
+- **Which view the page opens on depends on the screen, and no data or control
+  changes that.** A phone opens on the list and a screen from 64rem wide opens on
+  the calendar. The view switch at the top of the page swaps the two at any width
+  and is not remembered between visits, so there is no field here to set a default
+  and nothing in this file that changes one.
 - **The list view is the same data, not a second list.** It is grouped by the same
   month headings and rows point at the same date radios, so a date selected in one
   view is selected in the other.

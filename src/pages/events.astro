@@ -19,8 +19,20 @@
 // breakpoint.
 //
 // Feedback for a tap does not depend on the panel being visible: the selected
-// cell in the calendar shows that date's event NAME inline, immediately. The panel
-// is the detail, not the confirmation.
+// cell in the calendar shows that date's event NAME inline, immediately, and the
+// selected row is marked the same way in the list. The panel is the detail, not
+// the confirmation.
+//
+// ---------------------------------------------------------------------------
+// THE VIEW THE PAGE OPENS ON DEPENDS ON THE WIDTH
+// ---------------------------------------------------------------------------
+//
+// The LIST on a phone, the CALENDAR above 64rem. Nothing is checked on arrival
+// and no script decides it: the order of two rules does, which is why the
+// decision is written out at the foot of this file rather than left to be
+// inferred from the stylesheet. The breakpoint is the same 64rem at which the
+// panel moves from under the calendar to beside it, so the page changes shape
+// once rather than twice.
 //
 // ---------------------------------------------------------------------------
 // THE SELECTION UNIT IS A DAY
@@ -352,8 +364,8 @@ const rowFlags = (event: (typeof ordered)[number]) => {
     {
       coveredOnlyDays.length > 0 && (
         <p class="page-head__legend">
-          A short rule beside a date marks a day inside a multi-day event. The event
-          is listed on the day it starts, with its full range.
+          On the calendar, a short rule beside a date marks a day inside a multi-day event.
+          The event is listed on the day it starts, with its full range.
         </p>
       )
     }
@@ -392,6 +404,15 @@ const rowFlags = (event: (typeof ordered)[number]) => {
 
     It is a real <input type="checkbox">, visually replaced by the track and thumb
     below, and it stays focusable and in the accessibility tree.
+
+    THE LABEL NAMES BOTH STATES, and it has to. It read "List view" while the
+    calendar was the default view and the switch moved the page TO the list, so
+    the text named what the control gave you rather than what it was set to. Now
+    that the default depends on the width, there is no single view the text could
+    name on its own: a phone opens on the list and a desktop opens on the
+    calendar, and the same words have to be true of both. "List / Calendar view"
+    reads as the switch's two positions, which is what it has - and the track and
+    the thumb say which one is on, which is why the text does not need to.
   */}
   <fieldset class="switch">
     <legend class="label">View</legend>
@@ -400,7 +421,7 @@ const rowFlags = (event: (typeof ordered)[number]) => {
       <span class="switch__track" aria-hidden="true">
         <span class="switch__thumb"></span>
       </span>
-      <span class="switch__text">List view</span>
+      <span class="switch__text">List / Calendar view</span>
     </label>
   </fieldset>
 
@@ -740,18 +761,33 @@ const rowFlags = (event: (typeof ordered)[number]) => {
    * `grid-row: 1` on BOTH items is load-bearing: with
    * only `grid-column` set, auto-placement put the two items in DIFFERENT rows,
    * leaving them diagonal with a large empty block. Measured, not guessed.
+   *
+   * THE VIEW DEFAULT LIVES HERE TOO, in the two tokens below, because this is
+   * the breakpoint block and the two decisions are the same breakpoint on
+   * purpose. See the note on the two views further down for why it is tokens
+   * rather than a `display: none` per view.
    * --------------------------------------------------------------------- */
   .events__layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-5);
     align-items: start;
+
+    /* PHONE: the list is the default view, so the calendar is the hidden one.
+       Custom properties are not inherited backwards and cost nothing here; they
+       are the two `display` values the view rules consume. */
+    --view-list: block;
+    --view-calendar: none;
   }
 
   @media (min-width: 64rem) {
     .events__layout {
       grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
       gap: var(--space-6);
+
+      /* DESKTOP: the calendar is the default view. */
+      --view-list: none;
+      --view-calendar: block;
     }
 
     .events__nav {
@@ -768,22 +804,49 @@ const rowFlags = (event: (typeof ordered)[number]) => {
   }
 
   /* ------------------------------------------------------------------------
-   * THE TWO VIEWS
+   * THE TWO VIEWS, AND WHICH ONE THE PAGE OPENS ON
    *
-   * The calendar is the default, so the list is the one hidden by default. The
-   * switch then flips which is which. Both are always in the DOM, so toggling is
-   * a repaint.
+   * Both are always in the DOM, so the switch is a repaint rather than a fetch
+   * or a re-render.
+   *
+   * THE LIST IS THE PHONE DEFAULT AND THE CALENDAR IS THE DESKTOP DEFAULT. No
+   * script and no pre-checked input decides that: the viewport width does, at
+   * the same 64rem at which the panel moves from under the calendar to beside
+   * it, so the page changes shape once rather than twice.
+   *
+   * THE SWITCH MEANS THE SAME THING AT EVERY WIDTH, and that is why this is two
+   * TOKENS rather than one `display: none`. A switch whose OFF position showed
+   * the very view it names would be a control reporting a state that is false,
+   * and the reader's first tap would appear to do nothing - on a phone, which is
+   * where it is most likely to be tapped. So the width decides WHICH VIEW IS THE
+   * UNCHECKED ONE; the control always swaps them.
+   *
+   * TWO TOKENS ALSO REMOVE A TRAP A PLAIN `display: none` WOULD SET. A media
+   * query adds no specificity, so a rule inside the breakpoint would beat an
+   * identical rule outside it only by being LATER in the file, and moving the
+   * block would silently flip the default back with a green build and nothing
+   * failing. Here the breakpoint changes two values and nothing else, and every
+   * rule that consumes them is written once and reads the same on both sides.
+   *
+   * The tokens are declared on `.events__layout`, in the block that also places
+   * the two columns, and flipped in the breakpoint beside it.
    * --------------------------------------------------------------------- */
   .events__view--list {
-    display: none;
+    display: var(--view-list);
+  }
+
+  .events__view--calendar {
+    display: var(--view-calendar);
+  }
+
+  /* The switch swaps the two. Two specificity classes against the one above, so
+     this wins wherever it is written rather than by being written last. */
+  html:has(#view-list:checked) .events__view--list {
+    display: var(--view-calendar);
   }
 
   html:has(#view-list:checked) .events__view--calendar {
-    display: none;
-  }
-
-  html:has(#view-list:checked) .events__view--list {
-    display: block;
+    display: var(--view-list);
   }
 
   /* ------------------------------------------------------------------------
