@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-09T15:35:42.688Z",
-  "articleCount": 49,
-  "sourceCount": 4,
+  "generatedAt": "2026-10-27T22:58:27.377Z",
+  "articleCount": 69,
+  "sourceCount": 5,
   "duplicateCount": 0,
   "sources": [
     {
@@ -51,9 +51,366 @@
       "itemCount": 6,
       "newItemCount": 6,
       "error": null
+    },
+    {
+      "id": "houstoncomical",
+      "name": "The Houston Comical",
+      "tag": "news",
+      "status": "ok",
+      "httpStatus": 200,
+      "configuredUrl": "https://www.merissahansen.com/feed",
+      "resolvedUrl": "https://www.merissahansen.com/feed",
+      "itemCount": 20,
+      "newItemCount": 20,
+      "error": null
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-americas-war-on-medical-freedom",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "America’s War on Medical Freedom",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/americas-war-on-medical-freedom",
+      "image": "https://substackcdn.com/image/fetch/$s_!ob7w!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3772220c-e8a2-4e0d-b8d0-88b93d2215b5_1672x941.png",
+      "publishedAt": "2026-10-27T14:44:05.000Z",
+      "excerpt": "How medical freedom was eroded, and what it will take to restore it.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-dengue-returns-to-florida",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Dengue Returns to Florida",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/dengue-returns-to-florida",
+      "image": "https://substackcdn.com/image/fetch/$s_!pUbZ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef89a040-463d-43f2-9e67-e8d4545b57de_1672x941.png",
+      "publishedAt": "2026-10-26T14:26:53.000Z",
+      "excerpt": "A tropical disease returns, bringing new risks and old questions.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-sunday-strip-inventing-the-wheel",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Sunday Strip: Inventing the Wheel...",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/sunday-strip-inventing-the-wheel",
+      "image": "https://substackcdn.com/image/fetch/$s_!9oyj!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9d9f7790-b536-44de-a274-0217faf1fe1c_1860x1410.png",
+      "publishedAt": "2026-10-25T15:38:04.000Z",
+      "excerpt": "Again.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-restoring-independent-medicine",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Restoring Independent Medicine",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/restoring-independent-medicine",
+      "image": "https://substackcdn.com/image/fetch/$s_!TK13!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F52ecf4c9-2a0d-43f6-9aed-5641e46a0791_1672x941.png",
+      "publishedAt": "2026-10-24T15:48:55.000Z",
+      "excerpt": "A path to lower costs, better care, and a more resilient healthcare system",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-friday-funnies-a-high-degree-of-consanguinity",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Friday Funnies: A high degree of Consanguinity",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/friday-funnies-a-high-degree-of-consanguinity",
+      "image": "https://substackcdn.com/image/fetch/$s_!RUQh!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14d318e7-bbb8-4211-aefb-df08c99de3b7_858x616.png",
+      "publishedAt": "2026-10-23T15:49:13.000Z",
+      "excerpt": "and other true stories",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-failure-of-modern-american-medicine",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Failure of Modern American Medicine",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-failure-of-modern-american-medicine",
+      "image": "https://substackcdn.com/image/fetch/$s_!qfDn!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fba5f65d2-c6df-4671-bd0d-ce543536850e_1672x941.png",
+      "publishedAt": "2026-10-22T14:58:57.000Z",
+      "excerpt": "How big business moved in, and quality moved out.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-paris-is-burning-and-brussels-is",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Paris Is Burning, and Brussels Is Still Writing Regulations",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/paris-is-burning-and-brussels-is",
+      "image": "https://substackcdn.com/image/fetch/$s_!rRTT!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faf052cce-3340-4df5-802a-6fa87eafd1be_1434x1046.png",
+      "publishedAt": "2026-10-21T16:14:56.000Z",
+      "excerpt": "“Committed to a better future”",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-south-carolina-gop-is-being-run-like",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "South Carolina GOP Is Being Run Like a Crime Syndicate",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/south-carolina-gop-is-being-run-like",
+      "image": null,
+      "publishedAt": "2026-10-21T16:03:43.000Z",
+      "excerpt": "South Carolina Republican politics is being run like a machine, and Barry Sanders says the fix starts with exposing who’s really in charge.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-equal-protection-south-carolina-president",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Equal Protection South Carolina President Mark Corral Encourages Patriots To Call State Legislators",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/equal-protection-south-carolina-president",
+      "image": null,
+      "publishedAt": "2026-10-21T15:02:01.000Z",
+      "excerpt": "Equal Protection South Carolina website: https://www.equalprotectionsc.org/",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-melanias-womens-health-initiative",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Melania’s Women’s Health Initiative: Big Promises, No Money",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/melanias-womens-health-initiative",
+      "image": "https://substackcdn.com/image/fetch/$s_!a_bI!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa71f4f27-78bf-4e7c-b51a-c53ff5fd492e_1672x941.png",
+      "publishedAt": "2026-10-20T16:02:47.000Z",
+      "excerpt": "Five ambitious goals, a new NIH division, and some good science. But who will pay for it?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-legalizing-infanticide",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Legalizing Infanticide",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/legalizing-infanticide",
+      "image": "https://substackcdn.com/image/fetch/$s_!uKn6!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fddb8b1e7-c5b2-47b6-a3c9-bc1106ea2834_1672x940.png",
+      "publishedAt": "2026-10-19T17:39:56.000Z",
+      "excerpt": "Ancient history, modern medicine, and the constitutional question facing Virginia voters",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-sunday-strip-dumpster-diving-and",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Sunday Strip: Dumpster Diving and Killer Cats",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/sunday-strip-dumpster-diving-and",
+      "image": "https://substackcdn.com/image/fetch/$s_!Cq8J!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8115bc5f-bf8f-4b3d-a603-93a5a684ebf6_792x694.png",
+      "publishedAt": "2026-10-18T15:23:49.000Z",
+      "excerpt": "Dead mouse delivery",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-homesteading-rethinking-cats",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Homesteading: Rethinking Cats",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/homesteading-rethinking-cats",
+      "image": "https://substackcdn.com/image/fetch/$s_!zAtZ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6efe95f6-7531-48c9-b355-597231673043_1672x941.png",
+      "publishedAt": "2026-10-17T15:51:04.000Z",
+      "excerpt": "To cat or not to cat, that is the question",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-friday-funnies-mars-x",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Friday Funnies: MARS-X",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/friday-funnies-mars-x",
+      "image": "https://substackcdn.com/image/fetch/$s_!8O5a!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32a73abb-3ec3-4d96-91ee-c910df0b3aaf_856x514.png",
+      "publishedAt": "2026-10-16T11:37:52.000Z",
+      "excerpt": "Cause who doesn’t want to live on MARS?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-the-politically-weaponized-labeling-58c",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "The Politically Weaponized Labeling Strategy: Turning Conservatives Into \"Extremists\"",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/the-politically-weaponized-labeling-58c",
+      "image": null,
+      "publishedAt": "2026-10-15T21:07:45.000Z",
+      "excerpt": "To help stop the political weaponization of labels, please let others know that you publicly stand against racial supremacy.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-follow-the-money-the-political-book",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Follow the Money: The Political Book Advance Grift",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/follow-the-money-the-political-book",
+      "image": "https://substackcdn.com/image/fetch/$s_!RhcV!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F474428db-1a55-4e43-9852-f6f2c1287d27_1672x941.png",
+      "publishedAt": "2026-10-15T16:33:40.000Z",
+      "excerpt": "Who Really Pays the Politicians?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-homesteading-shorter-days-longer",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Homesteading: Shorter Days, Longer Nights, and Never Enough Hours",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/homesteading-shorter-days-longer",
+      "image": "https://substackcdn.com/image/fetch/$s_!S2pu!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3966b1b4-9ea1-44b5-b339-46b0491019cc_1672x941.png",
+      "publishedAt": "2026-10-14T19:06:08.000Z",
+      "excerpt": "Cows, colts, Kale, and the coming winter",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-abortions-after-dark-inside-the-palmetto",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Abortions After Dark: Inside the Palmetto State Abortion Fund",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/abortions-after-dark-inside-the-palmetto",
+      "image": "https://substackcdn.com/image/fetch/$s_!5UU4!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8f4203c-0781-4ed6-863a-b2a5555aa8f8_6000x4000.jpeg",
+      "publishedAt": "2026-10-14T18:09:22.000Z",
+      "excerpt": "The Abortion Fund That Outgrew the Heartbeat Law",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-stop-spraying-poison-on-our-food",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Stop Spraying Poison on Our Food Before Harvest",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/stop-spraying-poison-on-our-food",
+      "image": "https://substackcdn.com/image/fetch/$s_!URdV!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F41d14288-c1ed-476a-b0d8-a4207752de92_1672x941.png",
+      "publishedAt": "2026-10-13T15:26:38.000Z",
+      "excerpt": "America harvested crops without chemical desiccants for generations. We can do it again",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-war-on-columbus-is-a-war-on-americas",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The War on Columbus, Is a War on America's History",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-war-on-columbus-is-a-war-on-americas",
+      "image": "https://substackcdn.com/image/fetch/$s_!fpoW!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F824db8de-c4fb-4250-a4d3-f6e13edd4382_1677x938.png",
+      "publishedAt": "2026-10-12T17:10:00.000Z",
+      "excerpt": "The social justice warriors came for Columbus. The real target is America.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-sunday-strip-if-the-senate-flips",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Sunday Strip: If the Senate Flips -",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/sunday-strip-if-the-senate-flips",
+      "image": "https://substackcdn.com/image/fetch/$s_!YHH3!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb2ce4efc-c212-4cf3-881f-c36d087779f9_778x576.png",
+      "publishedAt": "2026-10-11T15:07:59.000Z",
+      "excerpt": "So does the script.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-wellbeing-does-eating-less-meat-really",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Wellbeing: Does Eating Less Meat Really Make You Live Longer?",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/wellbeing-does-eating-less-meat-really",
+      "image": "https://substackcdn.com/image/fetch/$s_!0g28!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F07b27bcc-c38c-42dd-ad25-119a69748613_1672x941.png",
+      "publishedAt": "2026-10-10T15:38:15.000Z",
+      "excerpt": "Does Eating Less Meat Make You Live Longer?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-friday-funnies-450-degrees",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Friday Funnies: 450 Degrees",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/friday-funnies-450-degrees",
+      "image": "https://substackcdn.com/image/fetch/$s_!MSDK!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd5de505c-464d-4792-8829-26f7d0575812_778x776.png",
+      "publishedAt": "2026-10-09T18:25:48.000Z",
+      "excerpt": "and rising",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-the-russian-plague-mystery-is-far",
       "sourceId": "malone",
@@ -65,21 +422,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!BqtT!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa382192d-1e75-4159-940c-edbe758b46ef_1672x941.png",
       "publishedAt": "2026-10-08T19:12:03.000Z",
       "excerpt": "So many questions remain",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-plague-grift",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Plague Grift",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-plague-grift",
-      "image": "https://substackcdn.com/image/fetch/$s_!gxts!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc6e38a59-0775-4940-956f-642a0072ffd3_1536x1024.png",
-      "publishedAt": "2026-10-08T16:18:26.000Z",
-      "excerpt": "When Fear of Plague Becomes the Product",
       "categories": [
         "commentary"
       ]
@@ -115,51 +457,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-update-the-plague-death-russia-will",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Update: The Plague Death Russia Will Not Explain",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/update-the-plague-death-russia-will",
-      "image": "https://substackcdn.com/image/fetch/$s_!tfci!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4d5502e2-cebc-48e5-ab31-865a48128561_3210x1760.png",
-      "publishedAt": "2026-10-07T13:47:59.000Z",
-      "excerpt": "The Russian filing to WHO says no plague was registered. Read what it does not say.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-acip-case-gets-stranger",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The ACIP Case Gets Stranger",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-acip-case-gets-stranger",
-      "image": "https://substackcdn.com/image/fetch/$s_!uQRt!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F119e055d-63e5-470b-ae22-c917f429781c_1672x941.png",
-      "publishedAt": "2026-10-07T13:15:00.000Z",
-      "excerpt": "A troubling pattern emerges from the court record",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-inside-the-irkutsk-plague-institute",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Inside the Irkutsk Plague Institute",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/inside-the-irkutsk-plague-institute",
-      "image": "https://substackcdn.com/image/fetch/$s_!ou1c!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6c892407-515d-4ac6-9049-b8ad133a040f_1672x941.png",
-      "publishedAt": "2026-10-06T14:36:17.000Z",
-      "excerpt": "Mongolia, Marmots, Golden Eagles, and the ongoing plague investigation",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "melthevcl-substack-com-p-the-king-of-blood-bond-county",
       "sourceId": "melthevcl",
       "sourceName": "Mel",
@@ -170,111 +467,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!h_lv!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff32b9160-a6dc-44e9-a021-b7119e8c11aa_1550x1676.png",
       "publishedAt": "2026-10-06T02:15:30.000Z",
       "excerpt": "The man behind Palm Beach County’s record investment in genocide",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-a-tale-of-two-cults",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "A Tale of Two Cults",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/a-tale-of-two-cults",
-      "image": "https://substackcdn.com/image/fetch/$s_!-S4B!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbf7c563d-ce54-4fa1-a00f-de3274733267_1672x941.png",
-      "publishedAt": "2026-10-05T15:24:09.000Z",
-      "excerpt": "The vaccine wars have produced two rival orthodoxies, and neither tolerates doubt or dissent.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-five-hospitals-and-a-denial",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Five Hospitals and a Denial",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/five-hospitals-and-a-denial",
-      "image": "https://substackcdn.com/image/fetch/$s_!LOf7!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc6049880-6407-45ea-87ff-64149b991168_1456x819.png",
-      "publishedAt": "2026-10-05T13:29:05.000Z",
-      "excerpt": "Update on Plague case in Siberia",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-sunday-strip-the-mice-are-not-alright",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Sunday Strip: The Mice Are Not Alright",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/sunday-strip-the-mice-are-not-alright",
-      "image": "https://substackcdn.com/image/fetch/$s_!H2Z-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1521709c-42a4-49b7-9ed2-baf76f6881fd_998x1158.png",
-      "publishedAt": "2026-10-04T16:24:47.000Z",
-      "excerpt": "Breaking Mews",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-broken-tube-a-plague-death-in",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Broken Tube: A Plague Death in Siberia",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-broken-tube-a-plague-death-in",
-      "image": "https://substackcdn.com/image/fetch/$s_!gN8H!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe6a8790c-0124-4b2d-966c-30cb64699dcd_1456x819.png",
-      "publishedAt": "2026-10-04T15:01:29.000Z",
-      "excerpt": "What does it prove?",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-poop-peppers-and-a-mouse-in-the-brine",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Poop, Peppers and a Mouse in the Brine",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/poop-peppers-and-a-mouse-in-the-brine",
-      "image": "https://substackcdn.com/image/fetch/$s_!20sf!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2e42ddc9-e7d7-4d40-81a3-b6058a5e7b6b_1536x1024.png",
-      "publishedAt": "2026-10-03T14:15:44.000Z",
-      "excerpt": "Finger-lickin' good",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-friday-funnies-pass-the-grass",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Friday Funnies: Pass the Grass",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/friday-funnies-pass-the-grass",
-      "image": "https://substackcdn.com/image/fetch/$s_!gkG3!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6cf1e7ac-5439-49a7-991e-db623e155180_1560x1656.png",
-      "publishedAt": "2026-10-02T16:57:25.000Z",
-      "excerpt": "Cause Frankenfoods tastes so gud!",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-acip-goes-back-to-court",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "ACIP Goes Back to Court",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/acip-goes-back-to-court",
-      "image": "https://substackcdn.com/image/fetch/$s_!5m3y!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F82e24291-e2c0-4a43-bc57-0794e7a10ff9_1672x941.png",
-      "publishedAt": "2026-10-02T13:25:44.000Z",
-      "excerpt": "The fight over standing, executive power and judicial reach",
       "categories": [
         "commentary"
       ]
@@ -310,36 +502,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-operation-stork-stall",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Operation Stork Stall",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/operation-stork-stall",
-      "image": "https://substackcdn.com/image/fetch/$s_!dAEO!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb18938be-b44e-4f31-9149-ccd8f75dc373_1536x1024.png",
-      "publishedAt": "2026-09-30T20:25:42.000Z",
-      "excerpt": "Operation Stork Speed stalls out in DC...",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-jd-kennedy-and-freebird",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "JD, Kennedy, and Freebird",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/jd-kennedy-and-freebird",
-      "image": "https://substackcdn.com/image/fetch/$s_!FC5Y!,w_256,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3b3eaef2-6254-48df-84c8-dd833035aad2_428x428.png",
-      "publishedAt": "2026-09-29T23:44:01.000Z",
-      "excerpt": "Plus other true stories",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "unitedpatriotsalliance-substack-com-p-qatar-carolina-how-nelson-mullins",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -352,96 +514,6 @@
       "excerpt": "Please visit unitedpatriotsalliance.substack.com/t/darline and read our previous articles to better understand this infographic.",
       "categories": [
         "news"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-homesteading-exotic-poultry",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Homesteading: Exotic Poultry",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/homesteading-exotic-poultry",
-      "image": "https://substackcdn.com/image/fetch/$s_!kUJ4!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdf7f206f-cec7-43b9-93a2-65a6139269b1_1024x768.jpeg",
-      "publishedAt": "2026-09-29T13:41:07.000Z",
-      "excerpt": "Diversifying the Homestead for Profit",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-capture-of-maha",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Capture of MAHA",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-capture-of-maha",
-      "image": "https://substackcdn.com/image/fetch/$s_!MEUB!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2a461440-47fe-4372-9b61-6d7b54bb8dc0_1536x1024.png",
-      "publishedAt": "2026-09-28T15:07:26.000Z",
-      "excerpt": "The corporations moved in. The outsiders were pushed aside.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-sunday-strip-the-face-you-make",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Sunday Strip: The Face You Make",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/sunday-strip-the-face-you-make",
-      "image": "https://substackcdn.com/image/fetch/$s_!J-8T!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2806b697-93c9-4be9-88f6-1befe9961e79_848x688.png",
-      "publishedAt": "2026-09-27T15:05:03.000Z",
-      "excerpt": "At death’s door.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-zoomers-will-decide-the-2028-election",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Zoomers Will Decide the 2028 Election, and Neither Political Party Is the Answer",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/zoomers-will-decide-the-2028-election",
-      "image": "https://substackcdn.com/image/fetch/$s_!seSZ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F60effc25-41a9-44cc-8dd4-bc49bab4e6e9_3098x1728.png",
-      "publishedAt": "2026-09-26T16:46:28.000Z",
-      "excerpt": "Housing, Food, and the Decentralized Alternative",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-friday-funnies-ballroom-dance",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Friday Funnies: Ballroom Dance",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/friday-funnies-ballroom-dance",
-      "image": "https://substackcdn.com/image/fetch/$s_!IhJ3!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa00bcb61-d97f-45ea-8c98-f08f693dfecb_1680x1246.png",
-      "publishedAt": "2026-09-25T16:17:00.000Z",
-      "excerpt": "And other true stories.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-criminal-mrna-malfeasance-by-the",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Criminal mRNA Malfeasance by the CDC",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/criminal-mrna-malfeasance-by-the",
-      "image": "https://substackcdn.com/image/fetch/$s_!xT0t!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F525a4b8a-a970-4f55-afc4-2be109a66e0b_1664x892.png",
-      "publishedAt": "2026-09-25T13:27:25.000Z",
-      "excerpt": "And I am mad as hell about it",
-      "categories": [
-        "commentary"
       ]
     },
     {
@@ -565,6 +637,21 @@
       ]
     },
     {
+      "id": "www-merissahansen-com-p-plano-approves-14-million-police",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Plano Approves $1.4 million Police Drone Program",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/plano-approves-14-million-police",
+      "image": "https://substackcdn.com/image/fetch/$s_!Lt3O!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0d689566-1487-47ae-8a73-bc0904852512_1008x1204.png",
+      "publishedAt": "2026-08-05T22:47:25.000Z",
+      "excerpt": null,
+      "categories": [
+        "news"
+      ]
+    },
+    {
       "id": "unitedpatriotsalliance-substack-com-p-richland-co-councilman-derrek-pugh",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -595,6 +682,66 @@
       ]
     },
     {
+      "id": "www-merissahansen-com-p-why-do-you-have-a-problem-with-flock",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Why do you have a Problem with Flock if you aren't doing anything wrong?",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/why-do-you-have-a-problem-with-flock",
+      "image": "https://substackcdn.com/image/fetch/$s_!w9rc!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F472ddd39-74c0-4069-8507-fe95f38ea4b7_715x865.png",
+      "publishedAt": "2026-07-29T13:09:07.000Z",
+      "excerpt": null,
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-fors-marsh-group-the-behavior-change",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Fors Marsh Group: The Behavior Change Firm Behind HHS’s $911 Million COVID-19 Campaign — and the Unanswered Question of Accountability",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/fors-marsh-group-the-behavior-change",
+      "image": "https://substackcdn.com/image/fetch/$s_!1iPb!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9bcf8293-57fb-44a4-a891-3f8731323c2a_978x529.png",
+      "publishedAt": "2026-07-28T14:51:35.000Z",
+      "excerpt": "In 2020, as COVID-19 vaccines moved through development, HHS’s Office of the Assistant Secretary for Public Affairs launched the nationwide “We Can Do This” public education campaign.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-texas-dps-fast-tracks-45-million",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Texas DPS Fast-Tracks $4.5 Million Deal for Cell-Tracking SUVs Using Emergency Powers",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/texas-dps-fast-tracks-45-million",
+      "image": "https://substackcdn.com/image/fetch/$s_!P5R7!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F65316e60-c717-4cbf-8b2a-8e4a0ac33b22_1884x1053.png",
+      "publishedAt": "2026-07-27T23:51:54.000Z",
+      "excerpt": "In March 2026, the Texas Department of Public Safety’s Criminal Investigations Division approved an emergency purchase totaling $4,487,500 for four specially outfitted 2026 Chevrolet Tahoes.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-harris-countys-expanding-flock-camera",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Harris County’s Expanding Flock Camera Network: What the Record Shows",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/harris-countys-expanding-flock-camera",
+      "image": "https://substackcdn.com/image/fetch/$s_!kwod!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd176e92d-acf0-4b9c-a45b-3b15c3564c13_1063x1207.png",
+      "publishedAt": "2026-07-27T23:29:25.000Z",
+      "excerpt": "Harris County, Texas, operates one of the more extensive networks of Flock Safety automated license plate reader (ALPR) cameras in the region.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
       "id": "unitedpatriotsalliance-substack-com-p-house-of-cards-sc-gop-exposed-episode",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -620,6 +767,21 @@
       "image": null,
       "publishedAt": "2026-07-03T14:16:58.000Z",
       "excerpt": "It happened again!",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-texas-data-centers-only-17-report",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Texas Data Centers: Only 17% Report Water Usage, Raising Serious Concerns for State Planning",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/texas-data-centers-only-17-report",
+      "image": "https://substackcdn.com/image/fetch/$s_!ei7Z!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1dd1c210-8948-4c92-b2b4-2e9e1bf65d29_1168x784.jpeg",
+      "publishedAt": "2026-07-01T22:09:25.000Z",
+      "excerpt": "Texas is in the midst of an unprecedented data center boom, driven by surging demand for AI, cloud computing, and digital infrastructure.",
       "categories": [
         "news"
       ]
@@ -670,6 +832,21 @@
       ]
     },
     {
+      "id": "www-merissahansen-com-p-paul-vallely-mindwar-and-the-architecture",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Paul Vallely, MindWar, and the Architecture of Influence: Documented ties to TPUSA and Aquino",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/paul-vallely-mindwar-and-the-architecture",
+      "image": "https://substackcdn.com/image/fetch/$s_!_gNd!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fda44e517-f217-401e-abd7-40c4c7ec3ea0_1200x720.jpeg",
+      "publishedAt": "2026-06-22T15:32:46.000Z",
+      "excerpt": "Retired U.S.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
       "id": "melthevcl-substack-com-p-turning-points-pac",
       "sourceId": "melthevcl",
       "sourceName": "Mel",
@@ -685,61 +862,196 @@
       ]
     },
     {
-      "id": "unitedpatriotsalliance-substack-com-p-a-south-carolinians-guide-to-voting",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "A South Carolinian’s Guide to Voting, Patriot-Style",
+      "id": "www-merissahansen-com-p-texas-legislators-demand-sweeping",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Texas Legislators Demand Sweeping Child Protection Reforms Following Controversial Adam Hoffman Plea Deal",
       "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/a-south-carolinians-guide-to-voting",
-      "image": "https://substackcdn.com/image/fetch/$s_!syI_!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fab0e4bbc-9b89-43b1-af75-ea7ad8425468_1616x1080.jpeg",
-      "publishedAt": "2026-06-04T13:45:31.000Z",
-      "excerpt": "South Carolina’s June 9th, 2026 primary is quickly approaching and the field is saturated with candidates.",
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/texas-legislators-demand-sweeping",
+      "image": "https://substackcdn.com/image/fetch/$s_!C-PB!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fac7af3d3-5001-4d28-a705-fa16b300d057_1290x1743.jpeg",
+      "publishedAt": "2026-05-15T18:39:41.000Z",
+      "excerpt": "State lawmakers are calling for aggressive legal reforms after what they describe as systemic failures exposed by the Adam Hoffman child sexual abuse case, in which the defendant allegedly molested and sexually abused a young boy for three years while institutions charged with protecting children...",
       "categories": [
         "news"
       ]
     },
     {
-      "id": "unitedpatriotsalliance-substack-com-p-disgraced-former-election-officials",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "Disgraced Former Election Officials Set Criminal Court Dates",
+      "id": "www-merissahansen-com-p-hill-county-takes-historic-stand",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Hill County Takes Historic Stand: First in Texas to Halt New Data Centers",
       "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/disgraced-former-election-officials",
-      "image": "https://substackcdn.com/image/fetch/$s_!aoJ6!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc9672ac1-a7e6-4f63-934d-8a4b47269858_1616x1080.jpeg",
-      "publishedAt": "2026-05-19T13:00:35.000Z",
-      "excerpt": "On the morning of April 23, 2026, the Richland County Courthouse docket on the second floor read like roll call of reckoning.",
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/hill-county-takes-historic-stand",
+      "image": "https://substackcdn.com/image/fetch/$s_!8AM5!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F19af0991-cdbc-4790-9ef9-adb389c80335_1074x606.png",
+      "publishedAt": "2026-05-14T14:23:32.000Z",
+      "excerpt": "In a decisive move that puts local control first, Hill County has become the first county in Texas to approve a temporary moratorium on new data center projects.",
       "categories": [
         "news"
       ]
     },
     {
-      "id": "unitedpatriotsalliance-substack-com-p-the-house-always-wins-lawyer-legislators",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "The House Always Wins: Lawyer-Legislators on the SCAG's Tab",
+      "id": "www-merissahansen-com-p-texas-state-rep-jeff-leach-demands",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Texas State Rep. Jeff Leach Demands Answers from AG Ken Paxton Over Controversial Plea Deal in Child Sexual Abuse",
       "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/the-house-always-wins-lawyer-legislators",
-      "image": "https://substackcdn.com/image/fetch/$s_!Sk_E!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F585521b7-ba49-4647-bd0f-e156363014e8_1616x1080.jpeg",
-      "publishedAt": "2026-05-12T21:06:25.000Z",
-      "excerpt": "Palmetto State Watch Foundation‘s ongoing investigation into the South Carolina Attorney General‘s (SCAG) Litigation Retention Agreements has, until now, focused heavily on the Senate side of the legislature and on the network of outside counsel that has profited from the state’s biggest...",
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/texas-state-rep-jeff-leach-demands",
+      "image": "https://substackcdn.com/image/fetch/$s_!7VRC!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcab7041b-be88-425a-aa1a-daf952afcdd7_1320x854.jpeg",
+      "publishedAt": "2026-05-07T01:32:48.000Z",
+      "excerpt": "State Representative Jeff Leach Chairman of the House Committee on Judiciary & Civil Jurisprudence, sent a strongly worded letter to Attorney General Ken Paxton criticizing the Office of the Attorney General’s handling of the Adam Hoffman case and demanding a full explanation for what he described...",
       "categories": [
         "news"
       ]
     },
     {
-      "id": "unitedpatriotsalliance-substack-com-p-sc-election-commission-signs-voter",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "SC Election Commission Signs Voter Data Deal with DOJ as Pennsylvania Makes CVRs Public",
+      "id": "www-merissahansen-com-p-houston-city-council-backs-down-on",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Houston City Council Backs Down on Immigration Ordinance to Safeguard Public Safety Funds",
       "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/sc-election-commission-signs-voter",
-      "image": "https://substackcdn.com/image/fetch/$s_!794-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6e012577-8c3d-403a-8211-6768e3ccd79f_1616x1080.jpeg",
-      "publishedAt": "2026-05-04T21:01:39.000Z",
-      "excerpt": "The South Carolina State Election Commission (SEC) voted 4-1 last week to authorize Executive Director Conway Belangia to execute a Memorandum of Understanding (MOU) with the U.S.",
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/houston-city-council-backs-down-on",
+      "image": "https://substackcdn.com/image/fetch/$s_!w6fq!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F356ef7fe-fe29-428a-94ed-5c1f982c332f_900x506.jpeg",
+      "publishedAt": "2026-04-22T18:24:18.000Z",
+      "excerpt": "After facing intense pressure from state leaders, Houston City Council voted 13-4 on Wednesday to approve a revised immigration ordinance, easing previous limits on local police cooperation with federal immigration authorities.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-texass-uniparty-distraction-machine",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Texas’s Uniparty Distraction Machine: Culture Wars While Kids Suffer and the Grid Buckles",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/texass-uniparty-distraction-machine",
+      "image": "https://substackcdn.com/image/fetch/$s_!lBRK!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F09541243-d539-4420-b23e-6111608a98dd_660x490.png",
+      "publishedAt": "2026-04-22T01:40:55.000Z",
+      "excerpt": "In Texas, the old “left versus right” script is dead.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-texas-sues-actblue-for-deceptive",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Texas Sues ActBlue for Deceptive Practices in Campaign Fundraising, Alleging Facilitation of Illegal Donations via Gift Cards and Prepaid Cards",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/texas-sues-actblue-for-deceptive",
+      "image": "https://substackcdn.com/image/fetch/$s_!He5-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6a41a8f6-8328-4698-a697-d2ac12eab66d_380x380.png",
+      "publishedAt": "2026-04-20T17:16:46.000Z",
+      "excerpt": "The State of Texas filed an original petition on April 20, 2026, in the 96th Judicial District Court of Tarrant County against ActBlue LLC, seeking temporary and permanent injunctions along with civil penalties.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-the-maga-pay-to-play-machine-how",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "The MAGA Pay-to-Play Machine: How Paid Influencers and Coordinated Messaging Drive the Movement, According to Former Insider Ashley St. Clair",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/the-maga-pay-to-play-machine-how",
+      "image": "https://substackcdn.com/image/fetch/$s_!FFir!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F79dacff6-ded9-4bb4-8d11-bd506031889c_1200x675.jpeg",
+      "publishedAt": "2026-04-17T15:05:36.000Z",
+      "excerpt": "Ashley St.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-age-verification-laws-a-trojan-horse",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "age Verification Laws: A Trojan Horse for Digital ID? The Rise of State Mandates and the Federal Parents Decide Act",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/age-verification-laws-a-trojan-horse",
+      "image": "https://substackcdn.com/image/fetch/$s_!iryO!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa05dc0b5-2dea-453d-a1d1-ae8f36ec8dab_1200x800.webp",
+      "publishedAt": "2026-04-16T14:48:46.000Z",
+      "excerpt": "Across the United States, a growing wave of age verification requirements—promoted as necessary protections for children online—is rapidly transforming how people access the internet.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-houston-city-council-approves-limits",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Houston City Council Approves Limits on HPD Cooperation with ICE; Governor Abbott Threatens to Pull $110 Million in Public Safety Grants",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/houston-city-council-approves-limits",
+      "image": "https://substackcdn.com/image/fetch/$s_!7mMh!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F953be3e6-d891-4e04-bd85-18fd5053a605_1290x983.jpeg",
+      "publishedAt": "2026-04-15T15:45:54.000Z",
+      "excerpt": "Houston City Council passed an ordinance on April 8, 2026, by a 12-5 vote that restricts the Houston Police Department’s cooperation with U.S.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-abbott-rewards-technocrats-1b-in",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Abbott Rewards Technocrats $1B+ in Subsidies for Data Centers — No Property Tax Relief for Texans",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/abbott-rewards-technocrats-1b-in",
+      "image": "https://substackcdn.com/image/fetch/$s_!7_9v!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa2ef43c9-630e-49e7-b018-1412adaa99cb_640x360.jpeg",
+      "publishedAt": "2026-04-14T22:37:24.000Z",
+      "excerpt": "As Texas races to become the world’s leading hub for artificial intelligence infrastructure, Governor Greg Abbott has championed a suite of state incentives designed to lure hyperscale data centers and the massive power demands they bring.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-texas-senate-bill-6-balancing-data",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Texas Senate Bill 6: Balancing Data Center Boom with Grid Reliability in ERCOT",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/texas-senate-bill-6-balancing-data",
+      "image": "https://substackcdn.com/image/fetch/$s_!Rujw!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2875ada0-b016-4b9e-83c9-b0e0e71d9755_555x360.jpeg",
+      "publishedAt": "2026-04-14T21:38:09.000Z",
+      "excerpt": "Texas is at the center of America’s data center explosion, fueled by surging demand for artificial intelligence and cloud computing.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-anthropics-claude-ai-faces-pentagon",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "Anthropic's Claude AI Faces Pentagon Ultimatum Over Usage Safeguards",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/anthropics-claude-ai-faces-pentagon",
+      "image": "https://substackcdn.com/image/fetch/$s_!VmKL!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb9bff3ef-cfc1-4556-b23f-861a8bd6e462_399x501.jpeg",
+      "publishedAt": "2026-02-27T17:47:28.000Z",
+      "excerpt": "Anthropic, the company behind the Claude large language model, is engaged in a tense standoff with the U.S.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-merissahansen-com-p-the-web-of-connections-cantor-fitzgerald",
+      "sourceId": "houstoncomical",
+      "sourceName": "The Houston Comical",
+      "title": "The Web of Connections: Cantor Fitzgerald, Tether, and the Shadows of Controversy",
+      "dek": null,
+      "author": "Merissa Hansen",
+      "url": "https://www.merissahansen.com/p/the-web-of-connections-cantor-fitzgerald",
+      "image": "https://substackcdn.com/image/fetch/$s_!Z3Z7!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2e1a20b7-f62b-4d18-900a-7768cf798418_1193x689.jpeg",
+      "publishedAt": "2026-02-26T21:14:23.000Z",
+      "excerpt": "In the rapidly evolving world of cryptocurrency, few entities have sparked as much debate as Tether (USDT), the world's largest stablecoin with over $180 billion in circulation.",
       "categories": [
         "news"
       ]

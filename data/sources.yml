@@ -140,6 +140,48 @@ sources:
     feedUrl: https://melthevcl.substack.com/feed
     tag: commentary
 
+  # Added 2026-10-27 by the client. The URL supplied was the publication's own
+  # site, https://www.merissahansen.com/ - a CUSTOM DOMAIN, not a
+  # NAME.substack.com host. The feed lives at /feed on that host, which is the
+  # standard Substack path, and it was probed directly rather than guessed:
+  #
+  #   https://www.merissahansen.com/feed     200, application/xml, 20 items  OK
+  #   https://merissahansen.com/feed         TLS handshake FAILED (no bare apex)
+  #   https://www.merissahansen.com/rss      404 that returns text/html
+  #
+  # The apex host failing and /rss returning an HTML 404 is exactly the failure
+  # shape this project's validator exists for: a wrong path answers 200 with
+  # HTML or fails to answer at all, so "the page loaded in a browser" proves
+  # nothing. All three assertions pass on /feed.
+  #
+  # IDENTITY: no redirect - the requested host IS the serving host - and the
+  # response carries `x-sub: merissa` beside `x-served-by: Substack`, so this is
+  # the publication itself and not a custom domain pointing somewhere else.
+  # Channel title is "The Houston Comical".
+  #
+  # CADENCE, stated plainly because it is the one soft spot: the newest item at
+  # add time is 2026-08-05, roughly twelve weeks before it was added, and the
+  # range is 2026-02-26 to 2026-08-05. This is not a dead feed like evanmulch
+  # (19 months silent) but it is not a daily one either. It contributes real
+  # writing to the index; the newest item on the site's front page will not be
+  # from here until it publishes again.
+  #
+  # STRUCTURE, measured not assumed: `dc:creator` is "Merissa Hansen" on all 20
+  # items, which is NOT the publication name, so the byline is shown rather
+  # than suppressed - the opposite of the unitedpatriotsalliance and melthevcl
+  # case. NO subtitle on any item, so 20/20 have no dek, which is the normal
+  # case in this set. All 20 carry a real image, so every card has artwork.
+  # Categories are empty on all 20, hence the manual tag below.
+  #
+  # SUBJECT: local Texas public-records and accountability reporting (Houston
+  # and Harris County, Plano, Texas DPS and state agencies). Tagged `news`
+  # because that is the topic a reader scanning chips is looking for, and this
+  # is reporting rather than a column.
+  - id: houstoncomical
+    name: The Houston Comical
+    feedUrl: https://www.merissahansen.com/feed
+    tag: news
+
   # Parked, not deleted. See the rejection reasoning at the top of this file.
   - id: epochtimes-focus-substack
     name: Epoch Times - Focus (Substack coverage)

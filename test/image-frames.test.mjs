@@ -141,51 +141,89 @@ test('the real dataset is clean, and stays clean', () => {
   }
 })
 
-test('the one known bad crop is overridden, and only that one', () => {
+// THE OVERRIDE FILE MUST TOLERATE ROTATION, AND THIS IS WHY.
+//
+// These two tests used to name `www-malone-news-p-five-hospitals-and-a-denial`
+// and assert it was IN the dataset. On 2026-10-27 a routine `npm run fetch`
+// proved that assumption false: Substack RSS holds only the 20 most recent
+// posts, malone published past that article, and it fell out of the window. The
+// suite then failed on a refresh that had done nothing wrong - the article was
+// simply no longer recent. A guard that fails on correct input teaches people to
+// ignore guards.
+//
+// The split below keeps the intent and drops the false assumption:
+//   - the MECHANISM is asserted against a constructed id, because
+//     imageObjectPosition looks up by id alone and does not need the article to
+//     be present;
+//   - the DATA invariant is asserted dynamically over whatever the file holds,
+//     with "retired" as the one deliberate state for an id that has left.
+//
+// A misspelled key is still a hard failure: it is neither in the dataset nor
+// marked retired, which is the distinction the old test could not make.
+
+test('the override mechanism still applies the reported crop fix', () => {
   const FIVE_HOSPITALS = 'www-malone-news-p-five-hospitals-and-a-denial'
 
-  const target = articles.find((a) => a.id === FIVE_HOSPITALS)
-  assert.ok(target, `positive control: ${FIVE_HOSPITALS} must exist in the dataset`)
-
-  // The override must be the one that fixes the reported problem: anchoring to
-  // the left edge keeps the headline intact and moves the whole crop to the
-  // right, which is what was asked for.
-  const position = imageObjectPosition(target)
-  assert.ok(position, 'the article must carry an object-position override')
+  // Looked up by id alone, so this asserts the wiring WITHOUT requiring the
+  // article to still be in the rolling feed window.
+  const position = imageObjectPosition({ id: FIVE_HOSPITALS })
+  assert.ok(position, 'the recorded crop fix must still resolve for its article id')
   assert.match(position, /left/, 'the override must anchor the image to the left')
 
-  // Every other article must be untouched, or the override has become a global
-  // style that happens to be spelled as data.
-  const overridden = articles
-    .filter((a) => a.id !== FIVE_HOSPITALS && imageObjectPosition(a) !== undefined)
-    .map((a) => a.id)
-  assert.deepEqual(overridden, [], 'only the known-bad crop may be overridden')
+  // An id the file does not name must get the browser default, or the override
+  // has become a global style that happens to be spelled as data. This is the
+  // assertion that would actually catch that: every other check below would
+  // still pass if the lookup ignored its key and returned one position for
+  // every article.
+  assert.equal(
+    imageObjectPosition({ id: 'definitely-not-in-the-frames-file' }),
+    undefined,
+    'an unlisted id must fall back to the browser default'
+  )
 
-  const untouched = articles.filter((a) => a.id !== FIVE_HOSPITALS)
-  assert.ok(untouched.length > 0, 'positive control')
-  for (const a of untouched) {
+  // WIRING OVER THE REAL DATASET: every article that is still here and is named
+  // by a live entry must resolve to that entry's position. Asserted by iterating
+  // the DATASET (not the file), so an article reaching the page with an override
+  // that does not apply is caught. Deliberately no mirror-image loop over the
+  // dataset claiming "nothing else is overridden": with the lookup keyed by id
+  // that claim is true by construction and could never fail, and a guard that
+  // cannot fail is decoration.
+  const framesDoc = JSON.parse(
+    readFileSync(join(PROJECT_ROOT, 'data', 'image-frames.json'), 'utf8')
+  )
+  const live = Object.entries(framesDoc.frames ?? {}).filter(
+    ([, frame]) => frame?.retired !== true
+  )
+  for (const [id, frame] of live) {
+    const article = articles.find((a) => a.id === id)
+    if (!article) continue // a retired-then-returned id is test B's business
     assert.equal(
-      imageObjectPosition(a),
-      undefined,
-      `${a.id} must fall back to the browser default`
+      imageObjectPosition(article),
+      frame.objectPosition,
+      `${id} is named by a live entry but does not carry its override`
     )
   }
 })
 
-test('the override file is keyed by ids that exist, and by nothing else', () => {
-  // A typo in the key is the failure mode of a hand-maintained lookup: the file
-  // looks right, the override simply never applies, and nothing fails.
+test('the override file is keyed by ids that exist, or is explicitly retired', () => {
+  // Two failure modes of a hand-maintained lookup, and they need DIFFERENT
+  // answers. A typo means the override silently never applies and nothing
+  // fails - so it must fail loudly here. An article leaving the rolling feed
+  // window is legitimate, so it must be expressible without a lie.
   const framesDoc = JSON.parse(
     readFileSync(join(PROJECT_ROOT, 'data', 'image-frames.json'), 'utf8')
   )
   const frames = framesDoc.frames ?? {}
   const ids = new Set(articles.map((a) => a.id))
 
-  const orphans = Object.keys(frames).filter((id) => !ids.has(id))
+  const orphans = Object.keys(frames).filter(
+    (id) => !ids.has(id) && frames[id]?.retired !== true
+  )
   assert.deepEqual(
     orphans,
     [],
-    `data/image-frames.json names ids that are not in the dataset: ${orphans.join(', ')}`
+    `data/image-frames.json names ids that are not in the dataset and are not ` +
+      `marked "retired": ${orphans.join(', ')}`
   )
 
   for (const [id, frame] of Object.entries(frames)) {
@@ -193,5 +231,26 @@ test('the override file is keyed by ids that exist, and by nothing else', () => 
       typeof frame.objectPosition === 'string' && frame.objectPosition.trim() !== '',
       `${id} must carry a non-empty objectPosition, or the entry does nothing`
     )
+
+    if (frame.retired === true) {
+      // Retirement is a decision, and an unexplained one is indistinguishable
+      // from an entry someone abandoned.
+      assert.ok(
+        typeof frame._retiredWhy === 'string' && frame._retiredWhy.trim().length > 20,
+        `${id} is retired but does not say why - add a _retiredWhy`
+      )
+      assert.ok(
+        !ids.has(id),
+        `${id} is marked retired but IS in the dataset: un-retire it rather than ` +
+          `leaving it switched off`
+      )
+    } else {
+      // The wiring check: a live entry's position must actually reach the reader.
+      assert.equal(
+        imageObjectPosition({ id }),
+        frame.objectPosition,
+        `${id} is live but its objectPosition does not resolve`
+      )
+    }
   }
 })

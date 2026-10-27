@@ -5,6 +5,215 @@ interruption, read the top entry, then `ROADMAP.md`, then continue.
 
 ---
 
+## 2026-10-27 - A fifth source added on a CUSTOM DOMAIN, and a routine refresh exposed a test that depended on one article being recent.
+
+**The ask:** add `https://www.merissahansen.com/` ("The Houston Comical", Merissa
+Hansen, 3,000+ subscribers) as a collection target.
+
+**The URL given was the publication's site, not a feed, and not a
+`NAME.substack.com` host.** The feed is `/feed` on that custom domain. Probed
+directly rather than guessed, because a Substack feed and a Substack *website*
+answer differently and this project has been burned by exactly that:
+
+| Probed | Result |
+| --- | --- |
+| `https://www.merissahansen.com/feed` | **200, `application/xml`, 20 items** - all three assertions pass |
+| `https://merissahansen.com/feed` (bare apex) | TLS handshake **failed**, no A record for the apex |
+| `https://www.merissahansen.com/rss` | 404 returning **`text/html`** |
+
+The `/rss` case is the documented failure shape: a wrong path answers with an HTML
+body, so "the page loaded in a browser" proves nothing and only the three
+assertions accept or reject it.
+
+**Identity was checked, not assumed.** No redirect - the requested host is the
+serving host - and the response carries `x-sub: merissa` beside
+`x-served-by: Substack`. So this is the publication itself and not a custom domain
+pointing at something else, which is the `bariweiss -> thefp` and
+`rwmalonemd -> malone.news` class of finding design rule 4 exists for. Channel
+title: "The Houston Comical".
+
+**Structure, measured:** `dc:creator` is "Merissa Hansen" on all 20 items - NOT
+the publication name, so the byline is SHOWN rather than suppressed, the opposite
+of `unitedpatriotsalliance` and `melthevcl`. No `subtitle` on any item, so 20/20
+have no dek (the normal case here). All 20 carry a real image. Categories empty on
+all 20, hence `tag: news`.
+
+**Cadence stated plainly, because it is the soft spot.** Newest item at add time
+is **2026-08-05**, about twelve weeks before it was added; range 2026-02-26 to
+2026-08-05. Not dead like `evanmulch` (19 months silent), not daily like `malone`.
+Consequence a reader will see: nothing from this source appears near the top of
+the front page until it publishes again. That is recorded in `data/sources.yml`
+next to the entry rather than left to be rediscovered.
+
+**Verified:** `npm run fetch` exit 0, **5 sources, 0 failed, 69 items** (was 49).
+`houstoncomical` contributed 20 with `categories: ["news"]` on every one.
+`npm test` 291 passing. `npm run build` exit 0, 7 pages. In the built output:
+`/latest/` carries all 20 with bylines and outbound links, `/topic/news/` holds
+**40 unique article links** (UPA 20 + Houston 20), and the front page shows one
+card because the rest are older than the current top 12.
+
+### The real find: a test that assumed an article would stay recent
+
+`npm test` then failed on a refresh that had done nothing wrong.
+`data/image-frames.json` overrode the crop on
+`www-malone-news-p-five-hospitals-and-a-denial`, and **Substack RSS holds only the
+20 most recent posts** - malone had published past it, so the id left the dataset
+and two tests broke: the orphan check, and a `positive control` asserting the
+article still existed.
+
+This is a defect in the TEST, not the data. It would have fired on any future
+refresh, and its message ("must exist in the dataset") would have read as a broken
+dataset rather than as an expired assumption. A guard that fails on correct input
+teaches people to ignore guards.
+
+**Fix, in two parts.**
+
+1. The entry is marked `"retired": true` with a `_retiredWhy`, instead of being
+   deleted. The crop analysis is expensive to rediscover, and the entry is the
+   fixture that tests the override MECHANISM - `imageObjectPosition` looks up by
+   id alone, so it can be asserted without the article being present.
+2. The two tests were split by intent: the MECHANISM is asserted against a
+   constructed id, and the DATA invariant is asserted dynamically over whatever
+   the file holds. **A misspelled key is still a hard failure** - it is neither in
+   the dataset nor marked retired, which is the distinction the old test could not
+   make. A `retired` entry that IS in the dataset is also a failure: that is an
+   entry switched off while its article is live.
+
+**Two tautologies found and removed while writing this.** The first draft kept
+loops asserting that articles not named by the file carry no override. With the
+lookup keyed by id that is true by construction and could never fail. The one
+assertion that can actually catch a lookup gone global -
+`imageObjectPosition({id: 'definitely-not-in-the-frames-file'}) === undefined` -
+was kept, and the comment says why. A guard that cannot fail is decoration.
+
+**The new guards were proved to fire, both clauses, then reverted** (file restored
+byte-identical, suite green again):
+
+| Planted | Result |
+| --- | --- |
+| Key misspelled by one character, `retired` flag removed | FAILS, naming the offending id |
+| A real dataset id marked `"retired": true` | FAILS: "un-retire it rather than leaving it switched off" |
+
+**Files changed:** `data/sources.yml`, `data/articles.json` (regenerated),
+`data/image-frames.json`, `test/image-frames.test.mjs`, `build-log.md`.
+
+**Not done, deliberately:** no change to the tag vocabulary (`news` already
+existed), and no editorial judgement offered on whether a Texas accountability
+publication belongs on an Upstate South Carolina civic site - it was asked for,
+it is wired in, and `delete` from `sources.yml` is the one-line reversal.
+
+---
+
+## 2026-10-10 - The events page opens on the list on a phone, and the switch means the same thing at both widths.
+
+**The requirement:** the calendar page opens to the List view by default on a
+phone and the Calendar view by default on a desktop. Asked for as a phone-display
+change; the desktop behaviour is unchanged.
+
+**The change is two custom properties and nothing else.** `.events__layout`
+declares `--view-list: block; --view-calendar: none`, the existing 64rem
+breakpoint flips them, and the two view rules become
+`display: var(--view-list)` and `display: var(--view-calendar)`. The switch then
+SWAPS the two tokens:
+
+```
+html:has(#view-list:checked) .events__view--list     { display: var(--view-calendar); }
+html:has(#view-list:checked) .events__view--calendar { display: var(--view-list); }
+```
+
+**Why tokens rather than a `display: none` per view.** Two reasons, and the second
+is the one that decided it.
+
+1. A media query adds NO specificity. A rule inside the breakpoint beats an
+   identical rule outside it only by being LATER in the file, so `@media {
+   .events__view--calendar { display: block } }` plus an outer `display: none`
+   would work - and moving the block would silently flip the default back, with a
+   green build and no failing test. Here the breakpoint changes two values and
+   every rule that reads them is written once.
+2. **A switch whose OFF position shows the view it names is a control reporting a
+   state that is false**, and on a phone its first tap would appear to do nothing.
+   With one `display: none` the label "List view" would be describing a view
+   already showing. Swapping tokens makes the control mean the same thing at every
+   width; the width only decides WHICH VIEW IS THE UNCHECKED ONE.
+
+**The switch's label changed from "List view" to "List / Calendar view".** The old
+text named the view the control switched TO, which was unambiguous while the
+calendar was always the default. With a width-dependent default there is no single
+view the words could name, so they now name the control's two positions. The track
+and thumb still say which is on.
+
+**Verified in a real browser, not inferred from the stylesheet.** Headless Chrome
+156 over CDP, computed `display` and `getBoundingClientRect().height` at 320, 390,
+600, 900, 1023, 1024, 1200 and 1440:
+
+| Viewport | View shown by default | `.events__layout` columns |
+| --- | --- | --- |
+| 320 / 390 / 600 / 900 / 1023 | **list** | one column |
+| 1024 / 1200 / 1440 | **calendar** | `1fr 26rem`, panel beside the grid |
+
+- **The switch swaps them at both widths**: 390 unchecked=list, checked=calendar,
+  unchecked again=list; 1440 unchecked=calendar, checked=list, back to calendar.
+- **Keyboard**: a real Tab press (5th stop, after four masthead links) lands on the
+  switch with `:focus-visible` true and paints a `3px solid` ring on the track,
+  offset 3px - `rgb(31, 79, 143)` civic, `rgb(122, 28, 0)` ledger. Space toggles
+  it and the calendar appears.
+- **Accessibility tree**: one node, role `switch`, name "List / Calendar view",
+  `checked=true` after toggling.
+- **No horizontal overflow at any width, and no page errors.**
+- **The panel still sits under whichever view is showing** at phone widths
+  (list bottom 1970, panel top 2026) and beside it at desktop widths.
+
+**Test suite: 290 -> 291, all passing.** One test added,
+`the list is the phone default view, the calendar is the desktop default, and the
+switch means one thing`, in `test/events.test.mjs`. It reads the page's own style
+block for the token values, the 64rem breakpoint and the switch's symmetry, and
+the BUILT page for the label - the half a reader sees.
+
+**The guard was proved to fire, four ways.** A guard that has only been seen
+passing has not been tested. Each of these was planted, confirmed to fail, and
+reverted (restored byte-identical, suite green again):
+
+| Planted | Result |
+| --- | --- |
+| Phone default flipped back to the calendar | FAILS, as required |
+| A literal `display: none` back on one view | FAILS, as required |
+| The switch setting a constant instead of the other view's token | FAILS, as required |
+| The view default moved to its own breakpoint | FAILS, as required |
+
+**Two things a test cannot see, stated plainly.** The built HTML is byte-identical
+whether a phone opens on the list or the calendar, so a page snapshot would pass
+either way - the browser measurement above is the evidence, not the suite. And the
+switch's own state still cannot be announced: it is a real checkbox, but nothing
+reads `:checked` without script, and this page has none by design. The label is
+therefore written so that it is TRUE whichever position the switch is in.
+
+**Also corrected, because this change made them false:** four comments and one
+document described the calendar as "the page's DEFAULT view". It is now the
+desktop default only. `src/lib/calendar.ts` (twice),
+`src/components/EventCalendar.astro` (twice), `test/calendar.test.mjs`,
+`test/events.test.mjs`, `data/events.schema.md` and `ROADMAP.md` all say what the
+grid is rather than that it is the default. `data/events.schema.md` gained the
+rule itself in section 11, and `ROADMAP.md` gained a row in the Phase 3.5
+decisions table.
+
+**The covered-day legend now opens "On the calendar, a short rule beside a date
+marks..."**, because a phone no longer opens on the calendar and a sentence about a
+mark the reader cannot see is the defect the legend's own condition exists to
+prevent. The phrase "marks a day inside a multi-day event" was kept on ONE source
+line: Astro preserves template line breaks, and `test/events.test.mjs` searches for
+that phrase in the built page. It failed first, which is how the line break was
+found.
+
+**Files changed:** `src/pages/events.astro`, `test/events.test.mjs`,
+`src/lib/calendar.ts`, `src/components/EventCalendar.astro`,
+`test/calendar.test.mjs`, `data/events.schema.md`, `ROADMAP.md`, `build-log.md`.
+
+**Not done, deliberately:** no `localStorage` persistence of the view choice, and
+no script. The requirement is a default per screen size, and remembering a choice
+would need the one script this page is built without.
+
+---
+
 ## 2026-10-09 - The masthead carries a banner. One image, muted by the theme's own colour.
 
 **The change:** the masthead is now a full-bleed header with a painting behind it,
