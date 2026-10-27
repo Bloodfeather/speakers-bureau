@@ -180,6 +180,51 @@
       "banner": "/img/events/gchs-lecture-10000-years-banner.svg",
       "url": "https://greenvillehistory.org/lectures-and-events-new/",
       "notes": "Runs 6:30 pm to 8:00 pm on a Wednesday evening. Free to Historical Society members; tickets for non-members are 15 dollars."
+    },
+    {
+      "id": "gcs-board-nov-17",
+      "name": "Greenville County Schools Board Meeting",
+      "event": "The Board of Trustees of Greenville County Schools meets in regular session to set district policy and conduct public business.",
+      "startsAt": "2026-11-17T18:00",
+      "endsAt": null,
+      "allDay": false,
+      "timezone": "Eastern Time (ET)",
+      "location": "Central Office, 301 E. Camperdown Way, Greenville",
+      "type": "Meeting",
+      "thumbnail": "/img/events/gcs-board-nov-17-thumb.svg",
+      "banner": "/img/events/gcs-board-nov-17-banner.svg",
+      "url": "https://greenville-sc.community.highbond.com/Portal/MeetingSchedule.aspx",
+      "notes": "6:00 pm. The district's board portal lists an executive session earlier the same evening, which is not open to the public; the regular meeting is. Agendas are published on the portal before each meeting. This falls on the same evening as a County Council meeting, which is a different body at a different address."
+    },
+    {
+      "id": "gcs-board-dec-08",
+      "name": "Greenville County Schools Board Meeting",
+      "event": "The Board of Trustees of Greenville County Schools meets in regular session to set district policy and conduct public business.",
+      "startsAt": "2026-12-08T18:00",
+      "endsAt": null,
+      "allDay": false,
+      "timezone": "Eastern Time (ET)",
+      "location": "Central Office, 301 E. Camperdown Way, Greenville",
+      "type": "Meeting",
+      "thumbnail": "/img/events/gcs-board-dec-08-thumb.svg",
+      "banner": "/img/events/gcs-board-dec-08-banner.svg",
+      "url": "https://greenville-sc.community.highbond.com/Portal/MeetingSchedule.aspx",
+      "notes": "6:00 pm. A Committee of the Whole meeting and an executive session are listed earlier the same day on the district's portal; the regular meeting is the public one. This is an earlier date in the month than the board's usual pattern, so take the published date rather than the habit."
+    },
+    {
+      "id": "gcs-board-jan-26",
+      "name": "Greenville County Schools Board Meeting",
+      "event": "The Board of Trustees of Greenville County Schools meets in regular session to set district policy and conduct public business.",
+      "startsAt": "2027-01-26T18:00",
+      "endsAt": null,
+      "allDay": false,
+      "timezone": "Eastern Time (ET)",
+      "location": "Central Office, 301 E. Camperdown Way, Greenville",
+      "type": "Meeting",
+      "thumbnail": "/img/events/gcs-board-jan-26-thumb.svg",
+      "banner": "/img/events/gcs-board-jan-26-banner.svg",
+      "url": "https://greenville-sc.community.highbond.com/Portal/MeetingSchedule.aspx",
+      "notes": "6:00 pm. An executive session is listed earlier the same evening on the district's portal, which is not open to the public; the regular meeting is. Agendas are published before each meeting."
     }
   ],
   "pageNote": {
@@ -187,7 +232,7 @@
     "paragraphs": [
       "Results from the 3 November general election are certified in stages rather than declared final on the night. County boards act first: Greenville County's Voter Registration and Election Board certifies its count on 6 November, and the State Board of Canvassers later certifies the statewide result.",
       "No further election follows in the Upstate. The State Election Commission's master calendar for 2026 lists no election anywhere in the state between 3 November and 1 December, when the Town of Paxville in Clarendon County holds its municipal general election. There is no November runoff.",
-      "Public business continues through the winter. Greenville County Council's published schedule lists regular meetings on 17 November and 1 December at 6:00 pm in Council Chambers, and the Historical Society's lecture series runs monthly through to May."
+      "Public business continues through the winter. Greenville County Council's published schedule lists regular meetings on 17 November and 1 December at 6:00 pm in Council Chambers. The county school board meets at 6:00 pm on 17 November, 8 December and 26 January at the district's Central Office, and the Historical Society's lecture series runs monthly through to May."
     ]
   }
 }

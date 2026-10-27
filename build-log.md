@@ -5,6 +5,64 @@ interruption, read the top entry, then `ROADMAP.md`, then continue.
 
 ---
 
+## 2026-10-27 (later) - Correction: the school board WAS confirmable. Three meetings added, 12 events to 15.
+
+**Correcting the entry below.** That entry says, under "Searched for and NOT
+added": *"No school board meeting. ... Three unconfirmed dates, so none went in."*
+The second half of that is right - those three really were unconfirmed - but the
+general conclusion was wrong, and the reason is a tool limitation I mistook for a
+fact about the sites.
+
+**What I missed.** The board portals for Greenville County Schools render their
+"Upcoming Meetings" list with script. `web_extract` returns the page with only
+October on it, which reads exactly like a body that has published nothing. The
+dates were one browser call away. The lesson is narrow and worth keeping: on these
+Diligent/Highbond portals, a static read showing only the current month is not
+evidence of absence, and the sweep's other three districts (Spartanburg D7,
+Anderson Five, Anderson County Board of Education) still have no confirmed date
+and are still excluded.
+
+**Three events added, all read off the district's own portal:**
+
+| Date | Event | Start | Venue |
+| --- | --- | --- | --- |
+| 17 Nov 2026 | Greenville County Schools Board Meeting | 18:00 | Central Office, 301 E. Camperdown Way |
+| 8 Dec 2026 | Greenville County Schools Board Meeting | 18:00 | same |
+| 26 Jan 2027 | Greenville County Schools Board Meeting | 18:00 | same |
+
+The dates come from the portal's upcoming list ("Regular Board Meeting - Nov 17
+2026", "- Dec 08 2026", "- Jan 26 2027"); the start time and venue come from the
+Regular Board Meeting type page itself, which states "Start time: 6:00 p.m." and
+"Location: Central Office, 301 E. Camperdown Way, Greenville, SC".
+
+**Two facts recorded in the notes rather than left to the reader.** Each of these
+evenings also lists an executive session, which is not open to the public - a
+reader who turns up early for it has been misled by the calendar's silence. And
+the board's dates do not follow its own apparent habit: December is the 8th, not
+the fourth Tuesday, so the notes say to take the published date.
+
+**17 November now carries two events, at the same hour, in different buildings** -
+County Council in Council Chambers, the school board at the Central Office. The
+panel stacks them, which is the behaviour that was built for the 3 November double
+election and is now exercised by something other than an election.
+
+**Also updated:** `pageNote` names the school board series, so the prose and the
+calendar agree.
+
+**Verified:** `events:check` exit 0, **15 events, 30 images, 0 missing**.
+Placeholders wrote 6, skipped 24. `npm test` 292 passing. Build exit 0, 7 pages,
+**13 date radios** for 13 distinct start dates, month headings October 2026 to
+January 2027.
+
+**Still not added, and now for a stated reason rather than a shrug.** City of
+Greenville's council meetings for Nov 9 / Nov 23 / Dec 14 are dated on the
+civicclerk portal, but that portal publishes no time or venue for them yet
+("No published Meeting Files"), and the reported move to the Convention Center
+comes from a news article rather than the meeting entry. A date with an unverified
+venue is not worth adding to a page people use to decide where to go.
+
+---
+
 ## 2026-10-27 - The calendar reviewed after the election: 7 events to 12, and a wrong fact the review itself exposed.
 
 **The ask:** a news pass to upgrade and update the calendar for the next few

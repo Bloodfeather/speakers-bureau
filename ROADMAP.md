@@ -162,16 +162,17 @@ it, a human or an AI assistant does. That single fact drove every decision below
 - [x] `data/events.json` - **6 REAL events**: the Greenville County GOP quarterly
       meeting, the SC Governor Debate, the SCETV Senate debate, early voting
       (15-31 Oct), the 3 November general election, and Greenwood's municipal
-      election on the same day. **Extended to 12 on 2026-10-27**, after the
-      election, with five reviewed additions carrying the calendar into January
+      election on the same day. **Extended to 15 on 2026-10-27**, after the
+      election, with reviewed additions carrying the calendar into January
       2027: Greenville County's certification of the general election (6 Nov), a
-      County Council meeting (17 Nov), two Greenville County Historical Society
-      lectures (18 Nov, 20 Jan 2027), and a State Election Commission meeting
-      (16 Dec). Every date was re-read at its own official source before entry -
-      the county's projected meeting PDF, the voter registration board's 2026
-      schedule, the Commission's public notices page and the Society's season
-      page - and nothing that could not be confirmed at the body's own site was
-      added.
+      County Council meeting (17 Nov), three county school board meetings (17 Nov,
+      8 Dec, 26 Jan 2027), two Greenville County Historical Society lectures
+      (18 Nov, 20 Jan 2027), and a State Election Commission meeting (16 Dec).
+      Every date was re-read at its own official source before entry - the
+      county's projected meeting PDF, the voter registration board's 2026
+      schedule, the school district's board portal, the Commission's public
+      notices page and the Society's season page - and nothing that could not be
+      confirmed at the body's own site was added.
 - [x] `data/events.schema.md` - the written contract an AI assistant works from.
 - [x] `scripts/check-events.mjs` + `npm run events:check` - readable report, all
       problems at once, plus an on-disk check that every referenced image exists.
