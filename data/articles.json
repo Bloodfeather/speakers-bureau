@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-27T23:16:46.733Z",
+  "generatedAt": "2026-10-29T22:51:35.919Z",
   "articleCount": 69,
   "sourceCount": 5,
   "duplicateCount": 0,
@@ -66,6 +66,66 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-they-saw-multinational-corporate",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "They Saw Multinational Corporate Power Coming in 1974",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/they-saw-multinational-corporate",
+      "image": "https://substackcdn.com/image/fetch/$s_!6SLS!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F874d441f-0a4e-4f5c-8de7-3dc5d35d4d1b_1672x941.png",
+      "publishedAt": "2026-10-29T20:59:37.000Z",
+      "excerpt": "What Two Forgotten Books Got Right About Corporate Power, and What They Missed",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-financial-takeover-of-globalism",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Financial Takeover of Globalism",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-financial-takeover-of-globalism",
+      "image": "https://substackcdn.com/image/fetch/$s_!c1gD!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2cea52c1-727d-4805-bc52-d0d201081ff2_1672x941.png",
+      "publishedAt": "2026-10-29T14:27:55.000Z",
+      "excerpt": "How powerful banks, international regulators, and AI are reshaping economic freedom.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-democrats-tried-to-rig-the-ballot",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Democrats Tried to Rig the Ballot",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/democrats-tried-to-rig-the-ballot",
+      "image": "https://substackcdn.com/image/fetch/$s_!bRR5!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0ab71692-594e-4a49-b3dc-64d6456617f3_1672x941.png",
+      "publishedAt": "2026-10-28T20:17:55.000Z",
+      "excerpt": "The Media Blamed Trump.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-brazil-when-democracy-becomes-a-weapon",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Brazil: When Democracy Becomes a Weapon",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/brazil-when-democracy-becomes-a-weapon",
+      "image": "https://substackcdn.com/image/fetch/$s_!PdKT!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7295f6e1-95e7-468e-b340-6f26d694c2c8_1672x941.png",
+      "publishedAt": "2026-10-28T15:14:59.000Z",
+      "excerpt": "Political prosecutions, censorship, and allegations of U.S. interference.",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-americas-war-on-medical-freedom",
       "sourceId": "malone",
@@ -362,66 +422,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!fpoW!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F824db8de-c4fb-4250-a4d3-f6e13edd4382_1677x938.png",
       "publishedAt": "2026-10-12T17:10:00.000Z",
       "excerpt": "The social justice warriors came for Columbus. The real target is America.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-sunday-strip-if-the-senate-flips",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Sunday Strip: If the Senate Flips -",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/sunday-strip-if-the-senate-flips",
-      "image": "https://substackcdn.com/image/fetch/$s_!YHH3!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb2ce4efc-c212-4cf3-881f-c36d087779f9_778x576.png",
-      "publishedAt": "2026-10-11T15:07:59.000Z",
-      "excerpt": "So does the script.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-wellbeing-does-eating-less-meat-really",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Wellbeing: Does Eating Less Meat Really Make You Live Longer?",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/wellbeing-does-eating-less-meat-really",
-      "image": "https://substackcdn.com/image/fetch/$s_!0g28!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F07b27bcc-c38c-42dd-ad25-119a69748613_1672x941.png",
-      "publishedAt": "2026-10-10T15:38:15.000Z",
-      "excerpt": "Does Eating Less Meat Make You Live Longer?",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-friday-funnies-450-degrees",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Friday Funnies: 450 Degrees",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/friday-funnies-450-degrees",
-      "image": "https://substackcdn.com/image/fetch/$s_!MSDK!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd5de505c-464d-4792-8829-26f7d0575812_778x776.png",
-      "publishedAt": "2026-10-09T18:25:48.000Z",
-      "excerpt": "and rising",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-russian-plague-mystery-is-far",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Russian Plague Mystery Is Far From Over",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-russian-plague-mystery-is-far",
-      "image": "https://substackcdn.com/image/fetch/$s_!BqtT!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa382192d-1e75-4159-940c-edbe758b46ef_1672x941.png",
-      "publishedAt": "2026-10-08T19:12:03.000Z",
-      "excerpt": "So many questions remain",
       "categories": [
         "commentary"
       ]
