@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-29T22:51:35.919Z",
+  "generatedAt": "2026-11-02T16:16:55.338Z",
   "articleCount": 69,
   "sourceCount": 5,
   "duplicateCount": 0,
@@ -66,6 +66,81 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-the-tech-boys-new-religions-when",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Tech Boys’ New Religions: When AI Becomes God",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-tech-boys-new-religions-when",
+      "image": "https://substackcdn.com/image/fetch/$s_!EnGY!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd6457bf5-7c47-4094-bdb8-5b6c406095f0_1671x941.png",
+      "publishedAt": "2026-11-02T13:29:35.000Z",
+      "excerpt": "How people are finding faith, purpose, and the promise of salvation in artificial intelligence.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-sunday-strip-293",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Sunday Strip: I Don’t Always Ruin Things,",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/sunday-strip-293",
+      "image": "https://substackcdn.com/image/fetch/$s_!TKyy!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3b53311e-5f22-420d-873e-93a4e3b9c496_1671x941.png",
+      "publishedAt": "2026-11-01T15:57:50.000Z",
+      "excerpt": "But when I do...",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-week-the-government-websites-b1a",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Week the Government Websites Went Dark",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-week-the-government-websites-b1a",
+      "image": null,
+      "publishedAt": "2026-10-31T16:04:29.000Z",
+      "excerpt": "An early cyberattack due to a dangerous security leak, who profited from it, and why all the dire government warnings about household emergency supplies?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-week-the-government-websites",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Week the Government Websites Went Dark",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-week-the-government-websites",
+      "image": "https://substackcdn.com/image/fetch/$s_!K_R0!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3b58beda-f959-4f29-8561-1d576bd5a890_1672x941.png",
+      "publishedAt": "2026-10-31T14:23:27.000Z",
+      "excerpt": "An early cyberattack due to a dangerous security leak, who profited from it, and why all the dire government warnings about household emergency supplies?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-friday-funnies-orange-man-bad-685",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Friday Funnies: Orange Man Bad:",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/friday-funnies-orange-man-bad-685",
+      "image": "https://substackcdn.com/image/fetch/$s_!HKgg!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Feea753ed-5828-4b4f-8937-7a08328ed4f4_836x738.png",
+      "publishedAt": "2026-10-30T14:29:45.000Z",
+      "excerpt": "The Campaign Continues",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-they-saw-multinational-corporate",
       "sourceId": "malone",
@@ -322,21 +397,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-friday-funnies-mars-x",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Friday Funnies: MARS-X",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/friday-funnies-mars-x",
-      "image": "https://substackcdn.com/image/fetch/$s_!8O5a!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32a73abb-3ec3-4d96-91ee-c910df0b3aaf_856x514.png",
-      "publishedAt": "2026-10-16T11:37:52.000Z",
-      "excerpt": "Cause who doesn’t want to live on MARS?",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "unitedpatriotsalliance-substack-com-p-the-politically-weaponized-labeling-58c",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -352,36 +412,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-follow-the-money-the-political-book",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Follow the Money: The Political Book Advance Grift",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/follow-the-money-the-political-book",
-      "image": "https://substackcdn.com/image/fetch/$s_!RhcV!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F474428db-1a55-4e43-9852-f6f2c1287d27_1672x941.png",
-      "publishedAt": "2026-10-15T16:33:40.000Z",
-      "excerpt": "Who Really Pays the Politicians?",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-homesteading-shorter-days-longer",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Homesteading: Shorter Days, Longer Nights, and Never Enough Hours",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/homesteading-shorter-days-longer",
-      "image": "https://substackcdn.com/image/fetch/$s_!S2pu!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3966b1b4-9ea1-44b5-b339-46b0491019cc_1672x941.png",
-      "publishedAt": "2026-10-14T19:06:08.000Z",
-      "excerpt": "Cows, colts, Kale, and the coming winter",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "unitedpatriotsalliance-substack-com-p-abortions-after-dark-inside-the-palmetto",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -394,36 +424,6 @@
       "excerpt": "The Abortion Fund That Outgrew the Heartbeat Law",
       "categories": [
         "news"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-stop-spraying-poison-on-our-food",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Stop Spraying Poison on Our Food Before Harvest",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/stop-spraying-poison-on-our-food",
-      "image": "https://substackcdn.com/image/fetch/$s_!URdV!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F41d14288-c1ed-476a-b0d8-a4207752de92_1672x941.png",
-      "publishedAt": "2026-10-13T15:26:38.000Z",
-      "excerpt": "America harvested crops without chemical desiccants for generations. We can do it again",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-war-on-columbus-is-a-war-on-americas",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The War on Columbus, Is a War on America's History",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-war-on-columbus-is-a-war-on-americas",
-      "image": "https://substackcdn.com/image/fetch/$s_!fpoW!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F824db8de-c4fb-4250-a4d3-f6e13edd4382_1677x938.png",
-      "publishedAt": "2026-10-12T17:10:00.000Z",
-      "excerpt": "The social justice warriors came for Columbus. The real target is America.",
-      "categories": [
-        "commentary"
       ]
     },
     {
