@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-02T16:16:55.338Z",
+  "generatedAt": "2026-11-07T06:04:55.730Z",
   "articleCount": 69,
   "sourceCount": 5,
   "duplicateCount": 0,
@@ -66,6 +66,156 @@
     }
   ],
   "articles": [
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-the-reckoning-for-congressman-joe",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "The Reckoning for Congressman Joe Wilson",
+      "dek": null,
+      "author": "Evan Mulch",
+      "url": "https://unitedpatriotsalliance.substack.com/p/the-reckoning-for-congressman-joe",
+      "image": null,
+      "publishedAt": "2026-11-06T19:34:19.000Z",
+      "excerpt": "Today, we’re diving into a remarkable political moment in South Carolina, where Congressman Joe Wilson faces an unexpected challenge in his re-election bid.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-friday-funnies-winter-is-coming",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Friday Funnies: Winter is Coming",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/friday-funnies-winter-is-coming",
+      "image": "https://substackcdn.com/image/fetch/$s_!6vg5!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa7b0edf3-44d1-47bf-86f4-9382afa9aa1a_850x714.png",
+      "publishedAt": "2026-11-06T14:22:59.000Z",
+      "excerpt": "Are you ready?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-vic-dabney-explains-why-sc-republicans",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Vic Dabney Explains Why SC Republicans Rejected Darline",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/vic-dabney-explains-why-sc-republicans",
+      "image": null,
+      "publishedAt": "2026-11-05T19:56:23.000Z",
+      "excerpt": "Video Summary:",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-theodora-scarato-on-the-hidden-health",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Theodora Scarato on the Hidden Health Costs of Data Centers and Cell Phone Towers",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/theodora-scarato-on-the-hidden-health",
+      "image": null,
+      "publishedAt": "2026-11-05T16:55:01.000Z",
+      "excerpt": "Video Description:",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-why-is-the-government-still-killing",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Why is The Government Still Killing Chickens?",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/why-is-the-government-still-killing",
+      "image": "https://substackcdn.com/image/fetch/$s_!MalH!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa802cbc5-3411-4dcf-8848-d0fd6d81987f_1672x941.png",
+      "publishedAt": "2026-11-05T16:35:33.000Z",
+      "excerpt": "After billions spent fighting H5N1, where are the disease-resistant birds?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-trump-lost-the-election-conservatism",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Trump Lost the Election. Conservatism Wasn’t on the Ballot.",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/trump-lost-the-election-conservatism",
+      "image": "https://substackcdn.com/image/fetch/$s_!wlD0!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d2b0361-7008-4fd9-9785-e09f9d2e88fd_1672x941.png",
+      "publishedAt": "2026-11-04T18:06:59.000Z",
+      "excerpt": "What just happened, why, and where to go from here?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-maha-at-the-crossroads",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "MAHA at the Crossroads",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/maha-at-the-crossroads",
+      "image": "https://substackcdn.com/image/fetch/$s_!H0H5!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd2eed4e6-4dd7-4f02-92dc-8207a052c5c7_1672x941.png",
+      "publishedAt": "2026-11-03T17:21:44.000Z",
+      "excerpt": "From Baby Formula Reform to Kennedy’s Political Future",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-from-new-york-to-south-carolina-an",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "From New York to South Carolina: An Educator's Warning to Parents",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/from-new-york-to-south-carolina-an",
+      "image": null,
+      "publishedAt": "2026-11-03T15:08:02.000Z",
+      "excerpt": "Video Description:",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-how-the-wests-climate-policies-became",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "How the West's Climate Policies Became the CCP's Cash Machine",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/how-the-wests-climate-policies-became",
+      "image": "https://substackcdn.com/image/fetch/$s_!oy0v!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F68d3b73a-aa31-4e6f-9200-eed96c47aafd_1672x941.png",
+      "publishedAt": "2026-11-03T14:09:39.000Z",
+      "excerpt": "The Carbon Credit racket",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-we-were-never-going-to-vote-for-her",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "“We Were Never Going to Vote for Her Anyway”: Inside the Write In Ralph Revolt",
+      "dek": null,
+      "author": "Alaina Stone",
+      "url": "https://unitedpatriotsalliance.substack.com/p/we-were-never-going-to-vote-for-her",
+      "image": "https://substackcdn.com/image/fetch/$s_!dCff!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc466f794-d2ef-4a76-b8cf-b8d2b77527f2_1084x724.jpeg",
+      "publishedAt": "2026-11-02T19:18:01.000Z",
+      "excerpt": "The man behind the Norman write-in speaks out",
+      "categories": [
+        "news"
+      ]
+    },
     {
       "id": "www-malone-news-p-the-tech-boys-new-religions-when",
       "sourceId": "malone",
@@ -292,21 +442,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-paris-is-burning-and-brussels-is",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Paris Is Burning, and Brussels Is Still Writing Regulations",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/paris-is-burning-and-brussels-is",
-      "image": "https://substackcdn.com/image/fetch/$s_!rRTT!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faf052cce-3340-4df5-802a-6fa87eafd1be_1434x1046.png",
-      "publishedAt": "2026-10-21T16:14:56.000Z",
-      "excerpt": "“Committed to a better future”",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "unitedpatriotsalliance-substack-com-p-south-carolina-gop-is-being-run-like",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -334,66 +469,6 @@
       "excerpt": "Equal Protection South Carolina website: https://www.equalprotectionsc.org/",
       "categories": [
         "news"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-melanias-womens-health-initiative",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Melania’s Women’s Health Initiative: Big Promises, No Money",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/melanias-womens-health-initiative",
-      "image": "https://substackcdn.com/image/fetch/$s_!a_bI!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa71f4f27-78bf-4e7c-b51a-c53ff5fd492e_1672x941.png",
-      "publishedAt": "2026-10-20T16:02:47.000Z",
-      "excerpt": "Five ambitious goals, a new NIH division, and some good science. But who will pay for it?",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-legalizing-infanticide",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Legalizing Infanticide",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/legalizing-infanticide",
-      "image": "https://substackcdn.com/image/fetch/$s_!uKn6!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fddb8b1e7-c5b2-47b6-a3c9-bc1106ea2834_1672x940.png",
-      "publishedAt": "2026-10-19T17:39:56.000Z",
-      "excerpt": "Ancient history, modern medicine, and the constitutional question facing Virginia voters",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-sunday-strip-dumpster-diving-and",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Sunday Strip: Dumpster Diving and Killer Cats",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/sunday-strip-dumpster-diving-and",
-      "image": "https://substackcdn.com/image/fetch/$s_!Cq8J!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8115bc5f-bf8f-4b3d-a603-93a5a684ebf6_792x694.png",
-      "publishedAt": "2026-10-18T15:23:49.000Z",
-      "excerpt": "Dead mouse delivery",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-homesteading-rethinking-cats",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Homesteading: Rethinking Cats",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/homesteading-rethinking-cats",
-      "image": "https://substackcdn.com/image/fetch/$s_!zAtZ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6efe95f6-7531-48c9-b355-597231673043_1672x941.png",
-      "publishedAt": "2026-10-17T15:51:04.000Z",
-      "excerpt": "To cat or not to cat, that is the question",
-      "categories": [
-        "commentary"
       ]
     },
     {
@@ -607,36 +682,6 @@
       ]
     },
     {
-      "id": "unitedpatriotsalliance-substack-com-p-pop-up-pacs-and-political-power",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "Pop-Up PACs and Political Power",
-      "dek": null,
-      "author": "Evan Mulch",
-      "url": "https://unitedpatriotsalliance.substack.com/p/pop-up-pacs-and-political-power",
-      "image": "https://substackcdn.com/image/fetch/$s_!LT2o!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7a38ba31-f48b-4e7f-b5b6-2f76ee8c82f9_1774x887.png",
-      "publishedAt": "2026-08-14T16:56:08.000Z",
-      "excerpt": "Tim Scott, Crosby Ottenhoff, Epstein's Friends and the War Waged Against Mark Lynch",
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-the-1-trick-how-south-carolina-hid",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "The $1 Trick: How South Carolina Hid $309 Million in Earmarks to Pass Its Biggest Budget Yet",
-      "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/the-1-trick-how-south-carolina-hid",
-      "image": "https://substackcdn.com/image/fetch/$s_!6pwh!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0fbf158d-9f72-4e5b-855e-8f0a89d81422_1616x1080.jpeg",
-      "publishedAt": "2026-08-11T01:18:32.000Z",
-      "excerpt": "After the longest stretch our legislators have gone without spending money in recent memory, the party is back in town.",
-      "categories": [
-        "news"
-      ]
-    },
-    {
       "id": "www-merissahansen-com-p-plano-approves-14-million-police",
       "sourceId": "houstoncomical",
       "sourceName": "The Houston Comical",
@@ -647,21 +692,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!Lt3O!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0d689566-1487-47ae-8a73-bc0904852512_1008x1204.png",
       "publishedAt": "2026-08-05T22:47:25.000Z",
       "excerpt": null,
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-richland-co-councilman-derrek-pugh",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "Richland Co. Councilman Derrek Pugh Secures Sweetheart Position with Scout Motors",
-      "dek": null,
-      "author": "Alaina Stone",
-      "url": "https://unitedpatriotsalliance.substack.com/p/richland-co-councilman-derrek-pugh",
-      "image": "https://substackcdn.com/image/fetch/$s_!zVBm!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff6ac35c2-e06b-44a9-a4dd-9f7ad1ca6b5b_1537x1023.jpeg",
-      "publishedAt": "2026-08-04T18:55:11.000Z",
-      "excerpt": "Earlier this week, we asked whether Scout Motors was about to receive more government benefits and how Richland County Council Vice Chair Derrek Pugh was tied in.",
       "categories": [
         "news"
       ]
@@ -737,36 +767,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!kwod!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd176e92d-acf0-4b9c-a45b-3b15c3564c13_1063x1207.png",
       "publishedAt": "2026-07-27T23:29:25.000Z",
       "excerpt": "Harris County, Texas, operates one of the more extensive networks of Flock Safety automated license plate reader (ALPR) cameras in the region.",
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-house-of-cards-sc-gop-exposed-episode",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "House of Cards: SC GOP Exposed (Episode 2)",
-      "dek": null,
-      "author": "United Patriots Alliance",
-      "url": "https://unitedpatriotsalliance.substack.com/p/house-of-cards-sc-gop-exposed-episode",
-      "image": null,
-      "publishedAt": "2026-07-06T13:44:12.000Z",
-      "excerpt": "Watch now | A few days ago, delegates from across South Carolina gathered for the SCGOP’s special-called convention.",
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-what-is-happening-inside-the-scgop",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "What Is Happening Inside the SCGOP? Convention Chaos & Grassroots Reform (Episode 1)",
-      "dek": null,
-      "author": "United Patriots Alliance",
-      "url": "https://unitedpatriotsalliance.substack.com/p/what-is-happening-inside-the-scgop",
-      "image": null,
-      "publishedAt": "2026-07-03T14:16:58.000Z",
-      "excerpt": "It happened again!",
       "categories": [
         "news"
       ]
