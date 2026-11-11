@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T06:04:55.730Z",
+  "generatedAt": "2026-11-11T19:45:09.339Z",
   "articleCount": 69,
   "sourceCount": 5,
   "duplicateCount": 0,
@@ -66,6 +66,96 @@
     }
   ],
   "articles": [
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-who-can-declare-war-congress-the",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Who Can Declare War? Congress, the Constitution & the War Powers Act",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/who-can-declare-war-congress-the",
+      "image": null,
+      "publishedAt": "2026-11-11T15:58:39.000Z",
+      "excerpt": "Video summary:",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-roundup-disaster",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Roundup Disaster:",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-roundup-disaster",
+      "image": "https://substackcdn.com/image/fetch/$s_!flh9!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F453573bf-c82a-4fc0-b56a-b8cb0927ce52_1672x941.png",
+      "publishedAt": "2026-11-11T14:58:42.000Z",
+      "excerpt": "Roundup Failed. Superweeds Won. Big Ag Keeps Profiting.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-well-being-your-fat-cells-remember",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Well Being: Your Fat Cells Remember Being Fat",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/well-being-your-fat-cells-remember",
+      "image": "https://substackcdn.com/image/fetch/$s_!OtXp!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F19af824b-12e7-45c2-b7cd-a93b9f9d9262_1672x941.png",
+      "publishedAt": "2026-11-10T12:44:44.000Z",
+      "excerpt": "But, significant, longterm weight loss is possible",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-did-susie-wiles-really-block-maha",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Did Susie Wiles Really Block MAHA?",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/did-susie-wiles-really-block-maha",
+      "image": "https://substackcdn.com/image/fetch/$s_!lIsM!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc0d302d9-97a3-45f0-8fb9-a94c890697e4_2388x1258.png",
+      "publishedAt": "2026-11-09T18:08:23.000Z",
+      "excerpt": "Audio Version:",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-sunday-strip-a-rose-by-any-other",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Sunday Strip: A Rose by Any Other Name...",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/sunday-strip-a-rose-by-any-other",
+      "image": "https://substackcdn.com/image/fetch/$s_!W-8o!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcc166975-ee3e-423e-978c-2aa957fcbf30_1320x947.jpeg",
+      "publishedAt": "2026-11-08T11:45:43.000Z",
+      "excerpt": "FFOK CUF",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-notes-on-my-brownstone-annual-conference",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Notes on my Brownstone Annual Conference Speech (to a sold out crowd)",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/notes-on-my-brownstone-annual-conference",
+      "image": "https://substackcdn.com/image/fetch/$s_!jCvG!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0e2a4325-52cb-441e-b66d-7c1850e286ec_1774x887.png",
+      "publishedAt": "2026-11-07T20:20:29.000Z",
+      "excerpt": "Address by Robert Malone, Saturday 07 November 2026",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "unitedpatriotsalliance-substack-com-p-the-reckoning-for-congressman-joe",
       "sourceId": "unitedpatriotsalliance",
@@ -367,81 +457,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-dengue-returns-to-florida",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Dengue Returns to Florida",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/dengue-returns-to-florida",
-      "image": "https://substackcdn.com/image/fetch/$s_!pUbZ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef89a040-463d-43f2-9e67-e8d4545b57de_1672x941.png",
-      "publishedAt": "2026-10-26T14:26:53.000Z",
-      "excerpt": "A tropical disease returns, bringing new risks and old questions.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-sunday-strip-inventing-the-wheel",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Sunday Strip: Inventing the Wheel...",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/sunday-strip-inventing-the-wheel",
-      "image": "https://substackcdn.com/image/fetch/$s_!9oyj!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9d9f7790-b536-44de-a274-0217faf1fe1c_1860x1410.png",
-      "publishedAt": "2026-10-25T15:38:04.000Z",
-      "excerpt": "Again.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-restoring-independent-medicine",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Restoring Independent Medicine",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/restoring-independent-medicine",
-      "image": "https://substackcdn.com/image/fetch/$s_!TK13!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F52ecf4c9-2a0d-43f6-9aed-5641e46a0791_1672x941.png",
-      "publishedAt": "2026-10-24T15:48:55.000Z",
-      "excerpt": "A path to lower costs, better care, and a more resilient healthcare system",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-friday-funnies-a-high-degree-of-consanguinity",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Friday Funnies: A high degree of Consanguinity",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/friday-funnies-a-high-degree-of-consanguinity",
-      "image": "https://substackcdn.com/image/fetch/$s_!RUQh!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14d318e7-bbb8-4211-aefb-df08c99de3b7_858x616.png",
-      "publishedAt": "2026-10-23T15:49:13.000Z",
-      "excerpt": "and other true stories",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-failure-of-modern-american-medicine",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Failure of Modern American Medicine",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-failure-of-modern-american-medicine",
-      "image": "https://substackcdn.com/image/fetch/$s_!qfDn!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fba5f65d2-c6df-4671-bd0d-ce543536850e_1672x941.png",
-      "publishedAt": "2026-10-22T14:58:57.000Z",
-      "excerpt": "How big business moved in, and quality moved out.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "unitedpatriotsalliance-substack-com-p-south-carolina-gop-is-being-run-like",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -662,21 +677,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!ySm2!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe1687b18-2271-479c-9fb9-51579a6a48a0_1942x809.png",
       "publishedAt": "2026-08-26T14:43:10.000Z",
       "excerpt": "As we noted in our previous article, Secretly LGBTQAI+-Led PAC Backing Darline Graham, the American people should examine Security Is Strength PAC for its involvement in Republican Party politics. In the recent primary election, Security Is Strength PAC spent $1,382,063 on negative ads against U.S.",
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-secretly-lgbtqai-led-pac-backing",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "Secretly LGBTQAI+-Led PAC Backing Darline Graham",
-      "dek": null,
-      "author": "Evan Mulch",
-      "url": "https://unitedpatriotsalliance.substack.com/p/secretly-lgbtqai-led-pac-backing",
-      "image": "https://substackcdn.com/image/fetch/$s_!8RY6!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa59d79ed-7e25-4b82-a941-908c55f5e908_1942x809.png",
-      "publishedAt": "2026-08-20T19:24:38.000Z",
-      "excerpt": "Security Is Strength Super PAC initially formed to support the late U.S.",
       "categories": [
         "news"
       ]
