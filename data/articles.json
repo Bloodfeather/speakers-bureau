@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-11T19:45:09.339Z",
+  "generatedAt": "2026-11-12T19:59:37.067Z",
   "articleCount": 69,
   "sourceCount": 5,
   "duplicateCount": 0,
@@ -66,6 +66,21 @@
     }
   ],
   "articles": [
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-video-exposing-alan-wilsons-transition",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "Video Exposing Alan Wilson’s Transition Team Goes Live At 4 PM Today On YouTube",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/video-exposing-alan-wilsons-transition",
+      "image": "https://substackcdn.com/image/youtube/w_728,c_limit/NtsUbxQrS1E",
+      "publishedAt": "2026-11-12T16:56:47.000Z",
+      "excerpt": "To get a reminder to watch it live at 4 pm, click the video below, then click “Notify Me.” Please also subscribe to our YouTube channel.",
+      "categories": [
+        "news"
+      ]
+    },
     {
       "id": "unitedpatriotsalliance-substack-com-p-who-can-declare-war-congress-the",
       "sourceId": "unitedpatriotsalliance",
@@ -662,21 +677,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!z8Bj!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2213ab34-e183-4e81-a506-71fce8025189_1942x809.png",
       "publishedAt": "2026-08-27T15:18:05.000Z",
       "excerpt": "When it comes to any Dark Money PAC, it’s not just who they get money from; it’s who is paid to do the dirty work on behalf of the PAC.",
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-hidden-money-flow-pac-supporting",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "Hidden Money Flow: PAC Supporting Darline Graham Funneled Money to Texas PAC",
-      "dek": null,
-      "author": "Evan Mulch",
-      "url": "https://unitedpatriotsalliance.substack.com/p/hidden-money-flow-pac-supporting",
-      "image": "https://substackcdn.com/image/fetch/$s_!ySm2!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe1687b18-2271-479c-9fb9-51579a6a48a0_1942x809.png",
-      "publishedAt": "2026-08-26T14:43:10.000Z",
-      "excerpt": "As we noted in our previous article, Secretly LGBTQAI+-Led PAC Backing Darline Graham, the American people should examine Security Is Strength PAC for its involvement in Republican Party politics. In the recent primary election, Security Is Strength PAC spent $1,382,063 on negative ads against U.S.",
       "categories": [
         "news"
       ]
