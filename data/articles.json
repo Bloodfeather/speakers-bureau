@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T06:31:38.571Z",
+  "generatedAt": "2026-11-14T22:29:57.649Z",
   "articleCount": 69,
   "sourceCount": 5,
   "duplicateCount": 0,
@@ -66,6 +66,36 @@
     }
   ],
   "articles": [
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-new-video-airs-this-morning-with",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "New Video Airs This Morning with Alaina Stone and Evan Mulch",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/new-video-airs-this-morning-with",
+      "image": "https://substackcdn.com/image/youtube/w_728,c_limit/p2HTqZrJG6c",
+      "publishedAt": "2026-11-14T14:30:45.000Z",
+      "excerpt": "South Carolina’s Election Wake-Up Call: Voter Frustration with GOP Leadership",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-friendship-freedom-and-a-little-rebellion",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Friendship, Freedom, and a Little Rebellion in Rural Virginia",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/friendship-freedom-and-a-little-rebellion",
+      "image": "https://substackcdn.com/image/fetch/$s_!WCQO!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32fe246c-27de-46cc-b8b6-e32bd3fda0f2_1018x578.png",
+      "publishedAt": "2026-11-14T14:15:51.000Z",
+      "excerpt": "From COVID rebellion to lasting friendships, homesteading, and freedom.",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "www-malone-news-p-friday-funnies-the-american-way",
       "sourceId": "malone",
@@ -457,21 +487,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-democrats-tried-to-rig-the-ballot",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Democrats Tried to Rig the Ballot",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/democrats-tried-to-rig-the-ballot",
-      "image": "https://substackcdn.com/image/fetch/$s_!bRR5!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0ab71692-594e-4a49-b3dc-64d6456617f3_1672x941.png",
-      "publishedAt": "2026-10-28T20:17:55.000Z",
-      "excerpt": "The Media Blamed Trump.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "unitedpatriotsalliance-substack-com-p-south-carolina-gop-is-being-run-like",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -662,21 +677,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!Ks8-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6067f3f4-c359-4432-8e58-709a03d736c9_1942x809.png",
       "publishedAt": "2026-09-01T18:06:02.000Z",
       "excerpt": "Will Darline Do The Same?",
-      "categories": [
-        "news"
-      ]
-    },
-    {
-      "id": "unitedpatriotsalliance-substack-com-p-dark-money-loyalists-who-does-security",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "Dark Money Loyalists: Who Does Security Is Strength PAC Do Business With?",
-      "dek": null,
-      "author": "Evan Mulch",
-      "url": "https://unitedpatriotsalliance.substack.com/p/dark-money-loyalists-who-does-security",
-      "image": "https://substackcdn.com/image/fetch/$s_!z8Bj!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2213ab34-e183-4e81-a506-71fce8025189_1942x809.png",
-      "publishedAt": "2026-08-27T15:18:05.000Z",
-      "excerpt": "When it comes to any Dark Money PAC, it’s not just who they get money from; it’s who is paid to do the dirty work on behalf of the PAC.",
       "categories": [
         "news"
       ]
