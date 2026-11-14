@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-12T19:59:37.067Z",
+  "generatedAt": "2026-11-14T06:31:38.571Z",
   "articleCount": 69,
   "sourceCount": 5,
   "duplicateCount": 0,
@@ -66,6 +66,36 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-friday-funnies-the-american-way",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Friday Funnies: The American Way?",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/friday-funnies-the-american-way",
+      "image": "https://substackcdn.com/image/fetch/$s_!dNuP!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32beb035-4ced-4679-a1ff-2ffd3fabfdd3_820x674.png",
+      "publishedAt": "2026-11-13T16:11:02.000Z",
+      "excerpt": "There’s a fly in my soup.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-handcuffs-are-off-now-what-secretary",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Handcuffs Are Off. Now What, Secretary Kennedy?",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-handcuffs-are-off-now-what-secretary",
+      "image": "https://substackcdn.com/image/fetch/$s_!nv0G!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbe59a1c-6080-42b3-bad4-e0040453cc6a_1672x941.png",
+      "publishedAt": "2026-11-12T19:11:57.000Z",
+      "excerpt": "MAHA, Congress, and the Washington Influence Machine",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "unitedpatriotsalliance-substack-com-p-video-exposing-alan-wilsons-transition",
       "sourceId": "unitedpatriotsalliance",
@@ -437,36 +467,6 @@
       "image": "https://substackcdn.com/image/fetch/$s_!bRR5!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0ab71692-594e-4a49-b3dc-64d6456617f3_1672x941.png",
       "publishedAt": "2026-10-28T20:17:55.000Z",
       "excerpt": "The Media Blamed Trump.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-brazil-when-democracy-becomes-a-weapon",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Brazil: When Democracy Becomes a Weapon",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/brazil-when-democracy-becomes-a-weapon",
-      "image": "https://substackcdn.com/image/fetch/$s_!PdKT!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7295f6e1-95e7-468e-b340-6f26d694c2c8_1672x941.png",
-      "publishedAt": "2026-10-28T15:14:59.000Z",
-      "excerpt": "Political prosecutions, censorship, and allegations of U.S. interference.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-americas-war-on-medical-freedom",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "America’s War on Medical Freedom",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/americas-war-on-medical-freedom",
-      "image": "https://substackcdn.com/image/fetch/$s_!ob7w!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3772220c-e8a2-4e0d-b8d0-88b93d2215b5_1672x941.png",
-      "publishedAt": "2026-10-27T14:44:05.000Z",
-      "excerpt": "How medical freedom was eroded, and what it will take to restore it.",
       "categories": [
         "commentary"
       ]
