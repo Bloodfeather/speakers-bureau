@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T22:29:57.649Z",
+  "generatedAt": "2026-11-19T20:48:07.949Z",
   "articleCount": 69,
   "sourceCount": 5,
   "duplicateCount": 0,
@@ -66,6 +66,96 @@
     }
   ],
   "articles": [
+    {
+      "id": "www-malone-news-p-cultural-appropriation-when-sharing",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "“Cultural Appropriation”: When Sharing Became Stealing",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/cultural-appropriation-when-sharing",
+      "image": "https://substackcdn.com/image/fetch/$s_!NSst!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F98d8a652-a935-4e55-8743-ca0169e51c12_1536x1024.png",
+      "publishedAt": "2026-11-19T15:42:25.000Z",
+      "excerpt": "The Hypocrisy of Who Gets to Borrow",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "unitedpatriotsalliance-substack-com-p-upa-news-briefing-airs-at-7pm-est",
+      "sourceId": "unitedpatriotsalliance",
+      "sourceName": "United Patriots Alliance News",
+      "title": "UPA News Briefing Airs At 7PM EST Tonight!",
+      "dek": null,
+      "author": "United Patriots Alliance",
+      "url": "https://unitedpatriotsalliance.substack.com/p/upa-news-briefing-airs-at-7pm-est",
+      "image": "https://substackcdn.com/image/youtube/w_728,c_limit/KCOwPpQM200",
+      "publishedAt": "2026-11-18T22:27:49.000Z",
+      "excerpt": "To get a reminder to watch it live at 7 pm tonight, click the video below, then click “Notify Me.” Please also subscribe to our YouTube channel.",
+      "categories": [
+        "news"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-obituary-heidi-overtons-fda-career",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "OBITUARY: HEIDI OVERTON'S FDA CAREER",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/obituary-heidi-overtons-fda-career",
+      "image": "https://substackcdn.com/image/fetch/$s_!MkqK!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F833ddd4c-a16c-4586-9e7f-777f6e85f915_1536x1024.png",
+      "publishedAt": "2026-11-18T12:40:01.000Z",
+      "excerpt": "The end came none too soon.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-modernas-new-mrna-flu-shot-is-the",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Moderna’s New mRNA Flu Shot: Is the Risk Worth the Benefit?",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/modernas-new-mrna-flu-shot-is-the",
+      "image": "https://substackcdn.com/image/fetch/$s_!E5M0!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7fd066c1-9fb5-4df3-a9e0-f6ed789d648b_1536x1024.png",
+      "publishedAt": "2026-11-17T19:03:33.000Z",
+      "excerpt": "One in 15 seniors experienced severe systemic reactions. Where is the evidence of better protection?",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-the-coming-age-of-instability-are",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "The Coming Age of Instability: Are You Prepared?",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/the-coming-age-of-instability-are",
+      "image": "https://substackcdn.com/image/fetch/$s_!eV3N!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6759e360-9208-4f7a-88ea-eb60ca711b3a_1672x941.png",
+      "publishedAt": "2026-11-16T14:31:05.000Z",
+      "excerpt": "Government corruption, fragile infrastructure, and the ten essentials of preparedness for an uncertain future.",
+      "categories": [
+        "commentary"
+      ]
+    },
+    {
+      "id": "www-malone-news-p-sunday-strip-monitoring-the-situation",
+      "sourceId": "malone",
+      "sourceName": "Malone News",
+      "title": "Sunday Strip: “Monitoring the Situation”",
+      "dek": null,
+      "author": "Dr. Robert W. Malone",
+      "url": "https://www.malone.news/p/sunday-strip-monitoring-the-situation",
+      "image": "https://substackcdn.com/image/fetch/$s_!QAeR!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb15957d9-bec3-4202-8ef2-fae5fa9cc759_856x636.png",
+      "publishedAt": "2026-11-15T14:29:26.000Z",
+      "excerpt": "To keep you in the dark.",
+      "categories": [
+        "commentary"
+      ]
+    },
     {
       "id": "unitedpatriotsalliance-substack-com-p-new-video-airs-this-morning-with",
       "sourceId": "unitedpatriotsalliance",
@@ -412,81 +502,6 @@
       ]
     },
     {
-      "id": "www-malone-news-p-the-week-the-government-websites-b1a",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Week the Government Websites Went Dark",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-week-the-government-websites-b1a",
-      "image": null,
-      "publishedAt": "2026-10-31T16:04:29.000Z",
-      "excerpt": "An early cyberattack due to a dangerous security leak, who profited from it, and why all the dire government warnings about household emergency supplies?",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-week-the-government-websites",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Week the Government Websites Went Dark",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-week-the-government-websites",
-      "image": "https://substackcdn.com/image/fetch/$s_!K_R0!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3b58beda-f959-4f29-8561-1d576bd5a890_1672x941.png",
-      "publishedAt": "2026-10-31T14:23:27.000Z",
-      "excerpt": "An early cyberattack due to a dangerous security leak, who profited from it, and why all the dire government warnings about household emergency supplies?",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-friday-funnies-orange-man-bad-685",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "Friday Funnies: Orange Man Bad:",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/friday-funnies-orange-man-bad-685",
-      "image": "https://substackcdn.com/image/fetch/$s_!HKgg!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Feea753ed-5828-4b4f-8937-7a08328ed4f4_836x738.png",
-      "publishedAt": "2026-10-30T14:29:45.000Z",
-      "excerpt": "The Campaign Continues",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-they-saw-multinational-corporate",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "They Saw Multinational Corporate Power Coming in 1974",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/they-saw-multinational-corporate",
-      "image": "https://substackcdn.com/image/fetch/$s_!6SLS!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F874d441f-0a4e-4f5c-8de7-3dc5d35d4d1b_1672x941.png",
-      "publishedAt": "2026-10-29T20:59:37.000Z",
-      "excerpt": "What Two Forgotten Books Got Right About Corporate Power, and What They Missed",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
-      "id": "www-malone-news-p-the-financial-takeover-of-globalism",
-      "sourceId": "malone",
-      "sourceName": "Malone News",
-      "title": "The Financial Takeover of Globalism",
-      "dek": null,
-      "author": "Dr. Robert W. Malone",
-      "url": "https://www.malone.news/p/the-financial-takeover-of-globalism",
-      "image": "https://substackcdn.com/image/fetch/$s_!c1gD!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2cea52c1-727d-4805-bc52-d0d201081ff2_1672x941.png",
-      "publishedAt": "2026-10-29T14:27:55.000Z",
-      "excerpt": "How powerful banks, international regulators, and AI are reshaping economic freedom.",
-      "categories": [
-        "commentary"
-      ]
-    },
-    {
       "id": "unitedpatriotsalliance-substack-com-p-south-carolina-gop-is-being-run-like",
       "sourceId": "unitedpatriotsalliance",
       "sourceName": "United Patriots Alliance News",
@@ -667,21 +682,6 @@
       ]
     },
     {
-      "id": "unitedpatriotsalliance-substack-com-p-did-lindsey-graham-cleverly-queer",
-      "sourceId": "unitedpatriotsalliance",
-      "sourceName": "United Patriots Alliance News",
-      "title": "Did Lindsey Graham Cleverly Queer The World?",
-      "dek": null,
-      "author": "Evan Mulch",
-      "url": "https://unitedpatriotsalliance.substack.com/p/did-lindsey-graham-cleverly-queer",
-      "image": "https://substackcdn.com/image/fetch/$s_!Ks8-!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6067f3f4-c359-4432-8e58-709a03d736c9_1942x809.png",
-      "publishedAt": "2026-09-01T18:06:02.000Z",
-      "excerpt": "Will Darline Do The Same?",
-      "categories": [
-        "news"
-      ]
-    },
-    {
       "id": "www-merissahansen-com-p-plano-approves-14-million-police",
       "sourceId": "houstoncomical",
       "sourceName": "The Houston Comical",
@@ -841,7 +841,7 @@
       "url": "https://www.merissahansen.com/p/paul-vallely-mindwar-and-the-architecture",
       "image": "https://substackcdn.com/image/fetch/$s_!_gNd!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fda44e517-f217-401e-abd7-40c4c7ec3ea0_1200x720.jpeg",
       "publishedAt": "2026-06-22T15:32:46.000Z",
-      "excerpt": "Retired U.S.",
+      "excerpt": "Retired U.S. Army Major General Paul E. Vallely (sometimes rendered as “Valley” in older documents) built a career centered on psychological operations and information warfare.",
       "categories": [
         "news"
       ]
@@ -961,7 +961,7 @@
       "url": "https://www.merissahansen.com/p/the-maga-pay-to-play-machine-how",
       "image": "https://substackcdn.com/image/fetch/$s_!FFir!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F79dacff6-ded9-4bb4-8d11-bd506031889c_1200x675.jpeg",
       "publishedAt": "2026-04-17T15:05:36.000Z",
-      "excerpt": "Ashley St.",
+      "excerpt": "Ashley St. Clair spent nearly a decade as a rising star in the MAGA influencer ecosystem.",
       "categories": [
         "news"
       ]
